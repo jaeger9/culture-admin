@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="openapi">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.NAME) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="create_date_start" prepend="AND"><![CDATA[
+			A.CREATE_DATE >= TO_DATE(#create_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="create_date_end" prepend="AND"><![CDATA[
+			A.CREATE_DATE <= TO_DATE(#create_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			RDF_OPENAPI A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ID
+			,A.ORG_CODE
+			,A.NAME
+			,A.CATEGORY
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE
+			,(SELECT COUNT(T.ID) FROM RDF_OPERATION T WHERE T.OPENAPI_ID = A.ID) OPERATION_CNT
+		FROM
+			RDF_OPENAPI A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.ID DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ID
+			,A.ORG_CODE
+			,A.NAME
+			,A.CATEGORY
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE
+		FROM
+			RDF_OPENAPI A
+		WHERE
+			A.ID = #id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="id" type="pre" resultClass="int">
+			SELECT MAX(NVL(ID, 0)) + 1 FROM RDF_OPENAPI
+		</selectKey>
+		INSERT INTO RDF_OPENAPI (
+			ID
+			,CATEGORY
+			,ORG_CODE
+			,NAME
+			,CREATE_DATE
+		) VALUES (
+			#id#
+			,#category#
+			,#org_code#
+			,#name#
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE RDF_OPENAPI
+		SET
+			ORG_CODE	=	#org_code#
+			,NAME		=	#name#
+			,CATEGORY	=	#category#
+		WHERE
+			ID = #id#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM RDF_OPENAPI
+		WHERE
+			ID IN 
+		<iterate property="array.ids" open="(" conjunction="," close=")">
+			#array.ids[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

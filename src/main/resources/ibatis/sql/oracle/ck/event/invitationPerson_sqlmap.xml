@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="invitationPerson">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM,
+			 Z.*,
+            (    
+                    select count(*) from PCN_PERFORM_INVITATION_PERSON T
+                    where (T.USER_ID=Z.USER_ID and win_yn='Y') AND ( add_months(SYSDATE,-3) <![CDATA[<]]>  WIN_DATE  and WIN_DATE <![CDATA[<=]]> SYSDATE )
+            )AS win_cnt ,
+            (select to_char(max(nvl(T.win_date, T.reg_date)),'YYYY-MM-dd') from PCN_PERFORM_INVITATION_PERSON  T where  T.USER_ID=Z.USER_ID and  T.win_yn='Y') 
+            AS last_win_dat
+			 FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="event_seq" prepend="AND">
+			A.EVENT_SEQ = #event_seq#
+		</isNotEmpty>
+		<isNotEmpty property="user_id" prepend="AND">
+			A.USER_ID = #user_id#
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_PERFORM_INVITATION_PERSON A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.EVENT_SEQ
+			,A.CONTENT
+        	,A.USER_ID
+            ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+        	,A.WIN_YN
+		FROM
+			PCN_PERFORM_INVITATION_PERSON A
+		<include refid="sqlList-1" />
+		ORDER BY
+			SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.EVENT_SEQ
+			,A.CONTENT
+        	,A.USER_ID
+            ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+        	,A.WIN_YN
+		FROM
+			PCN_PERFORM_INVITATION_PERSON A
+		WHERE
+			SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 AS seq FROM PCN_PERFORM_INVITATION_PERSON
+		</selectKey>
+
+		INSERT INTO PCN_PERFORM_INVITATION_PERSON (
+			SEQ
+			,EVENT_SEQ
+			,REG_DATE
+			,USER_ID
+			,CONTENT
+			,WIN_YN
+		) VALUES(
+			#seq#
+			,#event_seq#
+			,#reg_date#
+			,#user_id#
+			,#content#
+			,#win_yn#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_INVITATION_PERSON
+		SET
+			EVENT_SEQ	=	#event_seq#
+			,CONTENT	=	#content#
+			,WIN_YN		=	#win_yn#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateWinYn" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_INVITATION_PERSON
+		SET
+			WIN_YN		=	#win_yn#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_PERFORM_INVITATION_PERSON
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+	<select id="listByExcel" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY A.SEQ DESC ) "num"
+			   	,(select count(1) 
+			        from PCN_PERFORM_INVITATION_PERSON T
+			        where (T.USER_ID=A.USER_ID and T.win_yn='Y') 
+			        AND ( add_months(SYSDATE,-3) <![CDATA[<]]> T.WIN_DATE  
+			        and T.WIN_DATE <![CDATA[<=]]> SYSDATE )
+			    ) "win_cnt"
+			    , NVL(B.NAME,'-')	"name"
+			    , NVL(A.USER_ID,'-')	"user_id"
+			    , NVL(B.HP,'-')	"hp"
+			    , NVL(A.CONTENT,'-')	"content"
+			    , NVL(B.EMAIL,'-')	"email"
+			    , NVL(B.ADDR_SIDO,'-') "addr_sido"
+			    , NVL((SELECT SUM(T.POINT) FROM PCN_CUSTOMER_POINT T WHERE T.USER_ID = A.USER_ID), 0) "point"
+			    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') "reg_date"
+			FROM
+				PCN_PERFORM_INVITATION_PERSON A
+				,PCN_MEMBER B
+			WHERE
+				A.USER_ID = B.USER_ID(+)
+			AND	A.EVENT_SEQ = #event_seq#
+			<isNotEmpty property="win_yn" prepend="AND">
+				A.WIN_YN = #win_yn#
+			</isNotEmpty>
+			ORDER BY A.SEQ DESC
+	</select>
+
+</sqlMap>

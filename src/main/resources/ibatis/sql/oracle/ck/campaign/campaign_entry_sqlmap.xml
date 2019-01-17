@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="campaign.entry">
+
+	<!-- 문화선물캠페인 응모작 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* campaign.entry.listCount */
+			COUNT(1)
+		FROM (
+			SELECT
+				SEQ, EVENT_SEQ, CONTENTS, USER_EMAIL, REG_DATE,
+				(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND S.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+			FROM CAMPAIGN_EVENT_BOARD T
+			WHERE 1=1
+		) T
+		WHERE 1=1
+		<isNotEmpty property="search_event" prepend="AND">
+			EVENT_SEQ = #search_event#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="nm">
+				USER_NM LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				USER_EMAIL LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="contents">
+				CONTENTS LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<!-- 문화선물캠페인 응모작 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.entry.list */
+			SEQ, EVENT_SEQ, FILE_PATH, ORI_FILE_NM, SYS_FILE_NM,
+			USER_NM, CONTENTS, USER_EMAIL, DEL_YN, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM
+		FROM (
+			SELECT
+				SEQ, EVENT_SEQ, FILE_PATH, ORI_FILE_NM, SYS_FILE_NM, 
+				CONTENTS, USER_NM, USER_EMAIL, DEL_YN, REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE
+			FROM (
+				SELECT
+					SEQ, EVENT_SEQ, FILE_PATH, ORI_FILE_NM, SYS_FILE_NM,
+					CONTENTS, USER_EMAIL, DEL_YN, REG_DATE,
+					(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND S.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+				FROM CAMPAIGN_EVENT_BOARD T
+				WHERE 1=1
+			) T
+			WHERE 1=1
+			<isNotEmpty property="search_event" prepend="AND">
+				EVENT_SEQ = #search_event#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="nm">
+					USER_NM LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="email">
+					USER_EMAIL LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="contents">
+					CONTENTS LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화선물캠페인 응모작 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.entry.view */
+			SEQ, EVENT_SEQ, USER_EMAIL, TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') REG_DATE,
+			FILE_PATH, ORI_FILE_NM, SYS_FILE_NM, CONTENTS, DEL_YN,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM,
+			(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND S.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+		FROM CAMPAIGN_EVENT_BOARD T
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화선물캠페인 응모작 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* campaign.entry.update */
+		CAMPAIGN_EVENT_BOARD SET
+			CONTENTS = #contents#,
+			<isNotEmpty property="file_path">
+				FILE_PATH = #file_path#,
+			</isNotEmpty>
+			<isNotEmpty property="ori_file_nm">
+				ORI_FILE_NM = #ori_file_nm#,
+			</isNotEmpty>
+			<isNotEmpty property="sys_file_nm">
+				SYS_FILE_NM = #sys_file_nm#,
+			</isNotEmpty>
+			DEL_YN = #del_yn#,
+			ADMIN_ID = #admin_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화선물캠페인 응모작 삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		DELETE /* campaign.entry.delete */
+		FROM CAMPAIGN_EVENT_BOARD
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<!-- 캠페인 댓글 엑셀 다운로드 목록 -->
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* campaign.entry.exelList */
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) "event_nm",
+			CONTENTS "contents", USER_NM "user_nm", USER_EMAIL "user_email", HP_NO "hp_no",
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') "reg_date",
+			DECODE(DEL_YN, 'N', '공개', 'Y', '비공개') "open_yn"
+		FROM (
+			SELECT
+				A.SEQ, A.EVENT_SEQ, A.CONTENTS, A.USER_EMAIL, A.REG_DATE, A.DEL_YN, B.USER_NM, B.HP_NO
+			FROM CAMPAIGN_EVENT_BOARD A
+			INNER JOIN CAMPAIGN_USER_INFO B ON (B.USER_EMAIL = A.USER_EMAIL AND B.EVENT_SEQ = A.EVENT_SEQ)
+			WHERE 1=1
+		) T
+		WHERE 1=1
+		<isNotEmpty property="search_event" prepend="AND">
+			EVENT_SEQ = #search_event#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="nm">
+				USER_NM LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				USER_EMAIL LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="contents">
+				CONTENTS LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY SEQ DESC
+	</select>
+	
+</sqlMap>

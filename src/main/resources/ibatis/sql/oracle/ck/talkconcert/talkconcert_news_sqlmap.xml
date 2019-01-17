@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="talkconcert.news">
+
+	<!-- 문화토크콘서트 소식 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* talkconcert.news.listCount */
+			COUNT(1)
+		FROM TALK_CONCERT_NEWS
+		WHERE 1=1
+		<isNotEmpty property="del_yn" prepend="AND">
+			DEL_YN = #del_yn#
+		</isNotEmpty>
+		<isNotEmpty property="search_category" prepend="AND">
+			CATEGORY = #search_category#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="title">
+				TITLE LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="all">
+				(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<!-- 문화토크콘서트 소식 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* talkconcert.news.list */
+			SEQ, TITLE, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, VIEW_CNT,
+			CATEGORY, DECODE(CATEGORY, '1','일반공지', '2','캠페인소식', '3','당첨자발표') CATEGORY_NM,
+			APPROVAL, DECODE(APPROVAL, 'W','대기', 'Y','승인', 'N',' 미승인') APPROVAL_NM
+		FROM (
+			SELECT
+				SEQ, CATEGORY, TITLE, APPROVAL, REG_DATE, VIEW_CNT,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE
+			FROM TALK_CONCERT_NEWS
+			WHERE 1=1
+			<isNotEmpty property="search_category" prepend="AND">
+				CATEGORY = #search_category#
+			</isNotEmpty>
+			<isNotEmpty property="del_yn" prepend="AND">
+				DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="title">
+					TITLE LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="all">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEqual>
+			</isNotEmpty>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화토크콘서트 소식 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT /* talkconcert.news.insert */
+		INTO TALK_CONCERT_NEWS (
+			SEQ, CATEGORY, TITLE, CONTENTS, URL, APPROVAL, REG_ID, REG_DATE
+		) VALUES (
+			SEQ_TALK_CONCERT_NEWS.NEXTVAL, #category#, #title#, #contents:CLOB#, #url#, #approval#, #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 문화토크콘서트 소식 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* talkconcert.news.view */
+			SEQ, TITLE, CONTENTS, URL, REG_ID, UPD_ID,
+			CATEGORY, DECODE(CATEGORY, '1','일반공지', '2','캠페인소식', '3','당첨자발표') CATEGORY_NM,
+			APPROVAL, DECODE(APPROVAL, 'W','대기', 'Y','승인', 'N',' 미승인') APPROVAL_NM,
+		    TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') REG_DATE, TO_CHAR(UPD_DATE, 'YYYY-MM-DD HH24:MI') UPD_DATE
+		FROM TALK_CONCERT_NEWS
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화토크콘서트 소식 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* talkconcert.news.update */
+		TALK_CONCERT_NEWS SET
+			CATEGORY = #category#,
+			TITLE = #title#,
+			CONTENTS = #contents:CLOB#,
+			URL = #url#,
+			APPROVAL = #approval#,
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화토크콘서트 소식 삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		UPDATE /* talkconcert.news.delete */
+		TALK_CONCERT_NEWS SET
+			DEL_YN = 'Y',
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+</sqlMap>

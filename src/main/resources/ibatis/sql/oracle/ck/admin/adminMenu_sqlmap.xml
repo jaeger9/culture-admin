@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="adminMenu">
+
+	<resultMap id="rmAdminMenu" class="adminMenu" groupBy="menu_id">
+		<result property="menu_id"		column="MENU_ID"		/>
+		<result property="menu_pid"		column="MENU_PID"		/>
+		<result property="menu_sort"	column="MENU_SORT"		/>
+		<result property="menu_name"	column="MENU_NAME"		/>
+		<result property="menu_desc"	column="MENU_DESC"		/>
+		<result property="menu_level"	column="MENU_LEVEL"		/>
+		<result property="menu_ids"		column="MENU_IDS"		/>
+		<result property="menu_names"	column="MENU_NAMES"		/>
+
+		<!-- 1 : N -->
+		<result property="urlList" resultMap="adminMenu.rmAdminUrlRepository" />
+	</resultMap>
+
+	<resultMap id="rmAdminUrlRepository" class="adminUrlRepository">
+		<result property="url_id"		column="URL_ID"			/>
+		<result property="url_string"	column="URL_STRING"		/>
+		<result property="url_desc"		column="URL_DESC"		/>
+		<result property="url_link_yn"	column="URL_LINK_YN"	/>
+		<result property="url_strings"	column="URL_STRINGS"	/>
+	</resultMap>
+
+	<!-- 관리자 메뉴 구성 (GNB, LNB) -->
+	<select id="listByAdminUserTree" parameterClass="paramMap" resultMap="rmAdminMenu">
+		SELECT
+			B.MENU_ID
+			,B.MENU_PID
+			,B.MENU_SORT
+			,B.MENU_NAME
+			,B.MENU_DESC
+			,LEVEL												AS MENU_LEVEL
+			,SUBSTR(SYS_CONNECT_BY_PATH(B.MENU_ID, '>'), 2)		AS MENU_IDS
+			,SUBSTR(SYS_CONNECT_BY_PATH(B.MENU_NAME, '>'), 2)	AS MENU_NAMES
+			,C.URL_ID
+			,C.URL_STRING
+			,C.DESCRIPTION										AS URL_DESC
+			,A.LINK_YN											AS URL_LINK_YN
+			,SUBSTR(SYS_CONNECT_BY_PATH(C.URL_STRING, '>'), 2)	AS URL_STRINGS
+		FROM
+			ADMIN_MENU_MAPPING A
+			,ADMIN_MENU B
+			,(
+				SELECT
+					B.URL_ID
+				    ,B.URL_STRING
+				    ,B.DESCRIPTION
+				FROM (
+					    SELECT
+					        DISTINCT URL_ID
+					    FROM
+					        ADMIN_USER_ROLE A
+					        ,ADMIN_URL_ROLE B
+					    WHERE
+					        A.ROLE_ID = B.ROLE_ID
+					    AND	A.USER_ID = #session_admin_id#
+					) A
+					,ADMIN_URL_REPOSITORY B
+				WHERE
+					A.URL_ID = B.URL_ID
+            ) C
+		WHERE
+			A.MENU_ID	=	B.MENU_ID
+		AND	A.URL_ID	=	C.URL_ID
+		AND B.APPROVAL	=	'Y'
+		START WITH
+			B.MENU_PID = '0'
+		CONNECT BY PRIOR
+			B.MENU_ID = B.MENU_PID
+		ORDER SIBLINGS BY
+			B.MENU_SORT
+	</select>
+
+	<insert id="adminLogInsert" parameterClass="paramMap" >
+		INSERT INTO ADMIN_PATH(
+			IDX
+			,USERID
+			,REQUESTURI
+			,USERIP
+			,ANOTHER
+			,REG_DATE
+		)VALUES(
+			(SELECT NVL(MAX(IDX),0) + 1 FROM ADMIN_PATH)
+			,#adminId#
+		    ,#requestURI#
+		    ,#clientIp#
+		    ,#queryString#
+		    ,sysdate
+		)
+	</insert>
+</sqlMap>

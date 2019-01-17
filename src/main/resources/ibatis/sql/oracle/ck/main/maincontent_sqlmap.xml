@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="maincontent">
+
+	<select id="tabList" resultClass="commonMap">
+		SELECT 
+		  code , name 
+		FROM 
+		  portal_main_code 
+		WHERE
+		  pcode = 1 
+		  AND TYPE = 'MAIN_CONTENT'
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+	      R.*
+	    FROM
+	    (
+	      SELECT 
+	        <!-- FLOOR((ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC)-1)/#pageRowCount#+1) AS PAGE -->
+	        FLOOR((ROW_NUMBER()OVER( ORDER BY  SEQ )-1)/11) AS PAGE
+	        , seq
+	        , code 
+	        , title
+	        , decode( approval , 'Y' , '승인' , 'N' , '미승인' , 'W' , '대기')
+	        , TO_CHAR( reg_date  , 'YYYY-MM-DD')
+	        , TO_CHAR( upd_date , 'YYYY-MM-DD')
+	      FROM 
+	        portal_main_content
+	      WHERE
+	        code = #code#
+	    ) R
+	    WHERE
+	      R.PAGE = #page#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PORTAL_MAIN_CONTENT 
+		WHERE 
+			CODE = #code#
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		  	s.seq  
+		  	, c.name 
+		  	, s.title 
+		  	, s.summary 
+		  	, s.url
+		  	, s.uci 
+		FROM
+		    portal_main_content m , 
+			portal_main_content_sub s ,
+		    portal_main_code c
+		WHERE
+		  	s.pseq = m.seq
+		  	AND m.code = c.pcode 
+		  	AND s.code = c.code
+		  	AND m.seq = #seq#
+		ORDER BY C.name  
+	</select>
+	<insert id="insertMain" parameterClass="paramMap">
+		INSERT INTO portal_main_content (
+			seq      
+			, code     
+			, title    
+			, approval 
+			, reg_date 
+		) VALUES (
+			(SELECT NVL(MAX(SEQ), 0) + 1 FROM PCN_MAIN_BANNER)
+			, #code#     
+			, #title#    
+			, #approval# 
+			, sysdate
+		)
+	</insert>
+	<insert id="insertSub">
+	
+		INSERT INTO portal_main_content_sub(
+			seq         
+			,pseq        
+			,code        
+			,title       
+			,summary     
+			,url         
+			,type        
+			,place       
+			,period      
+			,discount    
+			,rights      
+			,cont_date   
+			,image_name  
+			,image_name2 
+			,uci         
+		) VALUES ( 
+			seq <!-- sequence 만들어 -->        
+			,#pseq#        
+			,#code#        
+			,#title#       
+			,#summary#     
+			,#url#         
+			,#type#        
+			,#place#       
+			,#period#      
+			,#discount#    
+			,#rights#      
+			,#cont_date#   
+			,#image_name#  
+			,#image_name2# 
+			,#uci#         
+		)	
+	</insert>
+	<update id="updateStatusMain" parameterClass="paramMap">
+		UPDATE 
+			portal_main_content
+		SET 
+			STATUS = #status#
+		WHERE
+			SEQ IN
+	 		<iterate property="seqs" open="(" close=")" conjunction=",">
+	 			#seqs[]#
+	 		</iterate>
+	</update>
+	<update id="updateStatusSub" parameterClass="paramMap">
+		UPDATE 
+			portal_main_content_sub
+		SET 
+			STATUS = #status#
+		WHERE
+			SEQ IN
+	 		<iterate property="seqs" open="(" close=")" conjunction=",">
+	 			#seqs[]#
+	 		</iterate>
+	</update>
+</sqlMap>

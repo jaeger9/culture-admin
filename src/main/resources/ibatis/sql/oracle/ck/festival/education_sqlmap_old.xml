@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="education.old">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		  	R.*
+		FROM
+		(
+		  	SELECT 
+		    	FLOOR((ROW_NUMBER()OVER(ORDER BY A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE,
+		    	A.*
+		  	FROM 
+		    (
+		    	SELECT     
+		    		a.SEQ			,      
+					a.TITLE       , 
+				    a.REG_DATE      , 
+				    a.CREATED_DATE    , 
+				    a.MODIFIED_DATE   , 
+				    a.ISSUED_DATE     , 
+				    a.DIGITALIZED_DATE  , 
+				    a.PUBLISHER     , 
+				    a.TYPE        , 
+				    a.PERIOD      , 
+				    a.UCI         , 
+				    a.URL         , 
+				    a.CONTEXT_NAME    , 
+				    a.INSERT_DATE     , 
+				    a.CREATOR       ,
+				    DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL , 
+				    a.SUBJECT_CATEGORY  ,
+				    a.LOCATION      ,
+				    a.VIEW_CNT,
+				    (SELECT COUNT(SEQ) FROM PORTAL_COMMENT WHERE MENU_CD IN ('1', '2') AND MENU_SEQ = a.SEQ) REPLY_CNT,
+				    SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,1), INSTR(PERIOD||'~','~',1,1)-INSTR('~'||PERIOD,'~',1,1)) reg_start, 
+				    SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,2), INSTR(PERIOD||'~','~',1,2)-INSTR('~'||PERIOD,'~',1,2)) reg_end  ,
+				    (
+				    	SELECT 
+				      		name
+				    	FROM 
+				      		PCN_COMMON_CODE 
+				    	WHERE 
+				      		TYPE = 'GENRE'
+				      	AND PCODE = 127 
+				      	AND value= a.GENRE
+				    ) GENRE
+				FROM 
+					PCN_RDF_METADATA a
+				WHERE
+					<![CDATA[
+						reg_date <= sysdate
+					]]> 
+					<isNotEmpty property="keyword" >
+						<isEqual property="searchGubun" compareValue="all" prepend="AND">
+							( 
+								title like '%'|| #keyword# || '%' or
+								DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+							)
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title" prepend="AND">
+							title like '%'|| #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="description" prepend="AND">
+							DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="creator" prepend="AND">
+								creator like '%'|| #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					<iterate property="type" open="(TYPE LIKE " conjunction="OR TYPE LIKE" close=")" prepend="AND">
+						'%'||#type[]#||'%'
+					</iterate>
+<!-- 					<isNotEmpty prepend="AND" property="type">
+						TYPE = #type#
+					</isNotEmpty> -->
+					<isNotEmpty prepend="AND" property="office">
+						A.PUBLISHER = #office#
+					</isNotEmpty>
+					<isNotEmpty property="period">
+						<isEqual property="period" compareValue="insert" prepend="AND">
+							INSERT_DATE BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="approval" prepend="AND">
+						APPROVAL = #approval#	
+					</isNotEmpty>
+				
+			) A
+			<dynamic prepend="WHERE">
+		     	<isNotEmpty property="period">
+                	<isEqual property="period" compareValue="event" prepend="AND">
+            		(
+              			TO_DATE(reg_start,'yyyy.mm.dd') BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+              			TO_DATE(reg_end,'yyyy.mm.dd') BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+            		)
+            		</isEqual>
+              	</isNotEmpty>
+		    </dynamic>
+		) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+	   		COUNT(1)
+	  	FROM 
+	    (
+	    	SELECT           
+				a.TITLE       , 
+			    a.REG_DATE      , 
+			    a.CREATED_DATE    , 
+			    a.MODIFIED_DATE   , 
+			    a.ISSUED_DATE     , 
+			    a.DIGITALIZED_DATE  , 
+			    a.PUBLISHER     , 
+			    a.TYPE        , 
+			    a.PERIOD      , 
+			    a.UCI         , 
+			    a.URL         , 
+			    a.CONTEXT_NAME    , 
+			    a.INSERT_DATE     , 
+			    a.CREATOR       ,
+			    a.APPROVAL      ,
+			    a.SUBJECT_CATEGORY  ,
+			    a.LOCATION      ,
+			    a.view_cnt,
+			    SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,1), INSTR(PERIOD||'~','~',1,1)-INSTR('~'||PERIOD,'~',1,1)) reg_start, 
+			    SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,2), INSTR(PERIOD||'~','~',1,2)-INSTR('~'||PERIOD,'~',1,2)) reg_end  ,
+			    (
+			    	SELECT 
+			      		name
+			    	FROM 
+			      		PCN_COMMON_CODE 
+			    	WHERE 
+			      		TYPE = 'GENRE'
+			      	AND PCODE = 127 
+			      	AND value= a.GENRE
+			    ) GENRE
+			FROM 
+				PCN_RDF_METADATA a
+			WHERE
+				<![CDATA[
+						reg_date <= sysdate
+					]]> 
+					<isNotEmpty property="keyword" >
+						<isEqual property="searchGubun" compareValue="all" prepend="AND">
+							( 
+								title like '%'|| #keyword# || '%' or
+								DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+							)
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title" prepend="AND">
+							title like '%'|| #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="description" prepend="AND">
+							DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="creator" prepend="AND">
+								creator like '%'|| #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					<iterate property="type" open="(TYPE LIKE " conjunction="OR TYPE LIKE" close=")" prepend="AND">
+						'%'||#type[]#||'%'
+					</iterate>
+<!-- 					<isNotEmpty prepend="AND" property="type">
+						TYPE = #type#
+					</isNotEmpty> -->
+					<isNotEmpty prepend="AND" property="office">
+						A.PUBLISHER = #office#
+					</isNotEmpty>
+					<isNotEmpty property="period">
+						<isNotEmpty property="insert" prepend="AND">
+							INSERT_DATE BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="approval" prepend="AND">
+						APPROVAL = #approval#	
+					</isNotEmpty>
+			
+		) A
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="period">
+                <isEqual property="period" compareValue="event" prepend="AND">
+            		(
+              			TO_DATE(reg_start,'yyyy.mm.dd') BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+              			TO_DATE(reg_end,'yyyy.mm.dd') BETWEEN  TO_DATE(#reg_start#,'yyyy-mm-dd')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+            		)
+            	</isEqual>
+        	</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.UCI					
+		  	, A.SEQ					
+		  	, A.CREATOR				
+		  	, A.REG_DATE				
+			, A.TITLE					
+			, A.REFERENCE_IDENTIFIER	
+			, A.PERIOD				
+			, A.LOCATION						
+			, A.VENUE					
+			, A.HOME_PAGE				
+			, A.REFERENCE				
+			, A.DESCRIPTION			
+			, A.URL					
+			, A.INSERT_DATE			
+			, A.RIGHTS				
+			, A.REQUEST				
+			, A.ZIP_CODE				
+			, A.ADDR1					
+			, A.ADDR2					
+			, A.ZIP_YN				
+			, A.TOP_YN				
+			, A.REFERENCE_IDENTIFIER_ORG 
+			, A.APPROVAL				
+			, SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,1), INSTR(PERIOD||'~','~',1,1)-INSTR('~'||PERIOD,'~',1,1)) REG_START 
+			, SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,2), INSTR(PERIOD||'~','~',1,2)-INSTR('~'||PERIOD,'~',1,2)) REG_END	
+			, A.NOTE1                                                                                                    
+			, A.GENRE
+			, A.REQUEST
+		FROM 
+			PCN_RDF_METADATA A
+		WHERE 
+			UCI = #uci#  
+	</select>
+	
+	<!-- 공연/전시 저장 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_RDF_METADATA
+		(
+			UCI						,
+		  	SEQ						,
+		  	CREATOR					,
+		  	REG_DATE				,
+			TITLE					,
+			REFERENCE_IDENTIFIER	,
+			PERIOD					,
+			LOCATION					,		
+			VENUE					,
+			HOME_PAGE				,
+			REFERENCE				,
+			DESCRIPTION				,
+			URL						,
+			TYPE					,
+			INSERT_DATE				,
+			RIGHTS					,
+			REQUEST					,
+			ZIP_CODE				,
+			ADDR1					,
+			ADDR2					,
+			ZIP_YN					,
+			TOP_YN					,
+			REFERENCE_IDENTIFIER_ORG,
+			PUBLISHER				,
+			APPROVAL		        ,
+			GENRE
+		) VALUES(
+			'G706'|| FN_CURRENT_TIME_MILLIS() ,
+			EVENT_FASTIVAL_SEQ.NEXTVAL  ,
+			#creator#				,
+			SYSDATE					,
+			#title#					,
+			#reference_identifier#	,
+			#reg_start#	|| '~' || #reg_end#			,
+			#location#				,
+			#venue#					,
+			#home_page#				,
+			#reference#				,
+			#description:clob#		,
+			#url#					,
+			#type#					,
+			SYSDATE					,
+			#rights#				,
+			#request#				,
+			#zip_code#			,
+			#addr1#			,
+			#addr2#			,
+			#zip_yn#				,
+			#top_yn#				,
+			#reference_identifier_org#,
+			#publisher#				,
+			#approval#              ,
+			#genre#
+			
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		
+		UPDATE  PCN_RDF_METADATA SET			
+			MODIFIED_DATE			= TO_CHAR(SYSDATE,'YYYY-MM-DD')	,
+			TITLE					=#title#						,
+			PERIOD					= #reg_start#	|| '~' || #reg_end# ,
+			LOCATION				=#location#						,		
+			VENUE					=#venue#						,
+			HOME_PAGE				=#home_page#					,
+			REFERENCE				=#reference#					,
+			DESCRIPTION				=#description:clob#				,
+			URL						=#url#							,
+			RIGHTS					=#rights#						,
+			REQUEST					=#request#						,
+			ZIP_CODE				=#zip_code#				,
+			ADDR1					=#addr1#					,
+			ADDR2					=#addr2#					,
+			ZIP_YN					=#zip_yn#						,
+			TOP_YN					=#top_yn#						,
+			APPROVAL				=#approval#						,	
+			REFERENCE_IDENTIFIER_ORG = #reference_identifier_org#	,
+			REFERENCE_IDENTIFIER 	= #reference_identifier#		,
+			NOTE1					=#note1#                        ,
+			GENRE                   =#genre#
+		WHERE 
+			UCI = #uci#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PCN_RDF_METADATA 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+			<!-- <isNotEmpty property="top_yn">
+				TOP_YN		=#top_yn#
+			</isNotEmpty> -->
+		WHERE 
+		<iterate property="array.uci" open="UCI IN(" conjunction="," close=")">
+			#array.uci[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_RDF_METADATA 
+		WHERE 
+		<iterate property="array.uci" prepend="UCI IN " open="(" conjunction="," close=")" >
+ 			#array.uci[]#
+		</iterate>
+	</delete>
+</sqlMap>

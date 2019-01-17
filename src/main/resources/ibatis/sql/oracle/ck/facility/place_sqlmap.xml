@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="place">
+	<select id="list" parameterClass="java.util.HashMap" resultClass="commonMap">
+		SELECT 
+			* 
+		FROM (
+			SELECT	
+					<isEmpty property="sort_type">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY V.CUL_SEQ DESC nulls last)-1)/$list_unit$ + 1) AS PAGE,
+					</isEmpty>
+					<isNotEmpty property="sort_type">
+						<isEqual property="sort_type" compareValue="latest">
+							FLOOR((ROW_NUMBER()OVER(ORDER BY V.CUL_SEQ DESC nulls last)-1)/$list_unit$ + 1) AS PAGE,
+						</isEqual>
+						<isEqual property="sort_type" compareValue="hit">
+							FLOOR((ROW_NUMBER()OVER(ORDER BY V.VIEW_CNT DESC nulls last)-1)/$list_unit$ + 1) AS PAGE,
+						</isEqual>
+					</isNotEmpty>
+					V.CUL_SEQ		,               
+					V.CUL_GRP1    ,                   
+					V.CUL_GRP2    ,                   
+					V.CUL_NAME    ,                   
+					V.CUL_USER    ,                   
+					V.CUL_EMAIL   ,                   
+					V.CUL_TEL     ,                   
+					V.CUL_FAX     ,      
+					V.CUL_OPENDAY ,                   
+					V.CUL_OPENNAME,
+					V.CUL_CLOSEDAY,                   
+					V.CUL_BESTNAME,                   
+					V.CUL_HOMEURL ,                   
+					V.CUL_MAPURL  ,                   
+					V.CUL_MAPIMG  ,                   
+					V.CUL_CONT    ,                   
+					V.CUL_VIEWIMG1,                   
+					V.CUL_VIEWIMG2,                   
+					V.CUL_VIEWIMG3,                   
+					V.CUL_VIEWIMG4,                   
+					V.VIEW_CNT,
+					to_char(V.CUL_REGDATE,'YYYY-MM-DD')CUL_REGDATE ,                    
+					DECODE ( V.POST_FLAG , 'Y' , '승인' , 'N' , '미승인' , '대기') AS POST_FLAG	,
+					V.CUL_PLACE || ' ' || V.CUL_PLACE2 AS CUL_PLACE , 
+					(SELECT VALUE FROM PCN_COMMON_CODE WHERE TYPE = 'LOCATION' AND NAME = CUL_PLACE) CUL_ADDR ,
+			        V.APPLY_YN,
+			        V.APPLY_URL,
+			        R.APPROVAL RENTAL_APPROVAL,
+			        (SELECT COUNT(1) FROM PORTAL_RENTAL_APPLY A WHERE A.P_SEQ = R.SEQ) APPLY_CNT 
+					<!-- (SELECT VALUE FROM PCN_COMMON_CODE WHERE NAME LIKE '%' || 
+					decode(replace(CUL_PLACE,'광역시', ''), '강원도', '강원', '경기도', '경기', '경상남도', '경남', '경상북도','경북', '서울특별시', '서울', '제주특별자치도', '제주', '충청남도','충남','충청북도','충북', '세종특별자치시','세종',replace(CUL_PLACE,'광역시', ''))
+					|| '%' AND  TYPE ='LOCATION' AND ROWNUM = 1) CUL_ADDR -->
+			FROM	
+				VLI_VLI_CUL	V , 
+				PORTAL_RENTAL R 
+			WHERE
+				V.CUL_SEQ = R.CUL_SEQ(+)
+				<isNotEmpty property="grp" prepend="AND">
+					V.CUL_GRP1 = #grp#
+				</isNotEmpty>	
+				<isNotEmpty property="name" prepend="AND">
+					V.CUL_NAME LIKE '%' || #name# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="apply_yn" prepend="AND">
+					<isEqual property="apply_yn" compareValue="Y">
+					V.APPLY_YN = #apply_yn#
+					</isEqual>
+					<isNotEqual property="apply_yn" compareValue="Y">
+					(
+						V.APPLY_YN = 'N' OR V.APPLY_YN = 'W' 
+					)
+					</isNotEqual>
+				</isNotEmpty>
+				<isNotEmpty property="post_flag" prepend="AND">
+					V.POST_FLAG = #post_flag#
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					R.APPROVAL = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						V.CUL_REGDATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						V.CUL_REGDATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT	
+			COUNT(1)
+		FROM	
+			VLI_VLI_CUL	V , 
+			PORTAL_RENTAL R 
+		WHERE
+			V.CUL_SEQ = R.CUL_SEQ(+)
+			<isNotEmpty property="grp" prepend="AND">
+				V.CUL_GRP1 = #grp#
+			</isNotEmpty>	
+			<isNotEmpty property="name" prepend="AND">
+				V.CUL_NAME LIKE '%' || #name# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="apply_yn" prepend="AND">
+				<isEqual property="apply_yn" compareValue="Y">
+				V.APPLY_YN = #apply_yn#
+				</isEqual>
+				<isNotEqual property="apply_yn" compareValue="Y">
+				(
+					V.APPLY_YN = 'N' OR V.APPLY_YN = 'W' 
+				)
+				</isNotEqual>
+			</isNotEmpty>
+			<isNotEmpty property="post_flag" prepend="AND">
+				V.POST_FLAG = #post_flag#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				R.APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					V.CUL_REGDATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					V.CUL_REGDATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			*
+		FROM 
+			VLI_VLI_CUL				
+		WHERE 
+			CUL_SEQ = #cul_seq#		
+	</select>
+	<select id="rentalView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ 
+			, PERSON  
+			, CHARGE  
+			, CHARGE_YN
+			, PAY_OPTION 
+			, RENTAL_DT  
+			, RENTAL_INFO
+			, OTHER
+			, APPROVAL
+		FROM 
+		  	PORTAL_RENTAL
+		WHERE
+		  	CUL_SEQ = #cul_seq#
+		  	<![CDATA[
+		  	AND ROWNUM < 2
+		  	]]>
+	</select>
+	<select id="rentalApplyList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ  DESC)-1)/$list_unit$ + 1) AS PAGE
+			  	, A.SEQ 
+			  	, C.CUL_NAME
+			  	, A.USER_ID  
+			  	, A.PERSON  
+			  	, A.TEL 
+			  	, A.EMAIL
+			  	, DECODE(A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , 'W', '접수', 'P', '승인대기') APPROVAL
+			  	, TO_CHAR(A.RENTAL_DT, 'yyyy-mm-dd') RENTAL_DT
+			  	, A.START_TIME
+			  	, A.END_TIME
+			  	, A.PURPOSE
+			FROM
+			  	PORTAL_RENTAL_APPLY A,
+			  	PORTAL_RENTAL R , 
+			  	VLI_VLI_CUL C
+			WHERE
+			 	A.P_SEQ = R.SEQ
+			  	AND R.CUL_SEQ = C.CUL_SEQ
+			  	AND C.CUL_SEQ = #cul_seq#
+			  	<isNotEmpty property="keyword" prepend="AND">
+					A.USER_ID LIKE '%' || #keyword# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					A.APPROVAL = #approval#
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#  
+	</select>
+	<select id="rentalApplyListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+		  	PORTAL_RENTAL_APPLY A,
+		  	PORTAL_RENTAL R , 
+		  	VLI_VLI_CUL C
+		WHERE
+		 	A.P_SEQ = R.SEQ
+		  	AND R.CUL_SEQ = C.CUL_SEQ
+		  	AND C.CUL_SEQ = #cul_seq#
+		  	<isNotEmpty property="keyword" prepend="AND">
+				A.USER_ID LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				A.APPROVAL = #approval#
+			</isNotEmpty>
+	</select>
+	<select id="mailInfo" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		  	M.NAME 
+		  	, A.EMAIL 
+		  	, '시설예약' AS TITLE
+		  	, C.CUL_NAME || ' ' || TO_CHAR(A.RENTAL_DT , 'YYYY.MM.DD') || ' ' || A.START_TIME || '시 ~ ' || A.END_TIME || '시' SUBJECT
+		  	, DECODE(#updateStatus# , 'Y' , '승인' , 'N' , '미승인') APPROVAL
+		FROM 
+		  	PORTAL_RENTAL_APPLY A , 
+		  	PORTAL_RENTAL R , 
+		  	VLI_VLI_CUL C , 
+		  	PCN_MEMBER M 
+		WHERE
+		  	A.P_SEQ = R.SEQ
+		  	AND C.CUL_SEQ = R.CUL_SEQ
+		  	AND A.USER_ID = M.USER_ID 
+	        <iterate property="array.seq" open=" A.SEQ IN (" conjunction="," close=")" prepend="AND">
+				#array.seq[]#
+	       </iterate>
+	</select>
+	<!-- 공연/전시 저장 -->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="cul_seq" resultClass="int">
+			SELECT MAX(cul_seq)+1 FROM VLI_VLI_CUL 
+		</selectKey>
+		INSERT INTO VLI_VLI_CUL
+		(			
+			CUL_SEQ, CUL_GRP1, CUL_GRP2, CUL_NAME, CUL_USER, CUL_EMAIL, CUL_TEL, CUL_FAX,
+			CUL_OPENDAY, CUL_OPENNAME, CUL_BESTNAME, CUL_HOMEURL, CUL_MAPURL, CUL_MAPIMG, CUL_CONT,
+			CUL_VIEWIMG1, CUL_VIEWIMG2, CUL_VIEWIMG3, CUL_VIEWIMG4, CUL_REGDATE, USERID,
+			POST_FLAG, CUL_PLACE, CUL_PLACE2, CUL_GPS_X, CUL_GPS_Y,CUL_CLOSEDAY,CUL_ZIP_YN,
+			NEW_POST_NUM, NEW_ADDR, NEW_ADDR2
+		)VALUES(
+			#cul_seq# , #cul_grp1#, #cul_grp2#, #cul_name#, #admin_id#, #cul_email#, #cul_tel#, #cul_fax#,
+			#cul_openday#, #cul_openname#, #cul_bestname#, #cul_homeurl#, #cul_mapurl#, #cul_mapimg#, #cul_cont#,
+			#file_sysname#, #cul_viewimg2#, #cul_viewimg3#, #cul_viewimg4#, SYSDATE, #session_admin_id#,
+			#post_flag#, 
+			decode(replace(#cul_place#,'광역시', ''), '강원도', '강원', '경기도', '경기', '경상남도', '경남', '경상북도','경북', '서울특별시', '서울', '제주특별자치도', '제주', '충청남도','충남','충청북도','충북', '세종특별자치시','세종',replace(#cul_place#,'광역시', '')), 
+			#cul_place2#, #cul_gps_x#, #cul_gps_y#,#cul_closeday#, #cul_zip_yn#,
+			#cul_post_num#, #cul_addr#, #cul_addr2#
+		)
+	</insert>
+	<insert id="insertRental" parameterClass="paramMap">
+		INSERT 
+			INTO PORTAL_RENTAL 
+			(
+		      	SEQ 
+		      	, CUL_SEQ
+		      	, UCI
+				, PERSON  
+				, CHARGE  
+				, PAY_OPTION 
+				, RENTAL_DT  
+				, RENTAL_INFO
+				, OTHER
+		      	, REG_DATE 
+		      	, USER_ID
+		      	, APPROVAL
+		  	) VALUES (
+		     	RENTAL_SEQ.NEXTVAL
+		     	, #cul_seq#
+		     	, 'G706' || FN_CURRENT_TIME_MILLIS()
+				, #rental_person#  
+				, #rental_charge#  
+				, #rental_pay_option# 
+				, #rental_dt#  
+				, #rental_info#
+				, #rental_other#
+		     	, SYSDATE
+		     	, #session_admin_id#		
+		     	, #rental_approval#
+		  	)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE VLI_VLI_CUL SET
+			CUL_GRP1	= #cul_grp1#,
+			CUL_GRP2	= #cul_grp2#,
+			CUL_NAME	= #cul_name#,
+			CUL_USER	= #cul_user#,
+			CUL_EMAIL	= #cul_email#,
+			CUL_TEL		= #cul_tel#,
+			CUL_FAX		= #cul_fax#,
+			CUL_ADDR	= #cul_addr#,
+			CUL_OPENDAY	= #cul_openday#,
+			CUL_OPENNAME = #cul_openname#,
+			CUL_CLOSEDAY = #cul_closeday#,			
+			CUL_BESTNAME = #cul_bestname#,
+			CUL_HOMEURL	= #cul_homeurl#,
+			CUL_MAPURL	= #cul_mapurl#,
+		<isNotEmpty property="cul_mapimg">
+			CUL_MAPIMG	= #cul_mapimg#,
+		</isNotEmpty>
+			CUL_CONT	= #cul_cont#,
+		<isEqual property="imagedelete" compareValue="Y">
+			<isEmpty property="file_sysname">
+				CUL_VIEWIMG1 = null,
+			</isEmpty>
+		</isEqual>
+		<isNotEmpty property="file_sysname">
+			CUL_VIEWIMG1 = #file_sysname#,
+		</isNotEmpty>
+		<!-- <isNotEmpty property="cul_viewimg2">
+			CUL_VIEWIMG2 = #cul_viewimg2#,
+		</isNotEmpty>
+		<isNotEmpty property="cul_viewimg3">
+			CUL_VIEWIMG3 = #cul_viewimg3#,
+		</isNotEmpty>
+		<isNotEmpty property="cul_viewimg4">
+			CUL_VIEWIMG4 = #cul_viewimg4#,
+		</isNotEmpty> -->
+		<isNotEmpty property="cul_gps_x">
+			CUL_GPS_X	= #cul_gps_x#,
+			CUL_GPS_Y	= #cul_gps_y#,
+		</isNotEmpty>
+			POST_FLAG	= #post_flag#,
+			CUL_ADDR2	= #cul_addr2#,
+			CUL_POST_NUM = #cul_post_num#,
+			CUL_PLACE	= decode(replace(#cul_place#,'광역시', ''), '강원도', '강원', '경기도', '경기', '경상남도', '경남', '경상북도','경북', '서울특별시', '서울', '제주특별자치도', '제주', '충청남도','충남','충청북도','충북', '세종특별자치시','세종',replace(#cul_place#,'광역시', '')),
+			CUL_PLACE2	= #cul_place2#,
+			CUL_ZIP_YN	= #cul_zip_yn#,
+			APPLY_YN	= #rental_yn#,
+			APPLY_URL	= #apply_url#,
+			NEW_POST_NUM = #cul_post_num#,
+			NEW_ADDR = #cul_addr#,
+			NEW_ADDR2 = #cul_addr2#
+		WHERE CUL_SEQ = #cul_seq#
+	</update>
+	<update id="updateRental" parameterClass="paramMap">
+		UPDATE 
+		  	PORTAL_RENTAL
+		SET
+			PERSON  = #rental_person#  
+			, CHARGE  = #rental_charge#  
+			, PAY_OPTION = #rental_pay_option# 
+			, RENTAL_DT = #rental_dt#  
+			, RENTAL_INFO = #rental_info#
+			, OTHER = #rental_other#
+		    , APPROVAL = #rental_approval#
+		WHERE
+		  	SEQ = #rental_seq#
+  	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	VLI_VLI_CUL
+		SET
+		  	POST_FLAG = #updateStatus#
+		WHERE
+		<iterate property="array.cul_seq" open="CUL_SEQ IN (" conjunction="," close=")">
+			#array.cul_seq[]#
+		</iterate>
+	</update>
+	<update id="rentalStatusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_RENTAL_APPLY
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open=" SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			VLI_VLI_CUL 
+		WHERE 
+		<iterate property="array.cul_seq" open="CUL_SEQ IN (" conjunction="," close=")">
+			#array.cul_seq[]#
+		</iterate>
+	</delete>
+	
+	<!-- GIS_FACILITY_INFO -->
+	<insert id="insertFacilityMapInfo" parameterClass="paramMap">
+		<selectKey keyProperty="gid" resultClass="int">
+			SELECT MAX(gid)+1 FROM GIS_FACILITY_INFO 
+		</selectKey>
+		INSERT INTO GIS_FACILITY_INFO(
+		       THE_GEOM
+			 , SEQ
+			 , SIDO
+			 , GUGUN
+			 , ADDRESS
+			 , NAME
+			 , LATITUDE
+			 , LONGITUDE
+			 , CODE
+			 , AVAILABLE
+			 , Y
+			 , X
+			 , GID
+		)
+        VALUES(
+              SDO_GEOMETRY(
+			      2001,
+			      NULL,
+			      SDO_POINT_TYPE(#cul_gis_x#, #cul_gis_y#, NULL),
+			      NULL,
+			      NULL
+			  )
+            , #cul_seq#
+            , decode(replace(#cul_place#,'광역시', ''), '강원도', '강원', '경기도', '경기', '경상남도', '경남', '경상북도','경북', '서울특별시', '서울', '제주특별자치도', '제주', '충청남도','충남','충청북도','충북', '세종특별자치시','세종',replace(#cul_place#,'광역시', ''))
+            , #cul_place2#
+            , #cul_addr#
+            , #cul_name#
+            , round(#cul_gps_x# ,6)
+            , round(#cul_gps_y# ,6)
+            , #facility_code#
+            , 'Y'
+            , round(#cul_gis_y# ,6)
+            , round(#cul_gis_x# ,6)
+            , #gid#
+        )
+
+	</insert>
+	
+	<delete id="deleteFacilityMapInfo" parameterClass="paramMap">
+	   DELETE FROM GIS_FACILITY_INFO
+	   WHERE
+		<iterate property="array.cul_seq" open="SEQ IN (" conjunction="," close=")">
+			#array.cul_seq[]#
+		</iterate>
+	</delete> 
+	
+	<!-- GIS_FACILITY_INFO -->
+</sqlMap>

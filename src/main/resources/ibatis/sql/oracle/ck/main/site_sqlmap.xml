@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="site">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+			    FLOOR((ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC)-1)/$list_unit$+1) AS PAGE 
+			  , SEQ
+		  	  ,	SITE_NAME
+			  , URL 
+			  , REG_DATE 
+			  , DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			FROM
+				PORTAL_MICROSITE
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="site_name" prepend="AND">
+					site_name = #site_name#
+				</isNotEmpty>
+				<!-- <isNotEmpty property="description" prepend="AND">
+					description = #description#
+				</isNotEmpty> -->
+			</dynamic>
+		) R
+		 WHERE 
+		 	PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+		  	PORTAL_MICROSITE
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="site_name" prepend="AND">
+				site_name = #site_name#
+			</isNotEmpty>
+			<!-- <isNotEmpty property="description" prepend="AND">
+				description = #description#
+			</isNotEmpty> -->
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			,SITE_NAME
+			,USER_ID
+			,REG_DATE
+			,URL
+			,SITE_IMG
+			,DESCRIPTION
+			,APPROVAL
+		FROM
+		  	PORTAL_MICROSITE
+		WHERE
+		  	SEQ = #seq#  
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PORTAL_MICROSITE (
+			SEQ
+			, SITE_NAME
+			, SITE_IMG
+			, DESCRIPTION
+			, URL
+			, USER_ID
+			, REG_DATE
+			, APPROVAL
+		) VALUES(
+			(SELECT NVL(MAX(SEQ),0)+1 FROM PORTAL_MICROSITE)
+			, #site_name#
+			, #file_sysname#
+			, #description#
+			, #url#
+			, #session_admin_id#
+			, sysdate
+			, #approval#
+		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PORTAL_MICROSITE
+		SET 
+			SITE_NAME = #site_name#
+			<isNotEmpty property="file_sysname" prepend=",">
+				SITE_IMG = #file_sysname#
+			</isNotEmpty>
+			<isEqual property="imagedelete" compareValue="Y" prepend=",">
+				SITE_IMG = null
+			</isEqual>
+			, DESCRIPTION = #description#
+			, URL = #url#
+			, USER_ID = #session_admin_id#
+			, APPROVAL = #approval#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+			PORTAL_MICROSITE
+		SET
+			APPROVAL = #updateStatus#
+		WHERE
+	 		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+	 			#array.seq[]#
+	 		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap" >
+		DELETE
+			PORTAL_MICROSITE
+		WHERE
+	 		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+	 			#array.seq[]#
+	 		</iterate>
+	</delete>
+</sqlMap>

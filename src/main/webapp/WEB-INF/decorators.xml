@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/views/decorators">
+	<excludes>
+		<pattern>/login</pattern>
+		<pattern>/logout</pattern>
+		<pattern>/loginfailed</pattern>
+		<pattern>/loginaccessdenied</pattern>
+		<pattern>/mail/*.jsp</pattern>
+		<pattern>*json.do</pattern>
+		<pattern>/editor/*</pattern>
+		<pattern>/editor/*.html</pattern>
+		<pattern>/editor/*.jsp</pattern>
+		<pattern>/SE2.3.10.O11329/*</pattern>
+		<pattern>/SE2.3.10.O11329/*.html</pattern>
+		<pattern>/SE2.3.10.O11329/*.jsp</pattern>
+		<pattern>/crosseditor/*</pattern>
+		<pattern>/crosseditor/*.html</pattern>
+		<pattern>/crosseditor/*.jsp</pattern>
+		<pattern>/crosseditor/**/*</pattern>
+		<pattern>/crosseditor/**/*.html</pattern>
+		<pattern>/crosseditor/**/*.jsp</pattern>
+		<pattern>/crosseditor/manage/jsp/*</pattern>
+		<pattern>/crosseditor/manage/jsp/*.html</pattern>
+		<pattern>/crosseditor/manage/jsp/*.jsp</pattern>
+		<pattern>/smartEdit/js/*</pattern>
+	</excludes>
+	<decorator name="popup" page="popup.jsp">
+		<pattern>/popup/*.do</pattern>
+		<pattern>*Popup.do</pattern>
+		<pattern>/magazine/cultureissue/popup/*.do</pattern>
+		<pattern>/campaign/comment/popup/*.do</pattern>
+		<pattern>/culturepro/manage/popup/*.do</pattern>
+	</decorator>
+	<decorator name="null">
+		<pattern>/js/smartEdit/SmartEditor2Skin.html</pattern>
+		<pattern>/js/smartEdit/*.html</pattern>
+		<pattern>/js/smartEdit/*.jsp</pattern>
+		<pattern>/js/smartEdit/*</pattern>
+	</decorator>
+	<decorator name="layout" page="layout.jsp">
+		<pattern>/</pattern>
+		<pattern>*.do</pattern>
+	</decorator>
+	<decorator name="layout2" page="layout.jsp">
+		<pattern>*.jsp</pattern>
+	</decorator>
+</decorators>

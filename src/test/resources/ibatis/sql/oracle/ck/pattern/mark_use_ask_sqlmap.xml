@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="ask">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* ,
+			(
+			  		SELECT 
+			  			XTITLE ||'(' ||PATTERN_CODE ||')'
+					FROM 
+						PCN_PATTERN_USEPATTERN C,
+						<!-- DOCMETA B -->
+					    DOCMETA@PATTERN B
+			  		WHERE 
+			  			C.PSEQ       = R.SEQ
+			  		AND C.PATTERN_CODE = B.DID
+			  		AND ROWNUM         = 1
+			  	) TITLE
+		FROM 
+		(
+			
+			SELECT
+				<!-- /*+ index_desc(A PCN_PATTERN_USEAPPLICATION_IDX) */ -->	 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE ,
+			  	TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+			  	SEQ,
+			  	ROWNUM NUM,
+			  	NAME,
+			  	TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') CONFIRM_DATE,
+			  	DECODE(STATUS , 'Y' , '사용함' , 'N' , '사용안함' , 'C' , '신청취소' , '대기') STATUS ,
+			  	(
+			  		SELECT 
+			  			COUNT(1) 
+			  		FROM 
+			  			PCN_PATTERN_USEPATTERN 
+			  		WHERE 
+			  			PSEQ = A.SEQ
+			  	) PATTERN_CNT
+			FROM 
+				PCN_PATTERN_USEAPPLICATION A
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="status" prepend="AND">
+					STATUS = #status#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="name">
+				    NAME LIKE '%'||#keyword#||'%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+					SEQ IN (SELECT SEQ FROM PCN_PATTERN_USEPATTERN A, DOCMETA@PATTERN B WHERE A.PATTERN_CODE = B.DID AND XTITLE LIKE '%'||#keyword#||'%')
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="start_date" prepend="AND">
+					<isEqual property="searchDateType" compareValue="regDate">
+					REG_DATE BETWEEN #start_date# AND #end_date#
+					</isEqual>
+					<isEqual property="searchDateType" compareValue="confirmDate">
+					CONFIRM_DATE BETWEEN #start_date# AND #end_date#
+					</isEqual>
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+				COUNT(1)
+		FROM 
+			PCN_PATTERN_USEAPPLICATION A
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="status" prepend="AND">
+				STATUS = #status#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="name">
+			    NAME LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+				SEQ IN (SELECT SEQ FROM PCN_PATTERN_USEPATTERN A, DOCMETA@PATTERN B WHERE A.PATTERN_CODE = B.DID AND XTITLE LIKE '%'||#keyword#||'%')
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="start_date" prepend="AND">
+				<isEqual property="searchDateType" compareValue="regDate">
+				REG_DATE BETWEEN #start_date# AND #end_date#
+				</isEqual>
+				<isEqual property="searchDateType" compareValue="confirmDate">
+				CONFIRM_DATE BETWEEN #start_date# AND #end_date#
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="useMarkList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+		    A.SEQ,
+	        A.PSEQ,
+	        A.PATTERN_CODE,
+	        B.XFILE,
+	        B.XTITLE , 
+	        C.REG_DATE , 
+	        C.CONFIRM_DATE
+		FROM 
+			PCN_PATTERN_USEPATTERN A, DOCMETA@PATTERN B , PCN_PATTERN_USEAPPLICATION C
+			<!-- PCN_PATTERN_USEPATTERN A, DOCMETA B , PCN_PATTERN_USEAPPLICATION C  -->
+		WHERE 
+			PSEQ = #seq#
+		AND A.PSEQ = C.SEQ
+		AND A.PATTERN_CODE = B.DID
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ,
+	  		NAME,
+	  		USER_ID,
+	  		EMAIL,
+	  		TEL,
+	  		PHONE,
+			COMPANY,
+		  	USE_YEAR,
+		  	USE_REASON,
+		  	MIME_TYPE,
+		  	ETC,
+		  	STATUS,
+		  	TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+		  	TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') CONFIRM_DATE,
+		  	TO_CHAR(CONFIRM_DATE, 'YYYY')+USE_YEAR
+		  	||'-'
+		  	||TO_CHAR(CONFIRM_DATE, 'MM-DD') CONFIRM_END_DATE,
+		  	ADMIN_REPLY
+		FROM 
+			PCN_PATTERN_USEAPPLICATION D
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ),0)+1 FROM PCN_PATTERN_USEAPPLICATION
+		</selectKey>
+		INSERT
+			INTO PCN_PATTERN_USEAPPLICATION
+			(
+			 	SEQ
+			    , NAME
+			    , TEL
+			    , PHONE
+			    , EMAIL
+			    , COMPANY
+			    , USER_ID
+			    , USE_YEAR
+			    , ETC
+			    , REG_DATE
+			    , STATUS
+			    <isNotEmpty property="array.mime_type" prepend=",">
+			     MIME_TYPE					  
+			    </isNotEmpty>
+			    , USE_REASON
+			    , ADMIN_REPLY
+			) VALUES (
+			    #seq#
+			    ,#name#
+			    ,#tel1# || '-' || #tel2# || '-' || #tel3#
+			    ,#phone1# || '-' || #phone2# || '-' || #phone3#
+			    ,#mail1# || '@' || #mail2# 
+			    ,#company#
+			    ,#user_id#
+			    ,#use_year#
+			    ,#etc#
+			    ,SYSDATE
+			    ,#status#
+			    <isNotEmpty property="array.mime_type" prepend=",">
+			     	<iterate property="array.mime_type" open="" conjunction=" || ',' || " close="">
+						#array.mime_type[]#
+					</iterate>				  
+			    </isNotEmpty>
+			    ,#use_reason#
+			    ,#admin_reply#
+			)
+	</insert>
+	<insert id="insertUseMark" parameterClass="java.util.Map">
+		INSERT
+			INTO PCN_PATTERN_USEPATTERN
+		  	(
+				SEQ,
+			    PSEQ,
+			    PATTERN_CODE
+		  	) VALUES (
+		    	(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_PATTERN_USEPATTERN)
+		   	 	, #seq#
+		    	, #pattern_code#
+		  	)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_PATTERN_USEAPPLICATION
+		SET 
+			NAME = #name#
+			, TEL = #tel1# || '-' || #tel2# || '-' || #tel3#
+			, PHONE = #phone1# || '-' || #phone2# || '-' || #phone3#
+			, EMAIL = #mail1# || '@' || #mail2#
+			, COMPANY = #company#
+			, USE_YEAR = #use_year#
+			, ETC = #etc#
+			, STATUS = #status#
+			<!-- MIME_TYPE = #mime_type#, -->
+			<isNotEmpty property="array.mime_type" prepend=",">
+		     	<iterate property="array.mime_type" open="MIME_TYPE = " conjunction=" || ',' || " close="">
+					#array.mime_type[]#
+				</iterate>				  
+		    </isNotEmpty>
+			, ADMIN_REPLY = #admin_reply#
+			<isEqual property="status" compareValue="Y" prepend=",">
+				CONFIRM_DATE = SYSDATE
+			</isEqual>
+			,USE_REASON = #use_reason#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PCN_PATTERN_USEAPPLICATION
+		SET
+			STATUS = #updateStatus# , 
+			confirm_date = sysdate
+		WHERE  
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_PATTERN_USEAPPLICATION
+		WHERE  
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+	<delete id="deleteUseMark">
+		DELETE FROM
+			PCN_PATTERN_USEPATTERN
+		WHERE
+			<iterate property="array.seq" open="PSEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+</sqlMap>

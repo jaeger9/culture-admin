@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="blog">
+	<select id="sortList" resultClass="commonMap">
+		SELECT
+		  	R.TYPE AS VALUE , 
+		  	CASE
+		    	WHEN  R.TYPE = 'A' THEN '이슈'
+		    	WHEN  R.TYPE = 'B' THEN '여행/풍경'
+		    	WHEN  R.TYPE = 'C' THEN '취미'
+		    	WHEN  R.TYPE = 'D' THEN '패션'
+		    	WHEN  R.TYPE = 'E' THEN '건강/스포츠'
+		    	WHEN  R.TYPE = 'F' THEN '인물'
+		    	WHEN  R.TYPE = 'G' THEN '음식'
+		    	WHEN  R.TYPE = 'H' THEN '학술'
+		    	WHEN  R.TYPE = 'I' THEN '음악/영화'
+		    	ELSE  ''
+		  	END NAME
+		FROM
+		(
+		  	SELECT 
+		    	DISTINCT TYPE
+		  	FROM 
+		    	PCN_RECOM_TALK 
+		) R
+				
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM
+		(
+			SELECT 
+				SEQ
+			    ,CASE
+			    	WHEN  TYPE = 'A' THEN '이슈'
+			    	WHEN  TYPE = 'B' THEN '여행/풍경'
+			    	WHEN  TYPE = 'C' THEN '취미'
+			    	WHEN  TYPE = 'D' THEN '패션'
+			    	WHEN  TYPE = 'E' THEN '건강/스포츠'
+			    	WHEN  TYPE = 'F' THEN '인물'
+			    	WHEN  TYPE = 'G' THEN '음식'
+			    	WHEN  TYPE = 'H' THEN '학술'
+			    	WHEN  TYPE = 'I' THEN '음악/영화'
+			   	 	ELSE  '' 
+			  	END TYPE
+			  	, TITLE 
+			   	, BLOG_URL
+			   	, REG_DATE 
+			   	,DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			   	, FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+			FROM
+			  	PCN_RECOM_TALK A
+			WHERE 
+				<![CDATA[
+					TOP_YN <> 'Y'
+				]]>
+			<isNotEmpty property="keyword">
+				<isEqual property="searchGubun" compareValue="">
+					AND (TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="TITLE">
+					AND TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="CONTENT">
+					AND CONTENT LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="USER_ID">
+					AND USER_ID LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="approval">
+				AND APPROVAL = #APPROVAL#
+			</isNotEmpty>
+			<isNotEmpty property="subject">
+				AND TYPE = #SUBJECT#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_RECOM_TALK
+		WHERE 
+			<![CDATA[
+			TOP_YN <> 'Y'
+			]]>
+		<isNotEmpty property="keyword">
+			<isEqual property="gubun2" compareValue="">
+				AND (TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+			</isEqual>
+			<isEqual property="gubun2" compareValue="TITLE">
+				AND TITLE LIKE '%' || #keyword# || '%'
+			</isEqual>
+			<isEqual property="gubun2" compareValue="CONTENT">
+				AND CONTENT LIKE '%' || #keyword# || '%'
+			</isEqual>
+			<isEqual property="gubun2" compareValue="USER_ID">
+					AND USER_ID LIKE '%' || #keyword# || '%'
+				</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="APPROVAL">
+			AND APPROVAL = #APPROVAL#
+		</isNotEmpty>
+		<isNotEmpty property="SUBJECT">
+			AND TYPE = #SUBJECT#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+	<select id="topList" parameterClass="paramMap"  resultClass="commonMap">
+		SELECT
+			SEQ
+			,CASE
+		    	WHEN  TYPE = 'A' THEN '이슈'
+		    	WHEN  TYPE = 'B' THEN '여행/풍경'
+		    	WHEN  TYPE = 'C' THEN '취미'
+		    	WHEN  TYPE = 'D' THEN '패션'
+		    	WHEN  TYPE = 'E' THEN '건강/스포츠'
+		    	WHEN  TYPE = 'F' THEN '인물'
+		    	WHEN  TYPE = 'G' THEN '음식'
+		    	WHEN  TYPE = 'H' THEN '학술'
+		    	WHEN  TYPE = 'I' THEN '음악/영화'
+		   	 	ELSE  '' 
+		  	END TYPE
+		  	, TITLE 
+		   	, BLOG_URL
+		   	, REG_DATE 
+		   	,DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+		FROM 
+			PCN_RECOM_TALK A
+		WHERE 
+			TOP_YN = 'Y'
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			,TITLE
+			,TYPE
+			,USER_ID
+			,to_char(REG_DATE, 'yyyy-mm-dd') REG_DATE
+			,TOP_YN
+			,APPROVAL
+			,BLOG_URL
+		FROM 
+			PCN_RECOM_TALK
+		WHERE 
+			SEQ = #seq#
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_RECOM_TALK (
+			SEQ
+			,TITLE
+			,TYPE
+			,USER_ID
+			,REG_DATE
+			,TOP_YN
+			,APPROVAL
+			,BLOG_URL
+		) VALUES (
+			(SELECT NVL(MAX(SEQ), 0) +1 FROM PCN_RECOM_TALK)
+			,#title#
+			,#type#
+			,#session_admin_id#
+			,SYSDATE
+			,NVL(#top_yn#, 'N')
+			,#approval#
+			,#blog_url#
+		)
+	</insert>
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PCN_RECOM_TALK 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+			<!-- <isNotEmpty property="top_yn">
+				TOP_YN		=#top_yn#
+			</isNotEmpty> -->
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_RECOM_TALK 
+		SET
+			APPROVAL 	= #approval#
+			,TITLE 		= #title#
+			,TOP_YN		= NVL(#top_yn#, 'N')
+			,TYPE	 	= #type#
+			,BLOG_URL	=  #blog_url# 			
+		WHERE 
+			SEQ = #seq# 
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_RECOM_TALK 
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</delete>
+	
+</sqlMap>

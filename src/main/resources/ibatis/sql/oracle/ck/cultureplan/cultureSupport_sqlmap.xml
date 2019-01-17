@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_support">
+	
+	<select id="cultureSupportList" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				SEQ					,
+				TITLE				,
+				NOTICE				,
+				CATEGORY			,
+				ORIGIN				,
+				BIZ_YEAR			,
+				CHARGE				,
+				URL					,
+				REG_DATE,
+				SUBSTR(APPLY_START_DT, 0, 4) || '-' || SUBSTR(APPLY_START_DT, 5,2) || '-' || SUBSTR(APPLY_START_DT, 7,2) APPLY_START_DT,
+				SUBSTR(APPLY_END_DT, 0, 4) || '-' || SUBSTR(APPLY_END_DT, 5,2) || '-' || SUBSTR(APPLY_END_DT, 7,2) APPLY_END_DT,
+				POST_START_DT		,
+				DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
+				FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$+1) AS PAGE ,
+				<![CDATA[
+				(
+					CASE
+						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= APPLY_START_DT
+						 AND TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <= APPLY_END_DT		THEN 'I'
+						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <  APPLY_START_DT	THEN 'S'
+						ELSE 'E'
+					END
+				)		STATUS
+				]]>
+			FROM
+				PORTAL_CULTURE_SUPPORT
+			WHERE
+				1=1
+			<isNotEmpty property="search_word" prepend="AND">
+			(
+				TITLE LIKE '%'|| #search_word# ||'%' OR
+				NOTICE LIKE '%'|| #search_word# ||'%'
+			)
+			</isNotEmpty>
+			<isNotEmpty property="origin" prepend="AND">
+				ORIGIN LIKE '%'|| #origin# ||'%'
+			</isNotEmpty>
+			<isNotEmpty property="search_type" prepend="AND">
+				<isEqual property="search_type" compareValue="1">
+					SYSDATE BETWEEN APPLY_START_DT AND APPLY_END_DT 
+				</isEqual>
+				<isEqual property="search_type" compareValue="2">
+				<![CDATA[
+					TO_DATE(APPLY_START_DT, 'YYYYMMDD') > SYSDATE
+				]]> 
+				</isEqual>
+				<isEqual property="search_type" compareValue="3">
+				<![CDATA[
+					TO_DATE(APPLY_END_DT, 'YYYYMMDD') < SYSDATE
+				]]> 
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	
+	<select id="cultureSupportListCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+			COUNT(1)
+		FROM
+			PORTAL_CULTURE_SUPPORT
+		WHERE
+			1=1
+		<isNotEmpty property="search_word" prepend="AND">
+		(
+			TITLE LIKE '%'|| #search_word# ||'%' OR
+			NOTICE LIKE '%'|| #search_word# ||'%'
+		)
+		</isNotEmpty>
+		<isNotEmpty property="origin" prepend="AND">
+			ORIGIN LIKE '%'|| #origin# ||'%'
+		</isNotEmpty>
+		<isNotEmpty property="search_type" prepend="AND">
+			<isEqual property="search_type" compareValue="1">
+				SYSDATE BETWEEN APPLY_START_DT AND APPLY_END_DT 
+			</isEqual>
+			<isEqual property="search_type" compareValue="2">
+			<![CDATA[
+				TO_DATE(APPLY_START_DT, 'YYYYMMDD') > SYSDATE
+			]]> 
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="approval" prepend="AND">
+			APPROVAL = #approval#
+		</isNotEmpty>
+	</select>
+	
+	<select id="cultureSupportView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ					,
+			TITLE				,
+			NOTICE				,
+			CATEGORY			,
+			ORIGIN				,
+			BIZ_YEAR			,
+			CHARGE				,
+			URL					,
+			SUBSTR(APPLY_START_DT, 0, 4) || '-' || SUBSTR(APPLY_START_DT, 5,2) || '-' || SUBSTR(APPLY_START_DT, 7,2) APPLY_START_DT	,
+			SUBSTR(APPLY_END_DT, 0, 4) || '-' || SUBSTR(APPLY_END_DT, 5,2) || '-' || SUBSTR(APPLY_END_DT, 7,2) APPLY_END_DT			,
+			SUBSTR(POST_START_DT, 0, 4) || '-' || SUBSTR(POST_START_DT, 5,2) || '-' || SUBSTR(POST_START_DT, 7,2) POST_START_DT		,
+			APPROVAL
+		FROM
+			PORTAL_CULTURE_SUPPORT
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_CULTURE_SUPPORT
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(seq), 0) + 1 FROM PORTAL_CULTURE_SUPPORT
+		</selectKey>
+		INSERT INTO PORTAL_CULTURE_SUPPORT
+		(
+			SEQ						,
+			TITLE                   ,
+			NOTICE                  ,
+			CATEGORY                ,
+			ORIGIN                  ,
+			BIZ_YEAR                ,
+			CHARGE                  ,
+			URL                     ,
+			APPLY_START_DT          ,
+			APPLY_END_DT            ,
+			POST_START_DT           ,
+			REG_DATE                ,
+			USER_ID                 ,
+			APPROVAL
+		) VALUES(
+			#seq#					,
+			#title#                 ,
+			#notice#                ,
+			#category#              ,
+			#origin#                ,
+			#biz_year#              ,
+			#charge#                ,
+			#url#                   ,
+			#apply_start_dt#        ,
+			#apply_end_dt#          ,
+			#post_start_dt#         ,
+			SYSDATE                 ,
+			#session_admin_id#      ,
+			#approval#
+		)
+	
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PORTAL_CULTURE_SUPPORT
+		SET
+			TITLE					    =#title#,               
+			NOTICE                      =#notice#,
+			CATEGORY                    =#category#,
+			ORIGIN                      =#origin#,
+			BIZ_YEAR                    =#biz_year#,
+			CHARGE                      =#charge#,
+			URL                         =#url#,
+			APPLY_START_DT              =#apply_start_dt#,
+			APPLY_END_DT                =#apply_end_dt#,
+			POST_START_DT               =#post_start_dt#,
+			USER_ID                     =#session_admin_id#,
+			UPD_DATE                    =SYSDATE,
+			APPROVAL                    =#approval#
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_CULTURE_SUPPORT 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+	<select id="originList" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			origin
+		FROM
+			portal_culture_support
+		GROUP BY
+			origin
+	</select>
+
+	<select id="recomeList" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				SEQ					,
+				TITLE				,
+				DESCRIPTION			,
+				DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
+				FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$+1) AS PAGE
+			FROM
+				PORTAL_RECMD_THEME
+			WHERE
+				MENU_CD = #menu_cd#
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'|| #title# ||'%'
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+			
+	</select>
+	
+	<select id="recomeListCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+			COUNT(1)
+		FROM
+			portal_recmd_theme
+		WHERE
+			menu_cd = #menu_cd#
+		<isNotEmpty property="title" prepend="AND">
+			title LIKE '%'|| #title# ||'%'
+		</isNotEmpty>
+		<isNotEmpty property="approval" prepend="AND">
+			approval = #approval#
+		</isNotEmpty>
+	</select>
+	
+	<select id="recomSubList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			seq					,
+			s_seq				,
+			s_title				,
+			s_thumb_url			,
+			uci					,
+			img_name1			,
+			img_name2			,
+			img_name3			,
+			period    			,
+      		place				,
+      		url
+		FROM
+			portal_recmd_theme_sub
+		WHERE
+			pseq = #seq#
+		ORDER BY
+			seq
+	</select>
+	<select id="recomView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ					,
+			TITLE				,
+			DESCRIPTION			,
+			BG_IMG				,
+			APPROVAL
+		FROM
+			portal_recmd_theme
+		WHERE 
+			seq = #seq#
+	</select>
+	<select id="subMaxSeq" resultClass="int">
+		SELECT NVL(MAX(seq), 0) + 1 FROM portal_recmd_theme_sub
+	</select>
+	<insert id="recomInsert" parameterClass="paramMap">
+		<selectKey resultClass="int" keyProperty="seq">
+			SELECT NVL(MAX(seq), 0) + 1 FROM portal_recmd_theme
+		</selectKey>
+		INSERT INTO portal_recmd_theme
+		(
+			seq						,
+			menu_cd					,
+			title					,
+			user_id					,
+			approval				,
+			reg_date
+			<isNotEmpty property="description" prepend=",">
+				description
+			</isNotEmpty>
+			<isNotEmpty property="file_sysname" prepend=",">
+				bg_img
+			</isNotEmpty>
+		) VALUES(
+			#seq#					,
+			#menu_cd#				,
+			#title#					,
+			#session_admin_id#		,
+			#approval#				,
+			SYSDATE
+			<isNotEmpty property="description" prepend=",">
+				#description#
+			</isNotEmpty>
+			<isNotEmpty property="file_sysname" prepend=",">
+				#file_sysname#
+			</isNotEmpty>
+		)
+	
+	</insert>
+	
+	<insert id="recomSubInsertAll" parameterClass="java.util.List">
+		INSERT ALL
+		<dynamic>
+			<iterate conjunction=" "  >
+				INTO portal_recmd_theme_sub 
+                (
+                    seq                     ,
+                    pseq                    ,
+                    s_seq                   ,
+                    s_title                 ,
+                    img_name1               ,
+					url
+                ) VALUES (
+                    #[].seq#				,
+                    #[].pseq#               ,
+                    #[].s_seq#              ,
+                    #[].s_title#            ,
+                    #[].img_name1#          ,
+					#[].url#
+                )
+			</iterate>
+		</dynamic>
+		SELECT * FROM dual
+	</insert>
+	
+	<insert id="recomSubInsert" parameterClass="java.util.HashMap">
+		INSERT INTO portal_recmd_theme_sub
+		(
+			seq						,
+			pseq					,
+			s_title
+			<isNotEmpty property="s_seq" prepend=",">
+			s_seq
+			</isNotEmpty>
+			<isNotEmpty property="s_thumb_url" prepend=",">
+			s_thumb_url
+			</isNotEmpty>
+			<isNotEmpty property="uci" prepend=",">
+			uci
+			</isNotEmpty>
+			<isNotEmpty property="period" prepend=",">
+			period
+			</isNotEmpty>
+			<isNotEmpty property="place" prepend=",">
+			place
+			</isNotEmpty>
+			<isNotEmpty property="img_name1" prepend=",">
+			img_name1
+			</isNotEmpty>
+			<isNotEmpty property="img_name2" prepend=",">
+			img_name2
+			</isNotEmpty>
+			<isNotEmpty property="img_name3" prepend=",">
+			img_name3
+			</isNotEmpty>
+			<isNotEmpty property="url" prepend=",">
+			url
+			</isNotEmpty>
+		) VALUES(
+			(SELECT NVL(MAX(seq), 0) + 1 FROM portal_recmd_theme_sub)					,
+			#pseq#					,
+			#s_title#
+			<isNotEmpty property="s_seq" prepend=",">
+			#s_seq#
+			</isNotEmpty>
+			<isNotEmpty property="s_thumb_url" prepend=",">
+			#s_thumb_url#
+			</isNotEmpty>
+			<isNotEmpty property="uci" prepend=",">
+			#uci#
+			</isNotEmpty>
+			<isNotEmpty property="period" prepend=",">
+			#period#
+			</isNotEmpty>
+			<isNotEmpty property="place" prepend=",">
+			#place#
+			</isNotEmpty>
+			<isNotEmpty property="img_name1" prepend=",">
+			#img_name1#
+			</isNotEmpty>
+			<isNotEmpty property="img_name2" prepend=",">
+			#img_name2#
+			</isNotEmpty>
+			<isNotEmpty property="img_name3" prepend=",">
+			#img_name3#
+			</isNotEmpty>
+			<isNotEmpty property="url" prepend=",">
+			#url#
+			</isNotEmpty>
+		)
+	
+	</insert>
+	<update id="recomStatusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_RECMD_THEME
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+		<isNotEmpty property="menu_cd" prepend="AND">
+			MENU_CD = #menu_cd#
+		</isNotEmpty>
+	</update>
+	<update id="recomUpdate" parameterClass="paramMap">
+		UPDATE
+			portal_recmd_theme
+		SET
+			title					=#title#				,
+			approval				=#approval#
+			<isNotEmpty property="description" prepend=",">
+			description				=#description#
+			</isNotEmpty>
+			<isNotEmpty property="file_sysname" prepend=",">
+			bg_img					=#file_sysname#
+			</isNotEmpty>
+		WHERE
+			seq = #seq#
+	</update>
+	<update id="recomSubUpdate" parameterClass="java.util.HashMap">
+		UPDATE
+			portal_recmd_theme_sub
+		SET
+			s_seq					=#s_seq#				,
+			s_title					=#s_title#
+			<isNotEmpty property="s_thumb_url" prepend=",">
+			s_thumb_url				=#s_thumb_url#
+			</isNotEmpty>
+			<isNotEmpty property="uci" prepend=",">
+			uci						=#uci#
+			</isNotEmpty>
+			<isNotEmpty property="period" prepend=",">
+			period					=#period#
+			</isNotEmpty>
+			<isNotEmpty property="place" prepend=",">
+			place					=#place#
+			</isNotEmpty>
+			<isNotEmpty property="img_name1" prepend=",">
+			img_name1				=#img_name1#
+			</isNotEmpty>
+			<isNotEmpty property="img_name2" prepend=",">
+			img_name2				=#img_name2#
+			</isNotEmpty>
+			<isNotEmpty property="img_name3" prepend=",">
+			img_name3				=#img_name3#
+			</isNotEmpty>
+			<isNotEmpty property="url" prepend=",">
+			url						=#url#
+			</isNotEmpty>
+		WHERE
+			pseq = #seq#
+	</update>
+	<delete id="recomDelete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_RECMD_THEME 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	<delete id="recomSubDelete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_RECMD_THEME_SUB
+		WHERE 
+		<iterate property="array.seq" open="PSEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

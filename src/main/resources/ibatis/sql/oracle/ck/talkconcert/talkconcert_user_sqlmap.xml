@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="talkconcert.user">
+
+	<!-- 문화토크콘서트 소식 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* talkconcert.user.listCount */
+			COUNT(1)
+		FROM TALK_CONCERT_USER
+		WHERE 1=1
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR HP_NO LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="nm">
+				USER_NM LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				USER_EMAIL LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				HP_NO LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<!-- 문화토크콘서트 소식 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* talkconcert.user.list */
+			USER_EMAIL, USER_NM, HP_NO, 
+			WITH_YN, DECODE(WITH_YN, 'Y','동반1인', 'N','동반없음') WITH_NM, 
+			TO_CHAR(ENTRY_DATE, 'YYYY-MM-DD') ENTRY_DATE
+		FROM (
+			SELECT
+				USER_EMAIL, USER_NM, HP_NO, WITH_YN, ENTRY_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY ENTRY_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM TALK_CONCERT_USER
+			WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR HP_NO LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="nm">
+					USER_NM LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="email">
+					USER_EMAIL LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					HP_NO LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화토크콘서트 소식 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* talkconcert.user.view */
+			USER_NM, HP_NO, USER_EMAIL, USER_ADDR, ADMIN_NOTE,
+			WITH_YN, DECODE(WITH_YN, 'Y','동반1인', 'N','동반없음') WITH_NM, 
+			TO_CHAR(ENTRY_DATE, 'YYYY-MM-DD HH24:MI') ENTRY_DATE
+		FROM TALK_CONCERT_USER
+		WHERE USER_EMAIL = #user_email#
+	</select>
+	
+	<!-- 문화토크콘서트 참여자 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* talkconcert.user.update */
+		TALK_CONCERT_USER SET
+			USER_ADDR = #user_addr#,
+			ADMIN_ID = #admin_id#,
+			ADMIN_NOTE = #admin_note#,
+			ADMIN_UPD_DATE = SYSDATE
+		WHERE USER_EMAIL = #user_email#
+	</update>
+	
+	<!-- 토크콘서트 참여자 엑셀 다운로드 목록 -->
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT
+			USER_NM "user_nm", USER_EMAIL "user_email", HP_NO "hp_no", 
+			DECODE(WITH_YN, 'Y','동반1인', 'N','동반없음') WITH_NM,
+			TO_CHAR(ENTRY_DATE, 'YYYY-MM-DD HH24:MI') "reg_date"
+		FROM (
+			SELECT
+				USER_NM, USER_EMAIL, HP_NO, WITH_YN, ENTRY_DATE 
+			FROM TALK_CONCERT_USER
+			WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					ENTRY_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR HP_NO LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="nm">
+					USER_NM LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="email">
+					USER_EMAIL LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					HP_NO LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+			</isNotEmpty>			
+		) T
+		WHERE 1=1
+		ORDER BY ENTRY_DATE DESC
+	</select>	
+	
+</sqlMap>

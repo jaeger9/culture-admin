@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="campaign.qna">
+
+	<!-- 문화선물캠페인 문의하기 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* campaign.qna.listCount */
+			COUNT(1)
+		FROM CAMPAIGN_QNA
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="del_yn" prepend="AND">
+				DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="search_event" prepend="AND">
+				EVENT_SEQ = #search_event#
+			</isNotEmpty>
+			<isEqual property="search_reply" prepend="AND" compareValue="Y">
+				REP_DATE IS NOT NULL
+			</isEqual>
+			<isEqual property="search_reply" prepend="AND" compareValue="N">
+				REP_DATE IS NULL
+			</isEqual>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="title">
+					TITLE LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="all">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEqual>
+				<isEqual property="search_field" compareValue="nm">
+					USER_NM LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>	
+	</select>
+
+	<!-- 문화선물캠페인 문의하기 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.qna.list */
+			SEQ, EVENT_SEQ,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM,
+			TITLE, USER_NM, OPEN_YN, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, 
+			CASE
+				WHEN REP_DATE IS NOT NULL THEN 'Y'
+				ELSE 'N'
+			END REPLY_YN,
+			CASE
+				WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') &lt;= TO_CHAR((REG_DATE+3), 'YYYYMMDD') THEN 'Y'
+				ELSE 'N'
+			END NEW_YN
+		FROM (
+			SELECT 
+				SEQ, EVENT_SEQ, TITLE, USER_NM, OPEN_YN, REG_DATE, REP_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/10+1) PAGE
+			FROM CAMPAIGN_QNA
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="del_yn" prepend="AND">
+					DEL_YN = #del_yn#
+				</isNotEmpty>
+				<isNotEmpty property="search_event" prepend="AND">
+					EVENT_SEQ = #search_event#
+				</isNotEmpty>
+				<isEqual property="search_reply" prepend="AND" compareValue="Y">
+					REP_DATE IS NOT NULL
+				</isEqual>
+				<isEqual property="search_reply" prepend="AND" compareValue="N">
+					REP_DATE IS NULL
+				</isEqual>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="search_keyword" prepend="AND">
+					<isEmpty property="search_field">
+						(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+					</isEmpty>
+					<isEqual property="search_field" compareValue="title">
+						TITLE LIKE '%' || #search_keyword# || '%'
+					</isEqual>
+					<isEqual property="search_field" compareValue="all">
+						(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+					</isEqual>
+					<isEqual property="search_field" compareValue="nm">
+						USER_NM LIKE '%' || #search_keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+			</dynamic>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화선물캠페인 문의하기 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.qna.view */
+			SEQ, EVENT_SEQ, USER_NM, USER_EMAIL, VIEW_CNT, OPEN_YN,
+			TITLE, REPLACE(CONTENTS, CHR(13)||CHR(10), '&lt;br/&gt;') CONTENTS, FILE_PATH, ORI_FILE_NM, SYS_FILE_NM,
+			ADMIN_ID, REPLACE(REP_CONTENTS, CHR(13)||CHR(10), '&lt;br/&gt;') REP_CONTENTS,
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') REG_DATE,
+			TO_CHAR(REP_DATE, 'YYYY-MM-DD HH24:MI') REP_DATE,
+			CASE
+				WHEN REP_DATE IS NOT NULL THEN 'Y'
+				ELSE 'N'
+			END REPLY_YN,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = EVENT_SEQ) EVENT_NM
+		FROM CAMPAIGN_QNA
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화선물캠페인 문의하기 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* campaign.qna.update */
+		CAMPAIGN_QNA SET
+			OPEN_YN = #open_yn#,
+			TITLE = #title#,
+			CONTENTS = #contents:CLOB#,
+			ADMIN_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화선물캠페인 문의하기 답변 -->
+	<update id="reply" parameterClass="paramMap">
+		UPDATE /* campaign.qna.reply */
+		CAMPAIGN_QNA SET
+			REP_CONTENTS = #rep_contents:CLOB#,
+			ADMIN_ID = #admin_id#,
+			REP_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화선물캠페인 문의하기 삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		UPDATE /* campaign.qna.delete */
+		CAMPAIGN_QNA SET
+			DEL_YN = 'Y',
+			ADMIN_ID = #admin_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+</sqlMap>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="agencycode">
+	<select id="categoryList" resultClass="commonMap">
+	  	SELECT 
+	  		VALUE, NAME 
+	  	FROM 
+	    	PCN_COMMON_CODE 
+	  	WHERE 
+	    	TYPE = 'AGENCY'
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+			    NAME
+			  , ORG_ID
+			  , CATEGORY
+			  , ORG_CODE
+			  , TO_CHAR(CRE_DATE , 'YYYY-MM-DD') AS CRE_DATE
+			  , DECODE ( USE_STATUS , 'USED' , '승인' , 'WAIT' , '대기' , '미승인') AS USE_STATUS
+			  , CATE_TYPE
+			  ,FLOOR((ROW_NUMBER()OVER(ORDER BY cre_date DESC)-1)/$list_unit$+1) AS PAGE
+			FROM 	
+				UCI_ORG
+			<dynamic prepend="WHERE">
+		  		<isNotEmpty property="searchKey" prepend="AND">
+		  			CATE_TYPE LIKE '%' || #searchKey# || '%'
+	  			</isNotEmpty>
+	  			<isNotEmpty property="searchKeyword" prepend="AND">
+		  			NAME LIKE '%' || #searchKeyword# || '%'
+	  			</isNotEmpty>
+		  	</dynamic>
+		) R
+		WHERE
+		  PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+		   COUNT(1)
+		FROM 	
+			UCI_ORG
+		<dynamic prepend="WHERE">
+	  		<isNotEmpty property="searchKey" prepend="AND">
+	  			CATE_TYPE LIKE '%' || #searchKey# || '%'
+  			</isNotEmpty>
+  			<isNotEmpty property="searchKeyword" prepend="AND">
+	  			NAME LIKE '%' || #searchKeyword# || '%'
+  			</isNotEmpty>
+	  	</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT	
+			NAME               
+			, ORG_CODE           
+			, URL                
+			, EMAIL              
+			, PHONE_NO           
+			, FAX_NO             
+			, CHARGE             
+			, USE_STATUS         
+			, CRE_DATE           
+			, CATEGORY           
+			, ETC                
+			, CATE_TYPE          
+			, AGENT              
+			, FILE_SYSNAME       
+			, CONTENT            
+			, ORG_ID             
+			, IF_ID              
+			, ADDRESS            
+			, LOGO_IMG_FILE_NAME 
+			, JOB_GROUP_ID   
+		FROM
+			UCI_ORG
+		WHERE
+			ORG_ID = #org_id#    
+	</select>
+	<select id="codeCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+		  count(1)
+		FROM UCI_ORG 
+		WHERE
+		  org_code = #org_code#
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO UCI_ORG (
+			ORG_ID
+			,NAME
+			,ORG_CODE
+			,URL
+			,EMAIL
+			,PHONE_NO
+			,FAX_NO
+			,CHARGE
+			,USE_STATUS
+			,CRE_DATE
+			,CATEGORY
+			,ETC
+			,CATE_TYPE
+			,AGENT
+			,FILE_SYSNAME
+			,CONTENT
+		) VALUES (
+			(SELECT MAX(ORG_ID)+1 FROM UCI_ORG)
+			,#name#
+			,#org_code#
+			,#url#
+			,#email#
+			,#phone_no#
+			,#fax_no#
+			,#charge#
+			<isEmpty property="use_status" prepend=",">
+				null
+			</isEmpty>
+			<isNotEmpty property="use_status" prepend=",">
+				#use_status#
+			</isNotEmpty>
+			,SYSDATE
+			,(SELECT NAME FROM PCN_COMMON_CODE WHERE PCODE = 190 AND VALUE = #cate_type#)
+			,#etc#
+			,#cate#
+			,#agent#
+			,#file_sysname#
+			,#content#
+		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		<isNotEmpty property="org_id"> 
+			UPDATE UCI_ORG SET
+				NAME = #name#
+				,ORG_CODE  = #org_code#
+				,URL  = #url#
+				,EMAIL  = #email#
+				,PHONE_NO  = #phone_no#
+				,FAX_NO  = #fax_no#
+				,CHARGE  = #charge#
+				,USE_STATUS  = #use_status#
+				,ETC  = #etc#
+				,CATE_TYPE  = #cate_type#
+				,CATEGORY = (SELECT NAME FROM PCN_COMMON_CODE WHERE type = 'AGENCY' AND VALUE = #cate_type#)
+				,AGENT  = #agent#
+				,CONTENT = #content#
+				,FILE_SYSNAME = #file_sysname#
+			WHERE 
+				ORG_ID = #org_id#
+		</isNotEmpty>
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+	
+		UPDATE UCI_ORG SET
+			<isEmpty>
+				USE_STATUS  = null
+			</isEmpty>
+			<isNotEmpty>
+				USE_STATUS  = #updateStatus#
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.org_id" prepend="ORG_ID IN " open="(" close=")" conjunction=",">
+			#array.org_id[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE
+			UCI_ORG
+		WHERE
+		<iterate property="array.org_id" prepend="ORG_ID IN " open="(" close=")" conjunction=",">
+			#array.org_id[]#
+		</iterate>
+	</delete>
+</sqlMap>

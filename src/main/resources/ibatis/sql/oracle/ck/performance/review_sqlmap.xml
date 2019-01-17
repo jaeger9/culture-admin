@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="review">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM 
+		(
+			SELECT
+    			FLOOR((ROW_NUMBER()OVER(ORDER BY A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE , 
+				A.SEQ				, 
+				A.TITLE				, 
+				A.PREFORM_NAME		, 
+				A.USER_ID			, 
+				to_char(A.REG_DATE,'yyyy-mm-dd')REG_DATE			, 
+				A.EMAIL				, 
+				A.SCORE				, 
+				A.CONTENT			, 
+				DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
+				A.PARENT_SEQ		,		 
+				A.REVIEW_LEVEL		, 
+				A.REVIEW_ORDER  	,
+				A.VIEW_CNT			,
+	    		(SELECT  count(SEQ) FROM PCN_PERFORM_REVIEW_REPLY WHERE PSEQ = A.SEQ) COMMENTCNT
+      		FROM 
+      			PCN_PERFORM_REVIEW A 
+      		<dynamic prepend="WHERE">
+     			<isNotEmpty property="approval" prepend="AND">
+     				APPROVAL = #approval#
+     			</isNotEmpty>
+     			<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+						( 
+							title like '%'|| #keyword# || '%' or
+							DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+						)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content" prepend="AND">
+						<!--$searchGubun$ like '%'|| #keyword# || '%' -->
+						DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="user_id" prepend="AND">
+					USER_ID like '%'|| #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="reg_start" prepend="AND">
+					<isEmpty property="reg_end">
+						TO_CHAR(REG_DATE, 'yyyy-mm-dd') = #reg_start#
+					</isEmpty>
+			    	<isNotEmpty property="reg_end">
+			    		REG_DATE between to_date(#reg_start# || ' 00:00:00', 'yyyy-mm-dd hh24:mi:ss') and  to_date(#reg_end# || ' 23:59:59', 'yyyy-mm-dd hh24:mi:ss')
+			    	</isNotEmpty>
+			    </isNotEmpty>
+			</dynamic>
+  			<!-- START WITH REVIEW_LEVEL = 1 CONNECT BY PRIOR SEQ = PARENT_SEQ 
+  			ORDER SIBLINGS BY SEQ DESC,	REVIEW_LEVEL , REVIEW_ORDER  -->
+          ) R
+       WHERE
+  		R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) 
+     	FROM 
+     		PCN_PERFORM_REVIEW
+     	<dynamic prepend="WHERE">
+   			<isNotEmpty property="approval" prepend="AND">
+   				APPROVAL = #approval#
+   			</isNotEmpty>
+   			<isNotEmpty property="keyword" >
+			<isEqual property="searchGubun" compareValue="all" prepend="AND">
+				( 
+					title like '%'|| #keyword# || '%' or
+					DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+				)
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title" prepend="AND">
+				TITLE like '%'|| #keyword# || '%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="content" prepend="AND">
+				<!--$searchGubun$ like '%'|| #keyword# || '%' -->
+				DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="user_id" prepend="AND">
+			USER_ID like '%'|| #keyword# || '%'
+			</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start" prepend="AND">
+				<isEmpty property="reg_end">
+					TO_CHAR(REG_DATE, 'yyyy-mm-dd') = #reg_start#
+				</isEmpty>
+		    	<isNotEmpty property="reg_end">
+		    		REG_DATE between to_date(#reg_start# || ' 00:00:00', 'yyyy-mm-dd hh24:mi:ss') and  to_date(#reg_end# || ' 23:59:59', 'yyyy-mm-dd hh24:mi:ss')
+		    	</isNotEmpty>
+		    </isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ				, 
+			A.TITLE				, 
+			A.PREFORM_NAME		, 
+			A.USER_ID			, 
+			A.REG_DATE			, 
+			A.EMAIL				, 
+			A.SCORE				, 
+			<![CDATA[replace(A.CONTENT,'\n','<br />')	CONTENT		,	]]>
+			A.APPROVAL			, 
+			A.PARENT_SEQ		,		 
+			A.REVIEW_LEVEL		, 
+			A.REVIEW_ORDER  	,
+			A.VIEW_CNT			,
+			A.UCI		
+   		FROM PCN_PERFORM_REVIEW A
+   		WHERE SEQ = #seq#
+	</select>
+	
+	
+	<select id="commentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			* 
+		FROM (
+			SELECT 
+				a.seq					,
+				a.pseq					,
+				a.user_id				,
+<!-- 				<![CDATA[replace(CONTENT,'\n','<br />')	content		,	]]> -->
+				a.content				,				
+				b.image_name	image_file		,
+				TO_CHAR(a.reg_date,'yyyy-mm-dd hh24:mi:ss') reg_date	,
+				a.approval , 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY seq DESC )-1)/$list_unit$+1) AS PAGE
+			FROM 
+				PCN_PERFORM_REVIEW_REPLY a , PCN_MEMBER B			
+			WHERE 
+				PSEQ = #seq#
+			AND A.USER_ID = B.USER_ID(+)
+		) R
+	</select>
+	<select id="commentListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			count(1)		
+  		FROM 
+  			PCN_PERFORM_REVIEW_REPLY A ,  PCN_MEMBER B
+  		WHERE 
+  			A.PSEQ = #seq#
+  			AND A.USER_ID = B.USER_ID(+)
+	</select>
+	<insert id="answerInsert" parameterClass="java.util.HashMap">
+		INSERT INTO PCN_PERFORM_REVIEW(
+			SEQ				,
+			TITLE			,
+			PREFORM_NAME	,
+			REG_DATE		,
+			USER_ID			,			
+			UCI				,
+			CONTENT			,
+			PARENT_SEQ		,	
+			REVIEW_LEVEL	,	
+			REVIEW_ORDER	,
+			APPROVAL)			
+		VALUES(
+			(SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_PERFORM_REVIEW) ,  
+			#title#			,
+			#preform_name#	,
+			SYSDATE			,
+			#session_admin_id#		,
+			#uci#			,
+			#content:clob#	,
+			<isEmpty property="parent_seq">
+				NULL		,
+				1			,
+				1			,
+				'Y'
+			</isEmpty>
+			<isNotEmpty property="parent_seq">				
+				#parent_seq#			,
+				(#review_level#	) + 1	,
+				<isNotEmpty property="review_order">
+					(#review_order# + 1 )
+				</isNotEmpty>	
+				<isEmpty property="review_order">
+					1
+				</isEmpty>
+				,(SELECT APPROVAL FROM PCN_PERFORM_REVIEW WHERE SEQ = #parent_seq# )
+			</isNotEmpty>			
+		)
+		
+		 
+	</insert>
+	
+	<select id="answerOrder" parameterClass="paramMap" resultClass="int">
+		SELECT NVL(MAX(REVIEW_ORDER),0) FROM PCN_PERFORM_REVIEW
+    	WHERE PARENT_SEQ 	= ${PARENT_SEQ}
+    	AND REVIEW_LEVEL 	>= ${REVIEW_LEVEL} + 1
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PCN_PERFORM_REVIEW 
+		SET
+		<isNotEmpty property="updateStatus">			
+			APPROVAL = #updateStatus#		
+		</isNotEmpty>
+		WHERE
+		<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	
+	</update>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_PERFORM_REVIEW 
+		SET
+			TITLE 	= #title#				,
+			CONTENT = #content:CLOB#		,
+			APPROVAL	=#approval#,
+			PREFORM_NAME = #preform_name#,
+			UCI = #uci#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_PERFORM_REVIEW
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+	<update id="reviewCommentDelete" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_REVIEW_REPLY SET APPROVAL = 'N' WHERE SEQ = #comment_seq#	
+	</update>
+	
+</sqlMap>

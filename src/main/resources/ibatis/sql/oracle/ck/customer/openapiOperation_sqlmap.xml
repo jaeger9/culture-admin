@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="openapiOperation">
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.OPENAPI_ID
+		    ,A.ID
+		    ,A.NAME
+		    ,A.DESCRIPTION
+		    ,A.FORMAT
+		    ,A.URL
+		    ,A.FILENAME
+		FROM
+			RDF_OPERATION A
+		WHERE
+			A.OPENAPI_ID = #openapi_id#
+		ORDER BY
+			A.CREATE_DATE
+	</select>
+
+	<select id="exist" parameterClass="paramMap" resultClass="int">
+		SELECT
+		    COUNT(1)
+		FROM
+			RDF_OPERATION A
+		WHERE
+			A.ID = #id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="id" type="pre" resultClass="int">
+			SELECT MAX(NVL(ID, 0)) + 1 FROM RDF_OPERATION
+		</selectKey>
+
+		INSERT INTO RDF_OPERATION (
+			OPENAPI_ID
+			,ID
+			,NAME
+			,DESCRIPTION
+			,FORMAT
+			,URL
+			,CREATE_DATE
+		<isNotEmpty property="filename">
+			,FILENAME
+		</isNotEmpty>
+		) VALUES (
+			#openapi_id#
+			,#id#
+			,#name#
+			,#description#
+			,#format#
+			,#url#
+			,SYSDATE
+		<isNotEmpty property="filename">
+			,#filename#
+		</isNotEmpty>
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE RDF_OPERATION
+		SET
+			NAME			=	#name#
+			,DESCRIPTION	=	#description#
+			,FORMAT			=	#format#
+			,URL			=	#url#
+		<isNotEmpty property="filename">
+			,FILENAME		=	#filename#
+		</isNotEmpty>
+		WHERE
+			ID = #id#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM RDF_OPERATION
+		WHERE
+			ID IN 
+		<iterate property="array.ids" open="(" conjunction="," close=")">
+			#array.ids[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

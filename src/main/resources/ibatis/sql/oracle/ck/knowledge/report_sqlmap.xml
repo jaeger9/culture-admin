@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="report">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE	TYPE LIKE '%' || #type# || '%'
+		AND		REG_DATE IS NOT NULL
+		<isNotEmpty property="approval" prepend="AND">
+			DECODE(APPROVAL, 'N', 'N', 'Y') = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="top_yn" prepend="AND">
+			DECODE(TOP_YN, 'Y', 'Y', 'N') = #top_yn#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" >
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(TITLE)		LIKE	LOWER('%' || #search_word# || '%')
+				OR	LOWER(CREATOR)		LIKE	LOWER('%' || #search_word# || '%')
+				OR	LOWER(DESCRIPTION)	LIKE	LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">/* 제목 */
+				LOWER(TITLE)		LIKE	LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="creator" prepend="AND">/* 주최주관 */
+				LOWER(CREATOR)		LIKE	LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">/* 내용 */
+				LOWER(DESCRIPTION)	LIKE	LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="insert_date_start" prepend="AND"><![CDATA[
+			INSERT_DATE >= TO_DATE(#insert_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="insert_date_end" prepend="AND"><![CDATA[
+			INSERT_DATE <= TO_DATE(#insert_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="array.publishers">
+			<iterate property="array.publishers" prepend="AND PUBLISHER IN " open="(" close=")" conjunction=",">
+				#array.publishers[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="array.creators">
+			<iterate property="array.creators" prepend="AND CREATOR IN " open="(" close=")" conjunction=",">
+				#array.creators[]#
+			</iterate>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT SUM(CNT) CNT
+		FROM (
+			SELECT	COUNT(1) CNT
+			FROM	MV_RDF_METADATA_INFO A
+			<include refid="sqlList-1" />
+			UNION ALL
+			SELECT	COUNT(1) CNT
+			FROM	PCN_INFO_BOARD A
+			<include refid="sqlList-1" />
+		) A
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT A.*
+		FROM (
+			SELECT /*+INDEX_DESC(A MV_METADATA_INFO_IDX3)*/
+				REPLACE(A.UCI, '+', '%2b') UCI
+				,A.TITLE
+				,A.CREATOR
+				,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+				,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+				,A.REG_DATE
+				,A.INSERT_DATE
+				,A.REFERENCE_IDENTIFIER
+				,A.DESCRIPTION
+				,A.URL
+				,A.FORMAT
+				,A.TYPE
+				,'RDF' DATASOURCE
+				<!-- 20160805 속도때문에 조회수 안보이게 -->
+				<!-- ,NVL((SELECT VIEW_CNT FROM PCN_RDF_MEATADATA_VCNT@CK1 T WHERE T.UCI = A.UCI), 0) AS VIEW_CNT -->
+				,0 AS VIEW_CNT
+				,'' REG_ID
+			FROM	MV_RDF_METADATA_INFO A
+			<include refid="sqlList-1" />
+
+			UNION ALL
+			SELECT /*+INDEX_DESC(A PCN_INFO_BOARD_IDX01)*/ 
+				REPLACE(A.UCI, '+', '%2b') UCI
+				,A.TITLE
+				,A.CREATOR
+				,A.APPROVAL APPROVAL
+				,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+				,A.REG_DATE
+				,A.INSERT_DATE
+				,A.REFERENCE_IDENTIFIER
+				,A.DESCRIPTION
+				,A.URL
+				,A.FORMAT
+				,A.TYPE
+				,'CUL' DATASOURCE
+				,NVL(A.VIEW_CNT, 0) VIEW_CNT
+				,REG_ID
+			FROM	PCN_INFO_BOARD A
+			<include refid="sqlList-1" />
+		) A
+		ORDER BY
+			A.REG_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT A.*
+		FROM (
+			SELECT
+				REPLACE(UCI, '+', '%2b') UCI
+				,TITLE
+				,CREATOR
+				,PUBLISHER
+				,NVL(VIEW_CNT, 0) VIEW_CNT
+				,DECODE(APPROVAL, 'N', 'N', 'Y') APPROVAL
+				,DECODE(TOP_YN, 'Y', 'Y', 'N') TOP_YN
+				,REG_DATE
+				,INSERT_DATE
+				,REFERENCE_IDENTIFIER
+				,DESCRIPTION
+				,URL
+				,TYPE
+				,'RDF' DATASOURCE
+				,FORMAT
+			FROM	MV_RDF_METADATA_INFO
+			WHERE	TYPE LIKE '%' || #type# || '%'
+			AND		REG_DATE IS NOT NULL
+			UNION ALL
+			SELECT
+				REPLACE(UCI, '+', '%2b') UCI
+				,TITLE
+				,CREATOR
+				,PUBLISHER
+				,NVL(VIEW_CNT, 0) VIEW_CNT
+				,APPROVAL APPROVAL
+				,DECODE(TOP_YN, 'Y', 'Y', 'N') TOP_YN
+				,REG_DATE
+				,INSERT_DATE
+				,REFERENCE_IDENTIFIER
+				,DESCRIPTION
+				,URL
+				,TYPE
+				,'CUL' DATASOURCE
+				,FORMAT
+			FROM	PCN_INFO_BOARD
+			WHERE	TYPE LIKE '%' || #type# || '%'
+			AND		REG_DATE IS NOT NULL
+		) A
+		WHERE	REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+		AND		ROWNUM = 1
+	</select>
+
+	<!-- PCN_INFO_BOARD -->
+	<insert id="insertCUL" parameterClass="paramMap">
+		<selectKey keyProperty="uci" type="pre" resultClass="string">
+			SELECT 'G706+' || #publisher# || '-' || #cate_type# || '.' || FN_CURRENT_TIME_MILLIS() AS uci FROM DUAL
+		</selectKey>
+		
+		INSERT INTO PCN_INFO_BOARD (
+			UCI
+			,TITLE
+			,TOP_YN
+			,CREATOR
+			,PUBLISHER
+			,FORMAT
+			,URL
+			,DESCRIPTION
+			,REG_DATE
+			,INSERT_DATE
+			,REFERENCE_IDENTIFIER
+			,REG_ID
+			,TYPE
+			,APPROVAL
+			,DATASOURCE
+			,VIEW_CNT
+		) VALUES (
+			#uci#
+			,#title#
+			,DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,#creator#
+			,#publisher#
+			,#format#
+			,#url#
+			,#description#
+			,SYSDATE
+			,SYSDATE
+			,#reference_identifier#
+			,#reg_id#
+			,#type#
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,'CUL'
+			,0
+		)
+	</insert>
+
+	<update id="updateRDF" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_INFO
+		SET
+			TITLE			=	#title#
+			,TOP_YN			=	DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,CREATOR		=	#creator#
+			,PUBLISHER		=	#publisher#
+			,FORMAT			=	#format#
+			,URL			=	#url#
+			,DESCRIPTION	=	#description#
+			,APPROVAL		=	DECODE(#approval#, 'N', 'N', 'Y')
+			,REFERENCE_IDENTIFIER	=	#reference_identifier#
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+	</update>
+
+	<update id="updateCUL" parameterClass="paramMap">
+		UPDATE PCN_INFO_BOARD
+		SET
+			TITLE			=	#title#
+			,TOP_YN			=	NVL(#top_yn#, 'N')
+			,CREATOR		=	#creator#
+			,PUBLISHER		=	#publisher#
+			,FORMAT			=	#format#
+			,URL			=	#url#
+			,DESCRIPTION	=	#description#
+			,APPROVAL		=	DECODE(#approval#, 'N', 'N', 'Y')
+			,REFERENCE_IDENTIFIER	= #reference_identifier#			
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+	</update>
+
+	<update id="updateApprovalRDF" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_INFO
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</update>
+
+	<update id="updateApprovalCUL" parameterClass="paramMap">
+		UPDATE PCN_INFO_BOARD
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN 
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</update>
+
+	<delete id="deleteRDF" parameterClass="paramMap">
+		DELETE FROM MV_RDF_METADATA_INFO
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN 
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</delete>
+
+	<delete id="deleteCUL" parameterClass="paramMap">
+		DELETE FROM PCN_INFO_BOARD
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN 
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</delete>
+
+	<select id="creatorList" parameterClass="paramMap" resultClass="string">
+		SELECT
+			DISTINCT CREATOR
+		FROM (
+			SELECT DISTINCT CREATOR FROM MV_RDF_METADATA_INFO WHERE TYPE LIKE '%' || #type# || '%'
+			UNION ALL
+			SELECT DISTINCT CREATOR FROM PCN_INFO_BOARD WHERE TYPE LIKE '%' || #type# || '%'
+		)
+		ORDER BY CREATOR
+	</select>
+
+</sqlMap>

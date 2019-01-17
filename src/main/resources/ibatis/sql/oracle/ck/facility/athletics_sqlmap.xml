@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="athletics">
+
+	<select id="list" parameterClass="java.util.HashMap" resultClass="commonMap">
+		SELECT * FROM(
+			SELECT
+				 SEQ
+			  , TITLE
+			  , KEYWORD
+			  , CATE1
+			  , CATGE2
+			  , RIGHTS
+			  , CONTRIBUTOR
+			  , SIDO
+			  , GUGUN
+			  , DONG
+			  , LI
+			  , ADDRESS
+			  , GPSY
+			  , GPSX
+			  , SISUL
+			  , PERSON
+			  , GAUNRAM
+			  , RIGHTS2
+			  , TEL
+			  , HOMEPAGE
+			  , STARTTIME
+			  , ENDTIME
+			  , REST
+			  , TRAFIC
+			  , APPROVAL
+			  , FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$ + 1) AS PAGE
+			FROM PCN_META_KSPD0701
+			WHERE 1=1
+			<isNotEmpty property="category" prepend="AND">
+				CATE1 = #category#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE  '%' || #title# || '%'
+			</isNotEmpty>
+		)WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT COUNT(*) CNT
+		FROM PCN_META_KSPD0701
+			WHERE 1=1
+			<isNotEmpty property="category" prepend="AND">
+				CATE1 = #category#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE  '%' || #title# || '%'
+			</isNotEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			 SEQ
+			  , TITLE
+			  , KEYWORD
+			  , CATE1
+			  , CATGE2
+			  , RIGHTS
+			  , CONTRIBUTOR
+			  , SIDO
+			  , GUGUN
+			  , DONG
+			  , LI
+			  , ADDRESS
+			  , GPSY
+			  , GPSX
+			  , SISUL
+			  , PERSON
+			  , GAUNRAM
+			  , RIGHTS2
+			  , TEL
+			  , HOMEPAGE
+			  , STARTTIME
+			  , SUBSTR(STARTTIME, 0, 2) STARTAMPM
+			  , SUBSTR(STARTTIME, 4, INSTR(STARTTIME, ':', 1) - (INSTR(STARTTIME, ' ', 1)+1)) STARTSI
+			  , SUBSTR(STARTTIME, INSTR(STARTTIME, ':', 1)+1, INSTR(STARTTIME, ':', 1, 2)-1 - INSTR(STARTTIME, ':', 1)) STARTBUN
+			  , ENDTIME
+			  , SUBSTR(ENDTIME, 0, 2) ENDAMPM
+			  , SUBSTR(ENDTIME, 4, INSTR(ENDTIME, ':', 1) - (INSTR(ENDTIME, ' ', 1)+1)) ENDSI
+			  , SUBSTR(ENDTIME, INSTR(ENDTIME, ':', 1)+1, INSTR(ENDTIME, ':', 1, 2)-1 - INSTR(ENDTIME, ':', 1)) ENDBUN
+			  , REST
+			  , TRAFIC
+			  , APPROVAL
+		FROM 
+			PCN_META_KSPD0701				
+		WHERE 
+			SEQ = #seq#		
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT MAX(SEQ)+1 FROM PCN_META_KSPD0701 
+		</selectKey>
+		INSERT INTO PCN_META_KSPD0701
+		(			
+			 SEQ
+			  , TITLE
+			  , KEYWORD
+			  , CATE1
+			  , CATGE2
+			  , RIGHTS
+			  , CONTRIBUTOR
+			  , SIDO
+			  , GUGUN
+			  , DONG
+			  , LI
+			  , ADDRESS
+			  , GPSY
+			  , GPSX
+			  , SISUL
+			  , PERSON
+			  , GAUNRAM
+			  , RIGHTS2
+			  , TEL
+			  , HOMEPAGE
+			  , STARTTIME
+			  , ENDTIME
+			  , REST
+			  , TRAFIC
+			  , APPROVAL
+		)VALUES(
+			#seq#
+			,#title#
+			,#keyword#
+			,#cate1#
+			,#catge2#
+			,#rights#
+			,#contributor#
+			,#sido#
+			,#gugun#
+			,#dong#
+			,#li#
+			,#address#
+			,#gpsy#
+			,#gpsx#
+			,#sisul#
+			,#person#
+			,#gaunram#
+			,#rights2#
+			,#tel#
+			,#homepage#
+			,#starttime#
+			,#endtime#
+			,#rest#
+			,#trafic#
+			,#approval#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_META_KSPD0701 SET
+ 				TITLE		=		#title#
+			  , KEYWORD		=		#keyword#
+			  , CATE1		=		#cate1#
+			  , CATGE2		=		#catge2#
+			  , RIGHTS		=		#rights#
+			  , CONTRIBUTOR	=		#contributor#
+			  , SIDO		=		#sido#
+			  , GUGUN		=		#gugun#
+			  , DONG		=		#dong#
+			  , LI			=		#li#
+			  , ADDRESS		=		#address#
+			  , GPSY		=		#gpsy#
+			  , GPSX		=		#gpsx#
+			  , SISUL		=		#sisul#
+			  , PERSON		=		#person#
+			  , GAUNRAM		=		#gaunram#
+			  , RIGHTS2		=		#rights2#
+			  , TEL			=		#tel#
+			  , HOMEPAGE	=		#homepage#
+			  , STARTTIME	=		#starttime#
+			  , ENDTIME		=		#endtime#
+			  , REST		=		#rest#
+			  , TRAFIC		=		#trafic#
+			  , APPROVAL	=		#approval#
+		WHERE SEQ = #seq#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PCN_META_KSPD0701
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_META_KSPD0701 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+</sqlMap>

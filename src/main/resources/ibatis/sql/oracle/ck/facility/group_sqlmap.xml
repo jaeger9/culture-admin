@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="group">
+	<select id="list" parameterClass="java.util.HashMap" resultClass="commonMap">
+	
+	
+		SELECT
+		   		R.*
+		FROM  
+		(
+			SELECT
+				SEQ				,
+				NAME			,
+				IMG_FILE		,
+				TITLE			,
+				SUB_CONTENT		,
+				URL				,
+				TEL				,
+				ZIP_YN			,
+				ZIP_CODE		,
+				ADDR1			,
+				ADDR2			,
+				CONTENT			,
+				DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
+				USER_ID			,
+				TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE,
+				FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE
+		     FROM 
+		     	PCN_GROUP_CULTURE A 
+	       		<dynamic prepend="WHERE">
+	       			<isNotEmpty property="approval" prepend="AND">
+			      		APPROVAL = #approval#
+			   		</isNotEmpty>
+		      		<isNotEmpty property="keyword" >
+						<isEqual property="searchGubun" compareValue="all" prepend="AND">
+						( 
+							NAME like '%'|| #keyword# || '%' or
+							DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+						)
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="name" prepend="AND">
+							NAME like '%'|| #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content" prepend="AND">
+							DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					<!-- 단체구분 검색 추가 -->
+					<isNotEmpty property="group_type_code" prepend="AND">
+							GROUP_TYPE_CODE = #group_type_code#
+					</isNotEmpty>
+				</dynamic>
+      ) R
+		WHERE
+			R.PAGE = #page_no#
+		
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+			COUNT(1) 
+     	FROM 
+     		PCN_GROUP_CULTURE 
+     	<dynamic prepend="WHERE">
+      		<isNotEmpty property="approval" prepend="AND">
+	      		APPROVAL = #approval#
+	   		</isNotEmpty>
+      		<isNotEmpty property="keyword" >
+				<isEqual property="searchGubun" compareValue="all" prepend="AND">
+				( 
+					NAME like '%'|| #keyword# || '%' or
+					DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+				)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="name" prepend="AND">
+					NAME like '%'|| #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content" prepend="AND">
+					DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<!-- 단체구분 검색 추가 -->
+			<isNotEmpty property="group_type_code" prepend="AND">
+					GROUP_TYPE_CODE = #group_type_code#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ 		, 
+			NAME 		, 
+			IMG_FILE 	, 
+			TITLE 		,	 
+			SUB_CONTENT , 
+			URL 		, 
+			TEL 		, 
+			ZIP_YN 		, 
+			ZIP_CODE 	, 
+			ADDR1 		, 
+			ADDR2 		, 
+			TO_DATE(REG_DATE,'YYYY-MM-DD') REG_DATE,
+			<![CDATA[replace(CONTENT,'\n','<br />')	CONTENT		,	]]>
+			APPROVAL,
+			GROUP_TYPE_CODE
+   		FROM 
+   			PCN_GROUP_CULTURE 
+   		WHERE 
+   			SEQ = #seq#
+	</select>
+	<!-- 공연/전시 저장 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_GROUP_CULTURE(
+			SEQ			,
+			NAME		,
+			IMG_FILE	,
+			TITLE		,
+			SUB_CONTENT	,
+			URL			,
+			TEL			,
+			ZIP_YN		,
+			ZIP_CODE	,
+			ADDR1		,
+			ADDR2		,
+			CONTENT		,
+			APPROVAL	,
+			USER_ID		,
+			REG_DATE	,
+			GROUP_TYPE_CODE
+		)VALUES(
+			(SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_GROUP_CULTURE),
+			#name#			,
+			#file_sysname#		,
+			#title#			,
+			#sub_content#	,
+			#url#			,
+			#tel#			,
+			#zip_yn#		,
+			#zip_code#		,
+			#addr1#			,
+			#addr2#			,
+			#content#		,
+			#approval#		,
+			#session_admin_id#		,
+			SYSDATE			,
+			#group_type_code#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_GROUP_CULTURE 
+		SET
+			NAME		= #name#,
+			<isNotEmpty property="file_sysname">
+				IMG_FILE	= #file_sysname#,
+			</isNotEmpty>			
+			TITLE		= #title#		,
+			SUB_CONTENT	= #sub_content#	,
+			URL			= #url#			,
+			TEL			= #tel#			,
+			ZIP_YN		= #zip_yn#		,
+			ZIP_CODE	= #zip_code#	,
+			ADDR1		= #addr1#		,
+			ADDR2		= #addr2#		,
+			CONTENT		= #content#		,
+			APPROVAL	= #approval#	,
+			GROUP_TYPE_CODE	= #group_type_code#
+		WHERE 
+			SEQ = #seq#	
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PCN_GROUP_CULTURE 
+		SET			
+			APPROVAL	= #updateStatus#
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_GROUP_CULTURE 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

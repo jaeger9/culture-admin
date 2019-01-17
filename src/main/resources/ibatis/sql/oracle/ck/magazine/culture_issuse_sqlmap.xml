@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture.issue">
+
+	<!-- 문화 이슈 컨텐츠 목록 : 페이징 없음 -->
+	<select id="topList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT	/* culture.issuecontents.listNonePaging */ 			
+			A.SEQ, A.TITLE, A.AUTHOR_SEQ, A.APPROVAL_YN, A.VIEW_CNT, A.REG_ID, 
+			DECODE(A.APPROVAL_YN, 'Y', '승인', 'N', '미승인', '대기') APPROVAL_NM,
+			TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE, 
+			(SELECT COUNT(S.SEQ) FROM PORTAL_COMMENT S WHERE S.MENU_CD = '10' AND S.MENU_SEQ = A.SEQ) REPLY_CNT,
+			B.NAME AUTHOR_NAME,
+			(SELECT C.NAME FROM PCN_COMMON_CODE C WHERE C.VALUE = TO_CHAR(B.TYPE) AND C.TYPE = 'WRITER_CD') SOURCE_NAME 
+		FROM CULTURE_ISSUE_CONTENTS A
+		INNER JOIN PORTAL_STORY_AUTHOR B ON (B.SEQ = A.AUTHOR_SEQ)
+		WHERE A.TOP_YN = 'Y'
+		ORDER BY A.OPEN_DATE DESC
+	</select>
+
+	<!-- 문화 이슈 컨텐츠 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture.issuecontents.list */ 
+			SEQ, TITLE, SOURCE_NAME, AUTHOR_NAME, AUTHOR_SEQ, REG_ID, VIEW_CNT, REPLY_CNT, APPROVAL_YN,
+			DECODE(APPROVAL_YN, 'Y', '승인', 'N', '미승인', '대기') APPROVAL_NM,
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, IMG_URL, THUMB_URL, SUMMARY
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE,
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE,
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER() OVER(ORDER BY REPLY_CNT DESC)-1)/$list_unit$+1) PAGE,
+					</isEqual>
+				</isNotEmpty>
+				SEQ, TITLE, AUTHOR_SEQ, APPROVAL_YN, VIEW_CNT, REG_ID, REG_DATE, REPLY_CNT, AUTHOR_NAME, SOURCE_NAME, IMG_URL, THUMB_URL, SUMMARY
+			FROM (
+				SELECT				
+					A.SEQ, A.TITLE, A.AUTHOR_SEQ, A.APPROVAL_YN, A.VIEW_CNT, A.REG_ID, A.REG_DATE,
+					(SELECT COUNT(S.SEQ) FROM PORTAL_COMMENT S WHERE S.MENU_CD = '10' AND S.MENU_SEQ = A.SEQ) REPLY_CNT,
+					B.NAME AUTHOR_NAME,
+					(SELECT C.NAME FROM PCN_COMMON_CODE C WHERE C.VALUE = TO_CHAR(B.TYPE) AND C.TYPE = 'WRITER_CD') SOURCE_NAME, A.IMG_URL, A.THUMB_URL,
+               		A.SUMMARY
+				FROM CULTURE_ISSUE_CONTENTS A
+				INNER JOIN PORTAL_STORY_AUTHOR B ON (B.SEQ = A.AUTHOR_SEQ)
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="category_seq" prepend="AND">
+						A.CATEGORY_SEQ = #category_seq#
+					</isNotEmpty>
+					<isNotEmpty property="del_yn" prepend="AND">
+						A.DEL_YN = #del_yn#
+					</isNotEmpty>
+					<isNotEmpty property="top_yn" prepend="AND">
+						A.TOP_YN = #top_yn#
+					</isNotEmpty>
+					<isNotEmpty property="approval_yn" prepend="AND">
+						A.APPROVAL_YN = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="keyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(A.TITLE LIKE '%' || #keyword# || '%' OR A.CONTENTS LIKE '%' || #keyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							A.TITLE LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="contents">
+							A.CONTENTS LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="name">
+							B.NAME LIKE '%' || #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="search_type" prepend="AND">
+						B.TYPE = #search_type#
+					</isNotEmpty>
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_end" prepend="AND">
+							A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+			)
+		)
+		WHERE PAGE = #page_no#		
+	</select>
+	
+	<!-- 문화 이슈 컨텐츠 목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture.issuecontents.listCnt */
+			COUNT(1)
+		FROM CULTURE_ISSUE_CONTENTS A
+		INNER JOIN PORTAL_STORY_AUTHOR B ON (B.SEQ = A.AUTHOR_SEQ)
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="category_seq" prepend="AND">
+				A.CATEGORY_SEQ = #category_seq#
+			</isNotEmpty>
+			<isNotEmpty property="del_yn" prepend="AND">
+				A.DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="top_yn" prepend="AND">
+				A.TOP_YN = #top_yn#
+			</isNotEmpty>
+			<isNotEmpty property="approval_yn" prepend="AND">
+				A.APPROVAL_YN = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(A.TITLE LIKE '%' || #keyword# || '%' OR A.CONTENTS LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					A.TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="contents">
+					A.CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="name">
+					B.NAME LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="search_type" prepend="AND">
+				B.TYPE = #search_type#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 문화 이슈 컨텐츠 상세 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture.issuecontents.view */
+			A.SEQ, A.CATEGORY_SEQ, A.TITLE, A.SUMMARY, A.CONTENTS, A.AUTHOR_SEQ, A.IMG_URL, A.THUMB_URL, 
+			A.TOP_YN, A.APPROVAL_YN, A.DEL_YN, A.VIEW_CNT, A.OPEN_DATE, 
+			A.REG_ID, A.REG_DATE, A.UPD_ID, A.UPD_DATE, B.NAME AUTHOR_NAME,
+			(SELECT S.NAME FROM PCN_COMMON_CODE S WHERE S.TYPE = 'WRITER_CD' AND S.VALUE = TO_CHAR(B.TYPE)) AUTHOR_TYPE,
+			(SELECT S.CATEGORY_NM FROM CULTURE_ISSUE_CATEGORY S WHERE S.SEQ = A.CATEGORY_SEQ) CATEGORY_NM
+		FROM CULTURE_ISSUE_CONTENTS A
+		INNER JOIN PORTAL_STORY_AUTHOR B ON (B.SEQ = A.AUTHOR_SEQ)
+		WHERE A.SEQ = #seq#
+	</select>
+	
+	<!-- 문화 이슈 컨텐츠 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT SEQ_CULTURE_ISSUE_CONTENTS.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT /* culture.issuecontents.insert */ 
+		INTO CULTURE_ISSUE_CONTENTS (
+			SEQ, CATEGORY_SEQ, TITLE, SUMMARY, CONTENTS, AUTHOR_SEQ, IMG_URL, THUMB_URL, 
+			TOP_YN, APPROVAL_YN, OPEN_DATE, REG_ID, REG_DATE
+		) VALUES(
+			#seq#, #category_seq#, #title#, #summary#, #contents:CLOB#, #author_seq#, #img_url#, #thumb_url#, 
+			#top_yn#, #approval_yn#, #open_date#, #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 문화 이슈 컨텐츠 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* culture.isscontents.update */ 
+		CULTURE_ISSUE_CONTENTS SET
+			CATEGORY_SEQ = #category_seq#,
+			TITLE = #title#,
+			SUMMARY = #summary#,
+			CONTENTS = #contents:CLOB#,
+			AUTHOR_SEQ = #author_seq#,
+			<!-- 이미지 url이 없으면 공백으로 수정하기 위해 수정 -->
+			IMG_URL = #img_url#,
+			THUMB_URL = #thumb_url#,
+			<!-- <isNotEmpty  property="img_url">
+				IMG_URL = #img_url#,
+			</isNotEmpty>
+			<isNotEmpty  property="thumb_url">
+				THUMB_URL = #thumb_url#,
+			</isNotEmpty> -->
+			TOP_YN = #top_yn#,
+			APPROVAL_YN = #approval_yn#,
+			<isNotEmpty  property="del_yn">
+				DEL_YN = #del_yn#,
+			</isNotEmpty>
+			OPEN_DATE = #open_date#, 
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화 이슈 컨텐츠 상태 변경 -->
+	<update id="statusUpdate" parameterClass="paramMap">		
+		UPDATE /* culture.isscontents.statusUpdate */
+		CULTURE_ISSUE_CONTENTS SET
+		<isNotEmpty property="updateStatus">			
+			APPROVAL_YN = #updateStatus#,		
+		</isNotEmpty>
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<!-- 문화 이슈 컨텐츠 삭제 -->
+	<delete id="delete" parameterClass="paramMap">
+		UPDATE /* culture.isscontents.delete */
+		CULTURE_ISSUE_CONTENTS SET 
+			DEL_YN = 'Y',
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</delete>
+
+	<!-- 문화 이슈 카테고리 목록 -->
+	<select id="categoryNonePaging" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture.issuecontents.categoryNonePaging */
+			SEQ, CATEGORY_NM, REG_ID, REG_DATE
+		FROM CULTURE_ISSUE_CATEGORY
+		ORDER BY SEQ DESC
+	</select>
+	
+	<!-- 문화 이슈 카테고리 목록 -->
+	<select id="categoryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture.issuecontents.categoryList */
+			SEQ, CATEGORY_NM, REG_ID, REG_DATE
+		FROM (
+			SELECT
+				SEQ, CATEGORY_NM, REG_ID, REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_ISSUE_CATEGORY
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="search_word" prepend="AND">
+					CATEGORY_NM LIKE '%' || #"search_word"# || '%'
+				</isNotEmpty>
+			</dynamic>
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화 이슈 카테고리 목록 -->
+	<select id="categoryListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture.issuecontents.categoryListCnt */
+			COUNT(1)
+		FROM CULTURE_ISSUE_CATEGORY
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="search_word" prepend="AND">
+				CATEGORY_NM LIKE '%' || #"search_word"# || '%'
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY SEQ DESC
+	</select>
+	
+	<!-- 문화 이슈 카테고리 상세 -->
+	<select id="categoryView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture.issuecontents.categoryView */
+			SEQ, CATEGORY_NM, REG_ID, REG_DATE
+		FROM CULTURE_ISSUE_CATEGORY
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화 이슈 카테고리 등록 -->
+	<insert id="categoryInsert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT SEQ_CULTURE_ISSUE_CATEGORY.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT /* culture.issuecontents.categoryInsert */ 
+		INTO CULTURE_ISSUE_CATEGORY (
+			SEQ, CATEGORY_NM, REG_ID, REG_DATE 
+		) VALUES(
+			#seq#, #category_nm#, #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 문화 이슈 카테고리 수정 -->
+	<update id="categoryUpdate" parameterClass="paramMap">
+		UPDATE /* culture.issuecontents.categoryUpdate */
+		CULTURE_ISSUE_CATEGORY SET
+			CATEGORY_NM = #category_nm#,
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+
+	<!-- 문화 이슈 카테고리 삭제 -->
+	<delete id="categoryDelete" parameterClass="paramMap">
+		DELETE /* culture.issuecontents.categoryDelete */
+		FROM CULTURE_ISSUE_CATEGORY
+		WHERE SEQ = #seq#
+	</delete>
+	
+</sqlMap>

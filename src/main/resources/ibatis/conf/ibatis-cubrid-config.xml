@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<settings cacheModelsEnabled="true" enhancementEnabled="true"
+		lazyLoadingEnabled="true" maxRequests="512" maxSessions="128"
+		maxTransactions="30" useStatementNamespaces="true" />
+	
+	<typeAlias alias="int" type="java.lang.Integer"/>
+	<typeAlias alias="double" type="java.lang.Double"/>
+	<typeAlias alias="string" type="java.lang.String"/>
+	<typeAlias alias="long" type="java.lang.Long"/>
+	
+	<!-- sql parameterClass Mapping name -->
+	<typeAlias alias="commonMap" type="kr.go.culture.common.domain.CommonModel"/>
+	<typeAlias alias="paramMap" type="kr.go.culture.common.domain.ParamMap"/>
+	
+	<!-- sql resultClass Mapping name -->
+	<typeAlias alias="resultMap" type="java.util.HashMap"/>
+	
+	<sqlMap resource="ibatis/sql/dummy.xml" />
+</sqlMapConfig>

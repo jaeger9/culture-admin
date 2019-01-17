@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx 
+  		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+  		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- @Transactional 사용 시 ckTransactionManager 기본값으로 적용 -->
+	<!-- @Transactional("ckTransactionManager") 사용 시 ckTransactionManager 적용 -->
+	<!-- @Transactional("kiissTransactionManager") 사용 시 kiissTransactionManager 적용 -->
+	<!-- proxy-target-class="true" -->
+	<tx:annotation-driven transaction-manager="ckTransactionManager" />
+	<beans:bean id="ckTransactionManager"
+	  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	  <beans:property name="dataSource" ref="dataSource-ck-proxy"></beans:property>
+	</beans:bean>
+	<beans:bean id="kiissTransactionManager"
+	  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	  <beans:property name="dataSource" ref="dataSource-kiiss"></beans:property>
+	</beans:bean>
+	<beans:bean id="cultureTransactionManager"
+	  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	  <beans:property name="dataSource" ref="dataSource-culture-proxy"></beans:property>
+	</beans:bean>
+
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving 
+		up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/favicon.ico" location="/images/shortcut/favicon.ico" />
+	<resources mapping="/css/**" location="/css/" />
+	<resources mapping="/font/**" location="/font/" />
+	<resources mapping="/html/**" location="/html/" />
+	<resources mapping="/images/**" location="/images/" />
+	<resources mapping="/js/**" location="/js/" />
+	<resources mapping="/editor/**" location="/SE2.3.10.O11329/" />
+	<resources mapping="/SE2.3.10.O11329/**" location="/SE2.3.10.O11329/" />
+	<resources mapping="/upload/**" location="/upload/" />
+	<resources mapping="/player/**" location="/player/" />
+	<!-- namoediter 신규 추가 20151001 이용환 -->
+	<resources mapping="/crosseditor/**" location="/crosseditor/" />
+	<resources mapping="/neweditor/**" location="/crosseditor/" />
+	<resources mapping="/webfilter/**" location="/webfilter/" />
+
+	<!-- Admin menu interceptor -->
+	<interceptors>
+		<interceptor>
+			<mapping path="/" />
+			<mapping path="/*.do" />
+			<mapping path="/**/*.do" />
+			<beans:bean class="kr.go.culture.admin.interceptor.AdminMenuInterceptor" />
+		</interceptor>
+	</interceptors>
+
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources 
+		in the /WEB-INF/views directory -->
+	<beans:bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+
+	<beans:bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- setting maximum upload size -->
+		<beans:property name="maxUploadSize" value="#{contextConfig['file.upload.size']}" />
+		<!-- <beans:property name="maxInMemorySize" value="6000000" /> -->
+													 
+		<!-- <beans:property name="defaultEncoding" value="UTF-8" /> -->
+	</beans:bean>
+
+	<!-- <util:properties id="contextConfig" location="classpath:/conf/${deploy-mode}.context.properties" /> -->
+	<util:properties id="contextConfig" location="classpath:/conf/dev.context.properties" />
+	
+	<beans:bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <beans:property name="host" value="mail.kcisa.kr"/>
+        <beans:property name="port" value="25"/>
+        <!-- <beans:property name="username" value="myusername@gmail.com"/> -->
+        <beans:property name="username" value="culture"/>
+        <beans:property name="password" value="admin_00"/>
+        <beans:property name="javaMailProperties">
+            <beans:props>
+                <!-- Use SMTP transport protocol -->
+                <beans:prop key="mail.transport.protocol">smtp</beans:prop>
+                <!-- Use SMTP-AUTH to authenticate to SMTP server -->
+                <beans:prop key="mail.smtp.auth">true</beans:prop>
+                <!-- Use TLS to encrypt communication with SMTP server -->
+                <!--임시 <beans:prop key="mail.smtp.starttls.enable">true</beans:prop> -->
+                <beans:prop key="mail.debug">true</beans:prop>
+            </beans:props>
+        </beans:property>
+    </beans:bean>
+     
+    <beans:bean id="simpleMailMessage" class="org.springframework.mail.SimpleMailMessage">
+        <beans:property name="from">           
+            <beans:value>webmaster@mail.kcisa.kr</beans:value>
+        </beans:property>
+        <beans:property name="to">           
+            <beans:value>ksyoo88@naver.com</beans:value>
+        </beans:property>
+        <beans:property name="subject" value="Alert - Exception occurred. Please investigate 메롱"/>
+    </beans:bean>
+	    
+	<context:component-scan base-package="kr.go.culture" />
+
+	<!-- excel document view -->
+	<beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<beans:property name="order" value="1"></beans:property>
+	</beans:bean>
+	<beans:bean id="excelView" class="kr.go.culture.common.view.ExcelDocView"></beans:bean>
+
+</beans:beans>

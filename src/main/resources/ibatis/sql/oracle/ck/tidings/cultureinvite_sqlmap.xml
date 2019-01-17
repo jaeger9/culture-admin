@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="cultureinvite">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*				
+		FROM 
+	    (
+	    	SELECT
+				A.SEQ				 
+				, A.TITLE				 							
+				, A.USER_ID			 
+				, TO_CHAR(A.WIN_DT,'YYYY-MM-DD') WIN_DT		 
+				, TO_CHAR(A.START_DT,'YYYY-MM-DD') START_DT	 
+				, TO_CHAR(A.END_DT,'YYYY-MM-DD')	END_DT			 
+				, A.APPROVAL			
+				, A.VIEW_CNT			
+				, TRUNC(A.END_DT- SYSDATE) + 1 STATUS			 
+				, (SELECT COUNT(1) FROM PCN_PERFORM_INVITATION_person WHERE event_seq = a.seq) PERSON_CNT
+				, FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/10+1) AS cPage	
+       		FROM 
+       			PCN_PERFORM_INVITATION A 
+			WHERE 
+				1 = 1
+       			<isNotEmpty property="APPROVAL" prepend="AND">
+       				APPROVAL = #APPROVAL#
+       			</isNotEmpty>
+        		<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+						( 
+							title like '%'|| #keyword# || '%' or
+							DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+						)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content" prepend="AND">
+						<!-- $searchGubun$ like '%'|| #keyword# || '%' -->
+						CONTENT like '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+				<isEqual property="regType" compareValue="1">
+					<isNotEmpty property="start_dt">
+     					<isNotEmpty property="end_dt" prepend="AND">
+						(
+							START_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+							END_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						)
+						</isNotEmpty>
+     				</isNotEmpty>
+     			</isEqual>
+     			<isEqual property="regType" compareValue="2">
+     				<isNotEmpty property="start_dt">
+						<isEmpty property="end_dt">
+							WIN_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+	      				<isNotEmpty property="end_dt" prepend="AND">
+							WIN_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+      				</isNotEmpty>
+       			</isEqual>
+       			<isEqual property="regType" compareValue="3">
+					<isNotEmpty property="start_dt">
+      					<isEmpty property="end_dt">
+      						REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+       					<isNotEmpty property="end_dt" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+       				</isNotEmpty>
+       			</isEqual>
+	       )A
+	       WHERE cPage = #cPage#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+      		PCN_PERFORM_INVITATION A 
+		WHERE 
+			1 = 1
+      			<isNotEmpty property="APPROVAL" prepend="AND">
+      				APPROVAL = #APPROVAL#
+      			</isNotEmpty>
+       			<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+					( 
+						title like '%'|| #keyword# || '%' or
+						DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+					)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content" prepend="AND">
+						<!-- $searchGubun$ like '%'|| #keyword# || '%' -->
+						CONTENT like '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+				<isEqual property="regType" compareValue="1">
+					<isNotEmpty property="start_dt">
+    					<isNotEmpty property="end_dt" prepend="AND">
+						(
+							START_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+							END_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						)
+						</isNotEmpty>
+    				</isNotEmpty>
+    			</isEqual>
+    			<isEqual property="regType" compareValue="2">
+    				<isNotEmpty property="start_dt">
+					<isEmpty property="end_dt">
+						WIN_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+      				<isNotEmpty property="end_dt" prepend="AND">
+						WIN_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+     				</isNotEmpty>
+      			</isEqual>
+      			<isEqual property="regType" compareValue="3">
+					<isNotEmpty property="start_dt">
+     					<isEmpty property="end_dt">
+     						REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+      					<isNotEmpty property="end_dt" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+      				</isNotEmpty>
+      			</isEqual>
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		
+	</update>
+	<update id="updateApproval" parameterClass="java.util.ArrayList">
+		UPDATE
+			PORTAL_MICROSITE
+		SET
+			APPROVAL = #APPROVAL#
+		WHERE
+			SEQ IN
+	 		<iterate property="seqs" open="(" close=")" conjunction=",">
+	 			#seqs[]#
+	 		</iterate>
+<!-- 		<dynamic prepend="WHERE">
+			<isNotEmpty property="seqs"> -->
+				
+	 		<!-- </isNotEmpty>
+		</dynamic> -->
+	</update>
+	<delete id="delete" parameterClass="paramMap" >
+		DELETE
+			PORTAL_MICROSITE
+		WHERE
+			SEQ = #seq#
+	</delete>
+	<delete id="deleteChecked" parameterClass="paramMap" >
+		<isNotEmpty property="seqs">
+			DELETE
+				PORTAL_MICROSITE
+			
+		</isNotEmpty>
+	</delete>
+</sqlMap>

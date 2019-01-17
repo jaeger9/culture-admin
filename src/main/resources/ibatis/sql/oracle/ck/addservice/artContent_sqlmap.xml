@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="artContent">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<!-- 기본 정보 -->
+	<sql id="sqlList-1">
+		WHERE
+			A.VVM_STATUS &lt;&gt; 2
+		AND	(
+				VVM_TYPE &lt;&gt; 3
+			OR	VVM_TYPE &lt;&gt; 4
+		)
+		<isNotEmpty property="vvm_status" prepend="AND">
+			A.VVM_STATUS = #vvm_status#
+		</isNotEmpty>
+		<isNotEmpty property="ccm_code" prepend="AND">
+			A.CCM_CODE = #ccm_code#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					A.VVM_SEQ IN (
+						SELECT	T.VVM_SEQ
+						FROM	VLI_ADD_CNT T
+						WHERE	LOWER(T.VAC_CONTENTS) LIKE LOWER('%' || #search_word# || '%')
+					)
+				OR	LOWER(A.VVM_TITLE)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.VVM_KWD)	LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="content" prepend="AND">
+				A.VVM_SEQ IN (
+					SELECT	T.VVM_SEQ
+					FROM	VLI_ADD_CNT T
+					WHERE	LOWER(T.VAC_CONTENTS) LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.VVM_TITLE)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="keyword" prepend="AND">
+				LOWER(A.VVM_KWD)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			VLI_VLI_MST A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			/*+INDEX_DESC(A IDX_VVM_PK)*/
+			A.VVM_SEQ
+			,A.CCM_CODE
+			,A.VVM_TITLE
+			,TO_CHAR(A.VVM_REG_DATE, 'YYYY-MM-DD')	VVM_CRE_DATE
+			,A.VVM_STATUS
+			,A.VIEW_CNT
+			,(
+				SELECT
+					T.CCM_TITLE
+				FROM
+					CAI_CAI_MST T
+				WHERE
+					T.CCM_CODE = A.CCM_CODE
+			) CCM_NAME
+		FROM
+			VLI_VLI_MST A
+		<include refid="sqlList-1" />
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VVM_SEQ
+			,A.VVM_TITLE
+			,A.VVM_SUB_TITLE
+			,A.VVM_CRE_DATE
+			,A.VVM_FPL_DATE
+			,A.VVM_PUB_NAME
+			,A.VVM_OWN_NAME
+			,A.VVM_CRE_NAME
+			,TO_CHAR(A.VVM_REG_DATE, 'YYYY-MM-DD')	VVM_REG_DATE
+			,TO_CHAR(A.VVM_UPD_DATE, 'YYYY-MM-DD')	VVM_UPD_DATE
+			,A.VVM_KWD
+			,A.VVM_FMT
+			,A.VVM_STATUS
+			,A.VVM_PRN_POS
+			,A.VVM_TYPE
+			,A.VVM_FILE
+			,A.VVM_FILE_SUB
+			,A.VVM_FILE_SIZE
+			,A.VVM_DURATION
+			,A.VVM_EXP
+			,A.VVM_ISSUER
+			,A.VVM_REG_NAME
+			,A.VVM_STAFF
+			,A.VVM_UPD_NAME
+			,A.VVM_FILE_NAME
+			,A.VVM_FILE_NAME_SUB
+			,A.CCM_CODE
+			,A.VVM_COPYRIGHT
+			,A.VVM_IMG_FLAG
+			,A.VVM_VOD_FLAG
+			,A.VVM_REC_YN
+			,A.VVM_REC_START_DATE
+			,A.VVM_REC_END_DATE
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+		FROM
+			VLI_VLI_MST A
+		WHERE
+			A.VVM_SEQ = #vvm_seq#
+	</select>
+
+	<select id="listByCode" resultClass="commonMap"><![CDATA[
+		SELECT
+		    SUBSTR(SYS_CONNECT_BY_PATH(A.CCM_TITLE, '>'), 2) AS CCM_TITLES
+		    ,SUBSTR(SYS_CONNECT_BY_PATH(A.CCM_CODE, '>'), 2) AS CCM_CODES
+		    ,A.CCM_CODE
+			,A.CCM_TITLE
+		    ,A.CCM_DEPTH
+		FROM
+			CAI_CAI_MST A
+		WHERE
+			A.CCM_CODE		<>	'K000'
+		AND	A.CCM_STATUS	=	'0'
+		START WITH
+			A.CCM_PARENT IS NULL
+		CONNECT BY
+			PRIOR A.CCM_CODE = A.CCM_PARENT
+		ORDER BY
+			1
+	]]></select>
+
+	<select id="countByCcmCode" parameterClass="paramMap" resultClass="int"><![CDATA[
+		SELECT
+			COUNT(1)
+		FROM
+			VLI_VLI_MST A
+		WHERE
+			A.CCM_CODE		=	#ccm_code#
+		AND	A.VVM_TYPE		=	2
+		AND	A.VVM_STATUS	<>	'2'
+	]]></select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="vvm_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(VVM_SEQ), 0) + 1 FROM VLI_VLI_MST
+		</selectKey>
+
+		INSERT INTO VLI_VLI_MST (
+			VVM_SEQ
+			,VVM_TITLE
+			,VVM_SUB_TITLE
+			,CCM_CODE
+			,VVM_TYPE
+			,VVM_CRE_NAME
+			,VVM_KWD
+			,VVM_PUB_NAME
+			,VVM_DURATION
+			,VVM_ISSUER
+			,VVM_STAFF
+			,VVM_CRE_DATE
+			,VVM_FPL_DATE
+			,VVM_OWN_NAME
+			,VVM_EXP
+			,VVM_STATUS
+			,VVM_COPYRIGHT
+			,VVM_FILE_NAME
+			,VVM_FILE_NAME_SUB
+			,VVM_FMT
+			,VVM_REG_DATE
+			,VVM_UPD_DATE
+		) VALUES (
+			#vvm_seq#
+			,#vvm_title#
+			,#vvm_sub_title#
+			,#ccm_code#
+			,#vvm_type#
+			,#vvm_cre_name#
+			,#vvm_kwd#
+			,#vvm_pub_name#
+			,#vvm_duration#
+			,#vvm_issuer#
+			,#vvm_staff#
+			,#vvm_cre_date#
+			,#vvm_fpl_date#
+			,#vvm_own_name#
+			,#vvm_exp#
+			,#vvm_status#
+			,#vvm_copyright#
+			,#vvm_file_name#
+			,#vvm_file_name_sub#
+			,'text'
+			,SYSDATE
+			,SYSDATE
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE VLI_VLI_MST
+		SET
+			VVM_TITLE			=	#vvm_title#
+			,VVM_SUB_TITLE		=	#vvm_sub_title#
+			,CCM_CODE			=	#ccm_code#
+			,VVM_TYPE			=	#vvm_type#
+			,VVM_CRE_NAME		=	#vvm_cre_name#
+			,VVM_KWD			=	#vvm_kwd#
+			,VVM_PUB_NAME		=	#vvm_pub_name#
+			,VVM_DURATION		=	#vvm_duration#
+			,VVM_ISSUER			=	#vvm_issuer#
+			,VVM_STAFF			=	#vvm_staff#
+			,VVM_CRE_DATE		=	#vvm_cre_date#
+			,VVM_FPL_DATE		=	#vvm_fpl_date#
+			,VVM_OWN_NAME		=	#vvm_own_name#
+			,VVM_EXP			=	#vvm_exp#
+			,VVM_STATUS			=	#vvm_status#
+			,VVM_COPYRIGHT		=	#vvm_copyright#
+			,VVM_FILE_NAME		=	#vvm_file_name#
+			,VVM_FILE_NAME_SUB	=	#vvm_file_name_sub#
+			,VVM_UPD_DATE		=	SYSDATE
+		WHERE
+			VVM_SEQ = #vvm_seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE VLI_VLI_MST
+		SET
+			VVM_STATUS		=	#vvm_status#
+			,VVM_UPD_DATE	=	SYSDATE
+		WHERE
+			VVM_SEQ IN
+		<iterate property="array.vvm_seqs" open="(" conjunction="," close=")">
+			#array.vvm_seqs[]#
+		</iterate>
+	</update>
+
+	<update id="updateByStatus" parameterClass="paramMap">
+		UPDATE VLI_VLI_MST
+		SET
+			VVM_STATUS		=	'2'
+			,VVM_UPD_DATE	=	SYSDATE
+		WHERE
+			VVM_SEQ IN
+		<iterate property="array.vvm_seqs" open="(" conjunction="," close=")">
+			#array.vvm_seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="deleteMetMetRst" parameterClass="paramMap">
+		DELETE FROM MET_MET_RST
+		WHERE
+			MMR_ORG_SEQ IN 
+		<iterate property="array.vvm_seqs" open="(" conjunction="," close=")">
+			#array.vvm_seqs[]#
+		</iterate>
+	</delete>
+	<!-- // 기본 정보 -->
+
+	<!-- 상세 정보 -->
+	<select id="listByDetailAll" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VVM_SEQ
+			,A.VVI_SEQ
+			,A.VVI_DEPTH
+			,A.VVI_GR_NO
+			,A.VVI_AR_NO
+			,A.VVI_TITLE
+			,A.VVI_OLE_FILE_NAME
+		FROM
+			VLI_VLI_INF A
+		WHERE
+			A.VVM_SEQ = #vvm_seq#
+		ORDER BY
+			A.VVI_GR_NO
+			,A.VVI_AR_NO
+	</select>
+
+	<select id="viewByDetail" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VVI_DEPTH
+			,A.VVI_GR_NO
+			,A.VVI_AR_NO
+			,A.VVI_TITLE
+			,A.VVI_SEQ
+			,A.VVM_SEQ
+			,A.VVI_OLE_TITLE
+			,A.VVI_OLE_MIME_TYPE
+			,A.VVI_OLE_FILE_NAME
+		FROM
+			VLI_VLI_INF A
+		WHERE
+			A.VVM_SEQ	=	#vvm_seq#
+		AND	A.VVI_SEQ	=	#vvi_seq#
+	</select>
+
+	<insert id="insertByDetail" parameterClass="paramMap">
+		<selectKey keyProperty="vvi_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(VVI_SEQ), 0) + 1 FROM VLI_VLI_INF
+		</selectKey>
+
+		INSERT INTO VLI_VLI_INF (
+			VVI_SEQ
+			,VVM_SEQ
+			,VVI_TITLE
+			,VVI_DEPTH
+			,VVI_GR_NO
+			,VVI_AR_NO
+			,VVI_OLE_TITLE
+			,VVI_OLE_MIME_TYPE
+			,VVI_OLE_FILE_NAME
+		<isNotEmpty property="vvi_ole_file">
+			,VVI_OLE_FILE
+		</isNotEmpty>
+		) VALUES (
+			#vvi_seq#
+			,#vvm_seq#
+			,#vvi_title#
+			,(SELECT NVL(MAX(VVI_DEPTH), 0) + 1 FROM VLI_VLI_INF WHERE VVM_SEQ = #vvm_seq#)
+			,(SELECT NVL(MAX(VVI_GR_NO), 0) + 1 FROM VLI_VLI_INF WHERE VVM_SEQ = #vvm_seq#)
+			,1
+			,#vvi_ole_title#
+			,'EXCEL'
+			,#vvi_ole_file_name#
+		<isNotEmpty property="vvi_ole_file">
+			,#vvi_ole_file:BLOB#
+		</isNotEmpty>
+		)
+	</insert>
+
+	<update id="updateByDetail" parameterClass="paramMap">
+		UPDATE VLI_VLI_INF
+		SET
+			VVI_TITLE			=	#vvi_title#
+			,VVI_OLE_TITLE		=	#vvi_ole_title#
+			,VVI_OLE_FILE_NAME	=	#vvi_ole_file_name#
+		<isNotEmpty property="vvi_ole_file">
+			,VVI_OLE_FILE		=	#vvi_ole_file:BLOB#
+		</isNotEmpty>
+		WHERE
+			VVM_SEQ	=	#vvm_seq#
+		AND	VVI_SEQ	=	#vvi_seq#
+	</update>
+
+	<delete id="deleteByDetail" parameterClass="paramMap">
+		DELETE FROM VLI_VLI_INF
+		WHERE
+			VVI_SEQ IN 
+		<iterate property="array.vvi_seqs" open="(" conjunction="," close=")">
+			#array.vvi_seqs[]#
+		</iterate>
+	</delete>
+	<!-- // 상세 정보 -->
+
+	<!-- 상세 정보 - 본문 -->
+	<select id="listByViewDetailContent" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VAC_CONTENTS
+		FROM
+			VLI_ADD_CNT A
+		WHERE
+			A.VVM_SEQ	=	#vvm_seq#
+		AND	A.VVI_SEQ	=	#vvi_seq#
+		ORDER BY
+			A.VAC_AR_NO ASC
+	</select>
+
+	<insert id="insertByDetailContents" parameterClass="paramMap">
+		<selectKey keyProperty="vac_ar_no" type="pre" resultClass="int">
+			SELECT
+				NVL(MAX(VAC_AR_NO), 0) + 1
+			FROM
+				VLI_ADD_CNT
+			WHERE
+				VVI_SEQ = #vvi_seq#
+			AND	VVM_SEQ = #vvm_seq#
+		</selectKey>
+
+		INSERT INTO VLI_ADD_CNT (
+			VAC_AR_NO
+			,VVI_SEQ
+			,VVM_SEQ
+			,VAC_CONTENTS
+		) VALUES (
+			#vac_ar_no#
+			,#vvi_seq#
+			,#vvm_seq#
+			,#vac_contents#
+		)
+	</insert>
+
+	<delete id="deleteByDetailContents" parameterClass="paramMap">
+		DELETE FROM VLI_ADD_CNT
+		WHERE
+			VVI_SEQ = #vvi_seq#
+		AND	VVM_SEQ = #vvm_seq#
+	</delete>
+	<!-- // 상세 정보 - 본문 -->
+
+	<!-- 상세 정보 - 파일 -->
+	<select id="listByViewDetailFile" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VMI_SEQ
+			,A.VMI_TITLE
+			,A.VMI_FILE_NAME
+			,A.VMI_FILE_SIZE
+			,A.VMI_MIME_TYPE
+			,A.VMI_PRN_POS
+			,A.VMI_FILE
+			,A.VMI_FILE_NAME_SUB
+			,A.VMI_FILE_SUB
+			,A.VVI_SEQ
+			,A.VVM_SEQ
+			,A.VMI_ADULT_CHK
+			,A.VMI_NEW_CHK
+		FROM
+			VLI_MED_INF A
+		WHERE
+			A.VVM_SEQ	=	#vvm_seq#
+		AND	A.VVI_SEQ	=	#vvi_seq#
+		ORDER BY
+			A.VMI_SEQ
+	</select>
+	
+	<insert id="insertByDetailFile" parameterClass="paramMap">
+		<selectKey keyProperty="vmi_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(VMI_SEQ), 0) + 1 FROM VLI_MED_INF
+		</selectKey>
+
+		INSERT INTO VLI_MED_INF (
+			VMI_SEQ
+			,VMI_TITLE
+			,VMI_MIME_TYPE
+			,VMI_PRN_POS
+			,VVI_SEQ
+			,VVM_SEQ
+			,VMI_ADULT_CHK
+			,VMI_NEW_CHK
+		<isNotEmpty property="vmi_file">
+			,VMI_FILE_NAME
+			,VMI_FILE_SIZE
+			,VMI_FILE
+		</isNotEmpty>
+		<isNotEmpty property="vmi_file_sub">
+			,VMI_FILE_NAME_SUB
+			,VMI_FILE_SUB
+		</isNotEmpty>
+		) VALUES (
+			#vmi_seq#
+			,#vmi_title#
+			,#vmi_mime_type#
+			,#vmi_prn_pos#
+			,#vvi_seq#
+			,#vvm_seq#
+			,NVL(#vmi_adult_chk#, 'N')
+			,NVL(#vmi_new_chk#, 'N')
+		<isNotEmpty property="vmi_file">
+			,#vmi_file_name#
+			,#vmi_file_size#
+			,#vmi_file:BLOB#
+		</isNotEmpty>
+		<isNotEmpty property="vmi_file_sub">
+			,#vmi_file_name_sub#
+			,#vmi_file_sub:BLOB#
+		</isNotEmpty>
+		)
+	</insert>
+
+	<delete id="deleteByDetailFile" parameterClass="paramMap">
+		DELETE FROM VLI_MED_INF
+		WHERE
+			VMI_SEQ IN 
+		<iterate property="array.vmi_seqs" open="(" conjunction="," close=")">
+			#array.vmi_seqs[]#
+		</iterate>
+	</delete>
+	<!-- // 상세 정보 - 파일 -->
+
+	<!-- 상세정보 - 매핑 -->
+	<select id="listByViewDetailMapping" parameterClass="paramMap" resultClass="commonMap"><![CDATA[
+		SELECT /*+INDEX_DESC(A IDX_VVM_PK)*/
+			A.VVM_SEQ
+			,A.VVM_TITLE
+			,(SELECT CCM_TITLE FROM CAI_CAI_MST WHERE CCM_CODE = A.CCM_CODE) CCM_NAME
+		FROM
+			VLI_VLI_MST A
+		WHERE
+			A.VVM_TYPE IN ('0', '3')
+		AND	A.VVM_STATUS <> '2'
+		AND	A.VVM_SEQ IN (
+			SELECT
+				VVM_SEQ
+			FROM
+				VLI_TRM_MAP
+			WHERE
+				VVI_SEQ_PAR = #vvi_seq#
+			AND	VVM_SEQ_PAR = #vvm_seq#
+		)
+	]]></select>
+
+	<insert id="insertByDetailMapping" parameterClass="paramMap">
+		INSERT INTO VLI_TRM_MAP (
+			VVI_SEQ_PAR
+			,VVM_SEQ_PAR
+			,VVM_SEQ
+		) VALUES (
+			#vvi_seq_par#
+			,#vvm_seq_par#
+			,#vvm_seq#
+		)
+	</insert>
+
+	<delete id="deleteByDetailMapping" parameterClass="paramMap">
+		DELETE FROM VLI_TRM_MAP
+		WHERE
+			VVM_SEQ IN 
+		<iterate property="array.vvm_seqs" open="(" conjunction="," close=")">
+			#array.vvm_seqs[]#
+		</iterate>
+		AND	VVI_SEQ_PAR		=	#vvi_seq_par#
+		AND	VVM_SEQ_PAR		=	#vvm_seq_par#
+	</delete>
+
+	<select id="getInfViewMapListCnt" parameterClass="java.util.Map" resultClass="int">
+		SELECT COUNT(1)
+		FROM VLI_VLI_MST A
+		WHERE VVM_TYPE IN ('0', '3')
+		AND VVM_STATUS &lt;&gt; '2'
+		AND VVM_SEQ NOT IN (
+		  SELECT VVM_SEQ
+		  FROM VLI_TRM_MAP
+		  WHERE VVI_SEQ_PAR = #vvi_seq#
+		  AND VVM_SEQ_PAR = #vvm_seq#
+		)
+		<isNotEmpty property="sWord">
+			<isEqual property="sKey" compareValue="all" prepend="AND">
+				(
+					VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sWord#||'%')
+				OR	VVM_TITLE LIKE '%'||#sWord#||'%'
+				OR	VVM_KWD LIKE '%'||#sWord#||'%'
+				)
+			</isEqual>
+			<isEqual property="sKey" compareValue="content" prepend="AND">
+			VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sWord#||'%')
+			</isEqual>
+			<isEqual property="sKey" compareValue="title" prepend="AND">
+			VVM_TITLE LIKE '%'||#sWord#||'%'
+			</isEqual>
+			<isEqual property="sKey" compareValue="keyword" prepend="AND">
+			VVM_KWD LIKE '%'||#sWord#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="getInfViewMapList" parameterClass="java.util.Map" resultClass="commonMap">
+		SELECT * 
+		FROM (
+			SELECT /*+INDEX_DESC(A IDX_VVM_PK)*/
+				ROWNUM NUM
+				,VVM_SEQ
+				,VVM_TITLE
+				,(SELECT CCM_TITLE FROM CAI_CAI_MST WHERE CCM_CODE = A.CCM_CODE) CCM_NAME
+			FROM VLI_VLI_MST A
+			WHERE VVM_TYPE IN ('0', '3')
+			AND VVM_STATUS &lt;&gt; '2'
+			AND ROWNUM &lt;= (#page_no# * #list_unit#)
+			AND VVM_SEQ NOT IN (
+			  SELECT VVM_SEQ
+			  FROM VLI_TRM_MAP
+			  WHERE VVI_SEQ_PAR = #vvi_seq#
+			  AND VVM_SEQ_PAR = #vvm_seq#
+			)
+		<isNotEmpty property="sWord">
+			<isEqual property="sKey" compareValue="all" prepend="AND">
+				(
+					VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sWord#||'%')
+				OR	VVM_TITLE LIKE '%'||#sWord#||'%'
+				OR	VVM_KWD LIKE '%'||#sWord#||'%'
+				)
+			</isEqual>
+			<isEqual property="sKey" compareValue="content" prepend="AND">
+			VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sWord#||'%')
+			</isEqual>
+			<isEqual property="sKey" compareValue="title" prepend="AND">
+			VVM_TITLE LIKE '%'||#sWord#||'%'
+			</isEqual>
+			<isEqual property="sKey" compareValue="keyword" prepend="AND">
+			VVM_KWD LIKE '%'||#sWord#||'%'
+			</isEqual>
+		</isNotEmpty>
+		)
+		WHERE NUM &gt;= ((#page_no# - 1) * #list_unit# + 1)
+	</select>
+	<!-- // 상세정보 - 매핑 -->
+
+	<!-- 상세정보 - 사이트 -->
+	<!--
+		,A.VVI_SEQ
+		,A.VVM_SEQ
+		,A.VRU_URL
+		,A.VRU_URL_EFCT
+		,A.VRU_URL_EFCT_DATE
+		,A.VRU_TYPE
+	-->
+	<select id="listByViewDetailSite" parameterClass="paramMap" resultClass="commonMap"><![CDATA[
+		SELECT
+			A.VRU_SEQ
+			,A.VRU_TYPE
+			,A.VRU_TITLE
+			,A.VRU_URL
+		FROM
+			VLI_REF_URL A
+		WHERE
+			A.VVM_SEQ	=	#vvm_seq#
+		AND	A.VVI_SEQ	=	#vvi_seq#
+		AND	A.VRU_URL_EFCT <> 1
+		ORDER BY
+			A.VRU_SEQ
+	]]></select>
+
+	<insert id="insertByDetailSite" parameterClass="paramMap">
+		<selectKey keyProperty="vru_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(VRU_SEQ), 0) + 1 FROM VLI_REF_URL
+		</selectKey>
+
+		INSERT INTO VLI_REF_URL (
+			VRU_SEQ
+			,VRU_URL
+			,VRU_URL_EFCT
+			,VRU_URL_EFCT_DATE
+			,VRU_TYPE
+			,VRU_TITLE
+			,VVI_SEQ
+			,VVM_SEQ
+		) VALUES (
+			#vru_seq#
+			,#vru_url#
+			,#vru_url_efct#
+			,SYSDATE
+			,#vru_type#
+			,#vru_title#
+			,#vvi_seq#
+			,#vvm_seq#
+		)
+	</insert>
+
+	<delete id="deleteByDetailSite" parameterClass="paramMap">
+		DELETE FROM VLI_REF_URL
+		WHERE
+			VRU_SEQ IN 
+		<iterate property="array.vru_seqs" open="(" conjunction="," close=")">
+			#array.vru_seqs[]#
+		</iterate>
+	</delete>
+	<!-- // 상세정보 - 사이트 -->
+
+</sqlMap>

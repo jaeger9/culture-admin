@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="author">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*
+		FROM
+		(
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC)-1)/$list_unit$+1) AS PAGE  
+			 	, A.SEQ
+			 	<![CDATA[ 												
+			 	, (SELECT NAME FROM PCN_COMMON_CODE WHERE TYPE = 'WRITER_CD'	AND PCODE <> 0 AND VALUE = TO_CHAR(A.TYPE)) AS TYPE
+			 	]]>
+			 	, A.AUTHOR_ID 										
+			 	, A.NAME 												
+			 	, A.ORGANIZE 											
+			 	, A.JOB_NAME 											
+			 	, A.INTRO 											
+			 	, A.PHOTO 											
+			 	, A.EMAIL 											
+			 	, A.URL												
+			 	, A.REG_ID 											
+			 	, to_char(A.REG_DATE  , 'YYYY-MM-DD')	AS REG_DATE		
+			 	, to_char(A.UPT_DATE  , 'YYYY-MM-DD')	AS UPT_DATE 	
+				, DECODE(A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			FROM 
+				portal_story_author A	
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="name" prepend="AND">
+					A.NAME LIKE '%' || #name# || '%' 
+				</isNotEmpty>
+				<isNotEmpty property="source" prepend="AND">
+					A.TYPE = #source#
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					approval = #approval#
+				</isNotEmpty>
+			</dynamic>				
+		) A
+		WHERE
+			A.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			portal_story_author A	
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="name" prepend="AND">
+				A.NAME LIKE '%' || #name# || '%' 
+			</isNotEmpty>
+			<isNotEmpty property="source" prepend="AND">
+				A.TYPE = #source#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				approval = #approval#
+			</isNotEmpty>
+		</dynamic>				
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+	  		A.SEQ
+	 		, A.TYPE
+	 		, A.SUB_TYPE
+	 		, A.AUTHOR_ID 										
+	 		, A.NAME 												
+	 		, A.ORGANIZE 											
+	 		, A.JOB_NAME 				
+      		, A.URL												
+      		, A.PHOTO 
+	      	, SUBSTR( A.EMAIL , 0 , INSTR( A.EMAIL , '@') - 1) EMAIL
+      		, SUBSTR( A.EMAIL , INSTR( A.EMAIL , '@') + 1) EMAIL_ADDRESS
+      		, A.INTRO 											
+	 		, A.APPROVAL
+		FROM 
+			portal_story_author A
+		WHERE
+			<isNotEmpty property="seq">
+				A.SEQ = #seq#
+			</isNotEmpty>
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO portal_story_author(
+			SEQ        
+			,TYPE
+			,SUB_TYPE       
+			,AUTHOR_ID  
+			,NAME       
+			,ORGANIZE   
+			,JOB_NAME   
+			,INTRO      
+			,PHOTO      
+			,EMAIL      
+			,URL       
+			,APPROVAL 
+			,REG_ID     
+			,REG_DATE   
+		) values (
+			PORTAL_STORY_AUTHOR_SEQ.nextval
+			,#type#  
+			,#sub_type#     
+			,#author_id#  
+			,#name#       
+			,#organize#   
+			,#job_name#   
+			,#intro#      
+			,#file_sysname#      
+			,#email# || '@' || #email_address#       
+			,#url#     
+			,#approval#   
+			,#reg_id#     
+			, SYSDATE
+		)
+	</insert>
+	<update id="statusUpdate" parameterClass="paramMap">
+	
+		UPDATE 
+			PORTAL_STORY_AUTHOR 
+		SET
+			APPROVAL = #updateStatus#
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PORTAL_STORY_AUTHOR
+		SET
+			TYPE         = #type#   
+			,SUB_TYPE     = #sub_type#   
+			,AUTHOR_ID    = #author_id# 
+			,NAME         = #name#      
+			,ORGANIZE     = #organize#  
+			,JOB_NAME     = #job_name#  
+			,INTRO        = #intro#     
+			,PHOTO        = #photo#     
+			,EMAIL        = #email# || '@' || #email_address#     
+			,URL          = #url#       
+			,APPROVAL     = #approval#
+			,REG_ID       = #reg_id#    
+			,UPT_DATE     = SYSDATE  
+		WHERE
+			seq = #seq#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE
+			PORTAL_STORY_AUTHOR
+		WHERE
+		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+			#array.seq[]#
+		</iterate>	
+	</delete>
+</sqlMap>

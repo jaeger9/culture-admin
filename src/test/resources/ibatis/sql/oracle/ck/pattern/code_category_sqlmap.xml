@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="code.category">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM (
+			SELECT 
+				<!-- /*+INDEX_ASC(A PCOMCDEM_PK) */ -->
+				FLOOR((ROW_NUMBER()OVER(ORDER BY CDEM_CODE ASC) -1)/$list_unit$+1) AS PAGE , 
+			  	CDEM_CODE,
+			  	CDEM_NAME,
+			  	CDEM_DESC,
+			  	TO_CHAR(TO_DATE(CDEM_RGDT,'YYYYMMDD'), 'YYYY-MM-DD') CDEM_RGDT,
+			  	DECODE(CDEM_USYN , 'Y' , '사용함' , '사용안함') CDEM_USYN
+			FROM 
+				PCOMCDEM@PATTERN 
+				<!-- PCOMCDEM -->
+		    <dynamic prepend="WHERE">
+				<isNotEmpty property="keyword">
+					<isEqual property="searchGubun" compareValue="0" prepend="AND">
+			    		CDEM_CODE LIKE '%'||#keyword#||'%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="1" prepend="AND">
+						CDEM_NAME LIKE '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+			</dynamic>
+		)R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			PCOMCDEM@PATTERN
+			<!-- PCOMCDEM -->
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			* 
+		FROM 
+			PCOMCDEM@PATTERN
+			<!-- PCOMCDEM  -->
+		WHERE 
+			CDEM_CODE = #cdem_code#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO 
+			PCOMCDEM@PATTERN 
+			<!-- PCOMCDEM -->
+		  	(
+			    CDEM_CODE,
+			    CDEM_NAME,
+			    CDEM_DESC,
+			    CDEM_RGID,
+			    CDEM_RGDT,
+			    CDEM_RGTM,
+			    CDEM_USYN
+		  	) VALUES (
+			    #cdem_code#,
+			    #cdem_name#,
+			    #cdem_desc#,
+			    #admin_id#,
+			    TO_CHAR(SYSDATE, 'yyyymmdd'),
+			    TO_CHAR(SYSDATE, 'HH24MISS'),
+			    #cdem_usyn#
+		  	)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCOMCDEM@PATTERN 
+			<!-- PCOMCDEM -->
+		SET 
+			CDEM_NAME = #cdem_name#,
+			CDEM_DESC = #cdem_desc#,
+			CDEM_UTID = #cdem_utid#,
+			CDEM_UTDT = TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			CDEM_UTTM = TO_CHAR(SYSDATE, 'HH24MISS'),
+			CDEM_USYN = #cdem_usyn#
+		WHERE 
+			CDEM_CODE = #cdem_code#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCOMCDEM@PATTERN 
+			<!-- PCOMCDEM -->
+		WHERE  
+			<iterate property="array.cdem_code" open="CDEM_CODE IN(" conjunction="," close=")">
+				#array.cdem_code[]#
+			</iterate>
+	</delete>
+</sqlMap>

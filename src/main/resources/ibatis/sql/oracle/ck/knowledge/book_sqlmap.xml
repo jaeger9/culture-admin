@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="book">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			<!-- A.TYPE ='85' -->
+			1=1
+	     <isNotEmpty property="job_id" prepend="AND">
+			<!-- A.JOB_NAME = #job_name# -->
+			A.JOB_ID = #job_id#
+		</isNotEmpty>
+		 <isNotEmpty property="job_group_id" prepend="AND">
+			A.JOB_GROUP_ID = #job_group_id#
+		</isNotEmpty>
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.DESCRIPTION)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.DESCRIPTION)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+		
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			MV_RDF_METADATA_BOOK_NEW A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+			SELECT
+				REPLACE(A.UCI, '+', '%2b') UCI
+			  	, A.TITLE 
+			  	, (
+				CASE
+					WHEN A.JOB_GROUP_ID='GRP28' AND A.JOB_ID='JOB1212' THEN '사서추천도서'
+					WHEN A.JOB_GROUP_ID='GRP51' AND A.JOB_ID='JOB293' THEN '어린이추천도서'
+					WHEN A.JOB_GROUP_ID='GRP59' AND A.JOB_ID='JOB1203' THEN '이달의읽을만한책'
+					WHEN A.JOB_GROUP_ID='GRP59' AND A.JOB_ID='JOB1204' THEN '청소년권장도서'
+				END
+				)	JOB_NAME
+			  	, A.JOB_GROUP_ID
+			  	, TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			  	, DECODE(A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			  	, A.JOB_ID
+			  	<!-- , NVL(A.VIEW_CNT, 0) VIEW_CNT -->
+		FROM
+			MV_RDF_METADATA_BOOK_NEW A
+		<include refid="sqlList-1" />
+		ORDER BY
+			REG_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			    REPLACE(A.UCI, '+', '%2b') UCI
+			    ,A.TITLE                
+				,A.ALTERNATIVE_TITLE    
+				,A.SUB_TITLE            
+				,A.CREATOR              
+				,A.REG_DATE             
+				,A.CREATED_DATE         
+				,A.MODIFIED_DATE        
+				,A.ISSUED_DATE          
+				,A.DIGITALIZED_DATE     
+				,A.PUBLISHER            
+				,A.POSSESION_PLACE      
+				,A.COLLECTION_DB        
+				,A.COLLECTION_NAME      
+				,A.COLLECTION_NO        
+				,A.SUBJECT              
+				,A.SUBJECT_CATEGORY     
+				,A.SUBJECT_KEYWORD      
+				,A.TYPE                 
+				,A.FORMAT               
+				,A.EXTENT               
+				,A.MEDIUM               
+				,A.ABSTRACT             
+				,A.TABLE_OF_CONTENTS    
+				,A.COVERAGE             
+				,A.SPATIAL              
+				,A.TEMPORAL             
+				,A.PERSON               
+				,A.LANGUAGE             
+				,A.RELATION             
+				,A.REFERENCE            
+				,A.REFERENCE_IDENTIFIER 
+				,A.HASPART              
+				,A.IDENTIFIER           
+				,A.LOCAL_ID             
+				,A.RIGHTS               
+				,A.COPYRIGHT_OTHERS                       
+				,A.URL                  
+				,A.CONTRIBUTOR          
+				,A.SOURCE               
+				,A.CONTEXT_NAME         
+				,A.INSERT_DATE          
+				,A.GRADE                
+				,A.CHARGE               
+				,A.VENUE                
+				,A.PERIOD               
+				,A.TIME
+				<![CDATA[
+				,(
+				CASE
+					WHEN A.JOB_GROUP_ID='GRP28' AND A.JOB_ID='JOB1212' THEN '사서추천도서'
+					WHEN A.JOB_GROUP_ID='GRP51' AND A.JOB_ID='JOB293' THEN '어린이추천도서'
+					WHEN A.JOB_GROUP_ID='GRP59' AND A.JOB_ID='JOB1203' THEN '이달의읽을만한책'
+					WHEN A.JOB_GROUP_ID='GRP59' AND A.JOB_ID='JOB1204' THEN '청소년권장도서'
+				END
+				)	JOB_NAME
+				]]>
+				,A.JOB_GROUP_ID
+				,A.JOB_ID             
+				<!-- ,A.JOB_NAME -->                        
+				,A.DESCRIPTION      	    
+                ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			    ,A.TOP_YN
+			    <!-- ,NVL(A.VIEW_CNT, 0) VIEW_CNT -->
+		FROM
+			MV_RDF_METADATA_BOOK_NEW A
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+			<!-- and A.TYPE ='85' -->
+</select>
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="uci" type="pre" resultClass="string">
+			SELECT 'G706+' || #publisher# || '-' || #cate_type# || '.' || FN_CURRENT_TIME_MILLIS() AS uci FROM DUAL
+		</selectKey>
+
+		INSERT INTO MV_RDF_METADATA_BOOK_NEW (
+			UCI
+			,CONTEXT_NAME
+			,TITLE
+			,TOP_YN
+			,CREATOR
+			,PUBLISHER
+			,URL
+			,DESCRIPTION
+			,REG_DATE
+			,INSERT_DATE
+			,REFERENCE_IDENTIFIER
+			,APPROVAL
+			,TYPE
+			,JOB_GROUP_ID
+			,RIGHTS
+			,ALTERNATIVE_TITLE    
+			,SUB_TITLE            
+			,ISSUED_DATE                     
+			,SUBJECT_CATEGORY     
+			,JOB_ID                                  
+			,JOB_NAME                                                              
+		) VALUES (
+			#uci#
+			,'&lt;http://www.culture.go.kr&gt;'
+			,#title#
+			,#top_yn#
+			,#creator#
+			,#publisher#
+			,#url#
+			,#description#
+			,#reg_date#
+			,SYSDATE
+			,#reference_identifier#
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,'F02015'
+			,#job_group_id#
+			,#rights#
+			,#alternative_title# 
+			,#sub_title# 
+			,#issued_date# 
+			,#subject_category# 
+			,#job_id#                    
+			,#job_name#                                    
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_BOOK_NEW
+		SET               
+			UCI                   =	#uci#                                    
+			,CONTEXT_NAME         = '&lt;http://www.culture.go.kr&gt;'      
+			,TITLE                = #title#                                 
+			,TOP_YN               = #top_yn#         
+			,CREATOR              = #creator#                               
+			,PUBLISHER            = #publisher#                             
+			,URL                  = #url#                                   
+			,DESCRIPTION          = #description#                           
+			,REG_DATE             = #reg_date#                             
+			,INSERT_DATE          = SYSDATE                                 
+			,REFERENCE_IDENTIFIER = #reference_identifier#                  
+			,APPROVAL             = DECODE(#approval#, 'N', 'N', 'Y')       
+			,TYPE                 = 'F02015'                                   
+			,JOB_GROUP_ID         = #job_group_id#                          
+			,RIGHTS               = #rights#                                
+			,ALTERNATIVE_TITLE    = #alternative_title#                     
+			,SUB_TITLE            = #sub_title#                             
+			,ISSUED_DATE          = #issued_date#                           
+			,SUBJECT_CATEGORY     = #subject_category#                      
+			,JOB_ID               = #job_id#                                
+			,JOB_NAME             = #job_name#                              
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_BOOK_NEW
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM MV_RDF_METADATA_BOOK_NEW
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN 
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</delete>
+
+</sqlMap>

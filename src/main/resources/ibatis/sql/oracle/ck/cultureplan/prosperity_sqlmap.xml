@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="prosperity">
+	<select id="list" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+			  	, SEQ 
+			  	, TITLE 
+			  	, MENU_CD 
+			  	, DECODE(CONT_TYPE , 1 , '보도자료' , 2 , '언론보도' , 3 , '관련영상' , 4 , '인포그래픽' , '기타') AS CONT_TYPE
+			  	, URL
+			  	, ORIGIN
+			  	, THUMB_URL
+			  	, REG_DATE
+			  	, USER_ID
+			  	, DECODE(APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			  	, NVL2( HIT , HIT , 0 ) AS HIT
+			FROM 
+			  	PORTAL_LINK_NEWS
+			WHERE
+				MENU_CD = 1
+			    <isNotEmpty property="title" prepend="AND">
+					TITLE LIKE '%'|| #title# ||'%'
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					APPROVAL = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="cont_type" prepend="AND">
+					CONT_TYPE = #cont_type#
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	
+	
+			
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+			COUNT(1)
+		FROM 
+		  	PORTAL_LINK_NEWS
+		WHERE
+			MENU_CD = 1
+		    <isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'|| #title# ||'%'
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="cont_type" prepend="AND">
+				CONT_TYPE = #cont_type#
+			</isNotEmpty>
+	</select>
+	
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_LINK_NEWS
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+</sqlMap>

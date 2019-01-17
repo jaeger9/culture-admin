@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="content.popup">
+	
+	<select id="ticketList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM (
+			SELECT 
+				/*+INDEX_DESC(A PK_PCN_PREFORM_TICKET)*/
+				FLOOR((ROW_NUMBER()OVER( ORDER BY  SEQ DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				,SEQ
+				,TITLE
+			    ,UCI
+				,'/perform/performView.do?uci='||UCI URL
+				,(SELECT VENUE FROM PCN_RDF_METADATA WHERE UCI = A.UCI) PLACE
+				,TO_CHAR(START_DT, 'YYYY-MM-DD')||' ~ '||TO_CHAR(END_DT, 'YYYY-MM-DD') PERIOD
+				,DISCOUNT
+				,(
+					SELECT
+						NAME
+					FROM
+						PCN_RDF_METADATA B,
+						PCN_COMMON_CODE C
+					WHERE
+						A.UCI = B.UCI
+					AND C.PCODE = 127
+					AND C.VALUE = B.GENRE
+				) GENRE
+				,(
+					SELECT
+						CASE
+							WHEN REFERENCE_IDENTIFIER_ORG IS NOT NULL THEN
+								'/upload/rdf/' || REFERENCE_IDENTIFIER_ORG
+							ELSE
+								REFERENCE_IDENTIFIER
+						END IMAGE
+					FROM
+						PCN_RDF_METADATA T
+					WHERE
+						A.UCI = T.UCI
+				) IMAGE
+			FROM
+				PCN_PREFORM_TICKET A 
+			WHERE
+				APPROVAL = 'Y'
+				AND TO_CHAR(END_DT, 'yyyymmdd') >= TO_CHAR(SYSDATE, 'yyyymmdd')
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( 
+					TITLE LIKE '%'|| #searchKeyword# || '%'
+				OR	DBMS_LOB.INSTR(CONTENT,#searchKeyword#) > 0
+				)
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isNotEmpty property="edate" prepend="AND">
+				(
+					START_DT	BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE(#reg_end#||' 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				OR	END_DT		BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE(#reg_end#||' 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				)
+				</isNotEmpty>
+			</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="ticketListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM
+			PCN_PREFORM_TICKET A 
+		WHERE
+			APPROVAL = 'Y'
+			AND TO_CHAR(END_DT, 'yyyymmdd') >= TO_CHAR(SYSDATE, 'yyyymmdd')
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			( 
+				TITLE LIKE '%'|| #searchKeyword# || '%'
+			OR	DBMS_LOB.INSTR(CONTENT,#searchKeyword#) > 0
+			)
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isNotEmpty property="edate" prepend="AND">
+			(
+				START_DT	BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE(#reg_end#||' 23:59:59','yyyy-mm-dd hh24:mi:ss')
+			OR	END_DT		BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE(#reg_end#||' 23:59:59','yyyy-mm-dd hh24:mi:ss')
+			)
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+	
+	<select id="culturerecomList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.*
+		FROM (
+			SELECT 
+            	FLOOR((ROW_NUMBER()OVER( ORDER BY A.SEQ DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				, A.SEQ, A.INUMBER, A.TITLE
+				, '/upload/recom/recom/'||A.THUMB_URL IMAGE 
+				, '/culture/themeView.do?seq='||A.SEQ URL
+				, B.NAME
+                , (SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE = TO_CHAR(B.TYPE) AND TYPE = 'WRITER_CD') SOURCE_NAME
+				, A.REG_DATE
+				, A.CONTENT AS SUMMARY
+			FROM 
+				PCN_RECOM_CULTURE A, PORTAL_STORY_AUTHOR B
+			WHERE 
+				A.APPROVAL = 'Y'
+			AND A.CONT_TYPE = 'S'            
+            AND A.AUTHOR_SEQ = B.SEQ(+)
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>            
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="culturerecomListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+	       COUNT(1)
+		FROM 
+			PCN_RECOM_CULTURE A, PORTAL_STORY_AUTHOR B
+		WHERE 
+			A.APPROVAL = 'Y'
+			AND A.CONT_TYPE = 'S'
+	        AND A.AUTHOR_SEQ = B.SEQ(+)
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>            
+	</select>
+	<select id="uccList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*,
+			(SELECT SERVICE_NAME FROM WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME,
+			(SELECT AREA_NAME FROM WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			case
+				when AREA_GROUP = '1' then 
+					'/mov/internationalView.do?idx='||IDX 
+		     	when  CULTURE100 = 'Y' then 
+					'/mov/culture100View.do?idx='||IDX 
+		     	else 
+		     		'/mov/culturePdView.do?idx='||IDX 
+			end URL,
+			case 
+				when length(MOVIE_PIC_PATH2_SYSNAME) > 0 then 
+					'/upload/contents/' || MOVIE_PIC_PATH2_SYSNAME
+		     	when  length((select name from tvm_thumbnail where cid = A.cid and delegate = 1)) > 0 then 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and delegate = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and delegate = 1)
+		     	else 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and ncount = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and ncount = 1) 
+			end IMAGE
+		FROM 
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER( ORDER BY  IDX DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				, IDX
+				, TITLE
+				, SERVICE_ID
+				, AREA_ID
+				, MOVIE_PIC_PATH2_SYSNAME
+				, CONTENTS SUMMARY
+				, CID
+				, CULTURE100
+				, AREA_GROUP
+			FROM 
+				COMS_MOVIE_REG 
+			WHERE 
+				STATE = '3'
+			<isNotEmpty property="area_group" prepend="AND">
+				AREA_GROUP = #area_group#
+			</isNotEmpty>
+			<isNotEmpty property="culture100" prepend="AND">
+				CULTURE100 = #culture100#
+			</isNotEmpty>
+			<isNotEmpty property="service_id" prepend="AND">
+				SERVICE_ID = #service_id#
+			</isNotEmpty>
+			<isNotEmpty property="area_id" prepend="AND">
+				AREA_ID = #area_id#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+		)  R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="uccListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			COMS_MOVIE_REG 
+		WHERE 
+			STATE = '3'
+		<isNotEmpty property="area_group" prepend="AND">
+			AREA_GROUP = #area_group#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="service_id" prepend="AND">
+			SERVICE_ID = #service_id#
+		</isNotEmpty>
+		<isNotEmpty property="area_id" prepend="AND">
+			AREA_ID = #area_id#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="uccList1" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*,
+			(SELECT SERVICE_NAME FROM WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME,
+			(SELECT AREA_NAME FROM WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			case
+				when AREA_GROUP = '1' then 
+					'/mov/internationalView.do?idx='||IDX 
+		     	when  CULTURE100 = 'Y' then 
+					'/mov/culture100View.do?idx='||IDX 
+		     	else 
+		     		'/mov/culturePdView.do?idx='||IDX 
+			end URL,
+			case 
+				when length(MOVIE_PIC_PATH2_SYSNAME) > 0 then 
+					'/upload/contents/' || MOVIE_PIC_PATH2_SYSNAME
+		     	when  length((select name from tvm_thumbnail where cid = A.cid and delegate = 1)) > 0 then 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and delegate = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and delegate = 1)
+		     	else 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and ncount = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and ncount = 1) 
+			end IMAGE
+		FROM 
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER( ORDER BY  IDX DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				, IDX
+				, TITLE
+				, SERVICE_ID
+				, AREA_ID
+				, MOVIE_PIC_PATH2_SYSNAME
+				, CONTENTS SUMMARY
+				, CID
+				, CULTURE100
+				, AREA_GROUP
+			FROM 
+				COMS_MOVIE_REG 
+			WHERE 
+				1=1
+			<isNotEmpty property="area_group" prepend="AND">
+				AREA_GROUP = #area_group#
+			</isNotEmpty>
+			<isNotEmpty property="culture100" prepend="AND">
+				CULTURE100 = #culture100#
+			</isNotEmpty>
+			<isNotEmpty property="service_id" prepend="AND">
+				SERVICE_ID = #service_id#
+			</isNotEmpty>
+			<isNotEmpty property="area_id" prepend="AND">
+				AREA_ID = #area_id#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+		)  R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="uccListCnt1" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			COMS_MOVIE_REG 
+		WHERE 
+			1=1
+			AND SYSDATE	<![CDATA[ >= ]]> WISH_POST_DATE
+		<isNotEmpty property="area_group" prepend="AND">
+			AREA_GROUP = #area_group#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="service_id" prepend="AND">
+			SERVICE_ID = #service_id#
+		</isNotEmpty>
+		<isNotEmpty property="area_id" prepend="AND">
+			AREA_ID = #area_id#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+	</select>
+	
+	
+	
+	<select id="cultureplaceList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM 
+		(
+			SELECT	
+				FLOOR((ROW_NUMBER()OVER( ORDER BY CUL_SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				, CUL_SEQ		
+				, CUL_GRP1    
+				, CUL_GRP2    
+				, CUL_NAME AS TITLE   
+				, CUL_CONT AS SUMMARY  
+				, DECODE(CUL_VIEWIMG1, '', '', '/upload/culSpace/' || CUL_VIEWIMG1) AS IMAGE
+				, CUL_REGDATE AS CONT_DATE 
+				, CUL_PLACE || ' ' || CUL_PLACE2 AS PLACE
+				, '/space/facilityView.do?seq=' || CUL_SEQ AS URL
+			FROM 
+				VLI_VLI_CUL
+			WHERE 
+				POST_FLAG = 'Y'
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					CUL_NAME LIKE '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+		)  R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="cultureplaceListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT	
+			COUNT(1)
+		FROM 
+			VLI_VLI_CUL
+		WHERE 
+			POST_FLAG = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				CUL_NAME LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+	</select>
+	<select id="cultureGroupList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+	   		R.*
+		FROM 
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER( ORDER BY SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				, SEQ				
+				, NAME AS TITLE	
+				, '/upload/group/' || IMG_FILE AS IMAGE	
+				, SUB_CONTENT	AS SUMMARY	
+				, URL				
+				, ADDR1 || ' ' || ADDR2 AS PLACE	
+				, REG_DATE AS CONT_DATE
+      		FROM 
+      			PCN_GROUP_CULTURE A 
+      		WHERE 
+      			APPROVAL = 'Y'
+				<isNotEmpty property="searchKeyword" prepend="AND">
+				( 
+					NAME like '%'|| #searchKeyword# || '%' or
+					DBMS_LOB.INSTR(CONTENT,#searchKeyword#) > 0
+				)
+				</isNotEmpty>
+       	) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="cultureGroupListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+     		PCN_GROUP_CULTURE A 
+		WHERE 
+     	APPROVAL = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+			( 
+				NAME like '%'|| #searchKeyword# || '%' or
+				DBMS_LOB.INSTR(CONTENT,#searchKeyword#) > 0
+			)
+			</isNotEmpty>
+	</select>
+	<select id="relicList" parameterClass="paramMap" resultClass="commonMap">
+		<!-- FLOOR 쓰고 싶은데 index 뭘 쓰는지 찾기 귀찮다  안먹어 index 6개 있다.... -->
+		SELECT 
+			*
+		FROM (
+			SELECT ROWNUM NUM, A.*
+			FROM (
+				SELECT 
+				  	URL
+				  	, TITLE
+				  	, TYPE
+				  	, REG_DATE 
+				  	, UCI
+				  	, REFERENCE_IDENTIFIER AS IMAGE
+				  	, REG_DATE             AS CONT_DATE
+				  	, CREATOR              AS RIGHTS
+				FROM 
+					MV_RDF_METADATA_RELIC A
+				WHERE 
+					NVL(APPROVAL, 'Y')  = 'Y'
+				AND REFERENCE_IDENTIFIER IS NOT NULL
+				AND PUBLISHER            != 'KCIC08'
+				<isNotEmpty property="searchKeyword" prepend="AND">
+						TITLE 		LIKE '%'||#searchKeyword#||'%'
+				</isNotEmpty>
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="relicListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			MV_RDF_METADATA_RELIC  
+		WHERE 
+			NVL(APPROVAL, 'Y') = 'Y'
+			AND REFERENCE_IDENTIFIER IS NOT NULL 
+			AND PUBLISHER != 'KCIC08'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE 		LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+	</select>
+	<select id="educationsourceList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			*
+		FROM (
+			SELECT ROWNUM NUM, A.*
+			FROM (
+				SELECT URL, TITLE, TYPE, REG_DATE ,UCI, 
+					REFERENCE_IDENTIFIER AS IMAGE, 
+					REG_DATE AS CONT_DATE,
+					CREATOR AS RIGHTS 
+				FROM MV_RDF_METADATA_ICT A
+				WHERE NVL(APPROVAL, 'Y') = 'Y'
+					AND REFERENCE_IDENTIFIER IS NOT NULL 
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						TITLE 		LIKE '%'||#searchKeyword#||'%' 
+					</isNotEmpty>
+				ORDER BY REG_DATE DESC NULLS LAST
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="educationsourceListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			MV_RDF_METADATA_ICT  
+		WHERE 
+			NVL(APPROVAL, 'Y') = 'Y'
+			AND REFERENCE_IDENTIFIER IS NOT NULL 
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE 		LIKE '%'||#searchKeyword#||'%' 
+			</isNotEmpty>
+	</select>
+	
+	<select id="noticeList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM (
+			SELECT ROWNUM NUM, A.*
+			FROM (
+				SELECT 
+					SEQ
+					, TITLE
+					, REG_DATE CONT_DATE
+					, COMPANY RIGHTS
+					, CASE WHEN URL IS NULL THEN '/news/noticeView.do?seq=' || SEQ
+						ELSE URL
+					  END URL
+				FROM 
+					CL_TOTAL_NEWS A
+				WHERE 
+					CONFIRM_YN = 'Y'
+					AND IS_DELETE = 'N'
+					AND CATEGORY = '5'
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						TITLE 	LIKE '%'||#searchKeyword#||'%'
+					</isNotEmpty>
+				ORDER BY REG_DATE DESC NULLS LAST
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="noticeListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			CL_TOTAL_NEWS  
+		WHERE 
+			CONFIRM_YN = 'Y'
+			AND IS_DELETE = 'N'
+			AND CATEGORY = '5'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE 	LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+	</select>
+	
+	<select id="hiringList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			URL
+			, TITLE
+			, TYPE 
+			, UCI
+			, REG_DATE CONT_DATE
+			, CREATOR RIGHTS
+		FROM (
+			SELECT 
+				ROWNUM NUM
+				, A.*
+			FROM (
+				SELECT 
+					*
+				FROM (
+					SELECT /*+INDEX_DESC(A IDX_RDF_METADATA_04)*/
+						URL
+						, TITLE
+						, TYPE
+						, REG_DATE
+						, UCI
+						, CREATOR
+					FROM 
+						MV_RDF_METADATA_INFO A
+					WHERE 
+						REG_DATE IS NOT NULL AND REG_DATE &lt; SYSDATE
+					AND
+					<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+						#type[]#
+					</iterate>
+					AND NVL(APPROVAL, 'Y') = 'Y'
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						( 	
+							TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+							CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+							DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+						)	
+					</isNotEmpty>
+						UNION ALL
+					SELECT /*+INDEX_DESC(A PCN_INFO_BOARD_IDX01)*/
+						URL
+						, TITLE
+						, TYPE
+						, REG_DATE
+						, UCI
+						, CREATOR
+					FROM 
+						PCN_INFO_BOARD A
+					WHERE 
+						REG_DATE IS NOT NULL 
+					AND
+					<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+						#type[]#
+					</iterate>
+					AND NVL(APPROVAL, 'Y') = 'Y'
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						( 	
+							TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+							CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+							DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+						)	
+					</isNotEmpty>
+				) A
+				ORDER BY REG_DATE DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="hiringListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT SUM(CNT) 
+		FROM (
+			SELECT 
+				COUNT(1) CNT
+			FROM 
+				MV_RDF_METADATA_INFO  
+			WHERE 
+			<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+				#type[]#
+			</iterate>
+			AND REG_DATE IS NOT NULL AND REG_DATE &lt; SYSDATE
+			AND NVL(APPROVAL, 'Y') = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( 	
+					TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+					CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+					DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+				)	
+			</isNotEmpty>
+			UNION ALL
+			SELECT 
+				COUNT(1) CNT 
+			FROM 
+				PCN_INFO_BOARD
+			WHERE 
+			<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+				#type[]#
+			</iterate>
+			AND NVL(APPROVAL, 'Y') = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( 	
+					TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+					CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+					DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+				)	
+			</isNotEmpty>
+		)A
+	</select>
+	<!-- 뉴스-->
+	<select id="newsList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+				R.*
+		FROM
+		(
+			SELECT
+		  		FLOOR((ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+		  		, A.* 
+			FROM (
+				SELECT 
+					TITLE 
+					,CREATOR 
+					,REG_DATE
+					,REFERENCE_IDENTIFIER
+					,UCI
+					,URL
+				FROM 
+				  	MV_RDF_METADATA_INFO
+				WHERE
+				  	TYPE LIKE #type# || '%'
+				  	<!-- AND APPROVAL IS NULL -->
+				  	AND REG_DATE IS NOT NULL
+				  	<isNotEmpty property="searchKeyword" prepend="AND">
+		  				TITLE LIKE '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+				UNION ALL
+				SELECT
+				  	TITLE 
+				  	,CREATOR
+				  	,REG_DATE
+				  	,REFERENCE_IDENTIFIER
+				  	,UCI
+				  	,URL
+				FROM
+				  	PCN_INFO_BOARD
+				WHERE
+				  	TYPE LIKE #type# || '%' 
+				  	AND APPROVAL = 'Y'
+				  	<isNotEmpty property="searchKeyword" prepend="AND">
+		  				TITLE LIKE '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+			) A
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="newsListCnt"  parameterClass="paramMap" resultClass="int">
+		SELECT
+	  		SUM(A.CNT) COUNT
+		FROM (
+			SELECT 
+				COUNT(1) CNT
+			FROM 
+			  	MV_RDF_METADATA_INFO
+			WHERE
+			  	TYPE LIKE #type# || '%'
+			  	<!-- AND APPROVAL IS NULL -->
+				AND REG_DATE IS NOT NULL
+		  	<isNotEmpty property="searchKeyword" prepend="AND">
+  				TITLE LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+			UNION ALL
+			SELECT
+			  	COUNT(1) CNT
+			FROM
+			  	PCN_INFO_BOARD
+			WHERE
+			  	TYPE LIKE #type# || '%'
+			  	AND APPROVAL = 'Y'
+		  	<isNotEmpty property="searchKeyword" prepend="AND">
+  				TITLE LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+		) A
+	</select>
+	<!-- 당첨자 발표 -->
+	<select id="prizewinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+				, SEQ
+		  		, TITLE 
+		  		, REG_DATE  
+		  		, CONTENT 
+		  		, ('http://www.culture.go.kr/event/winnerView.do?seq=' || SEQ) AS  URL
+			FROM 
+		  		CL_TOTAL_NEWS
+			WHERE
+		  		CONTENT_TYPE = 2
+		  		<isNotEmpty property="searchKeyword" prepend="AND">
+		  			TITLE LIKE '%' || #searchKeyword# || '%'
+		  		</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+		 
+	</select>
+	
+	<select id="prizewinnerListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+	  		CL_TOTAL_NEWS
+		WHERE
+	  		CONTENT_TYPE = 2
+	  		<isNotEmpty property="searchKeyword" prepend="AND">
+	  			TITLE LIKE '%' || #searchKeyword# || '%'
+	  		</isNotEmpty>
+	</select>
+	<!-- 문화 융성 -->
+	<!-- pcn_common_code 에 code type code 값 정의 되었는데 그냥 밖아 놨다  -->
+	<select id="prosperityList" parameterClass="paramMap" resultClass="commonMap">
+	
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+		  		, SEQ 
+			  	, MENU_CD 
+			  	, TITLE 
+			  	, (SELECT VALUE FROM PCN_COMMON_CODE  C WHERE C.CODE = A.CODE) SUB_TITLE
+			  	, THUMB_URL
+			  	, CODE_TYPE 
+			  	, CODE 
+			  	, CONTENT
+			  	, ORIGIN
+			  	, REG_DATE
+			  	, USER_ID
+			FROM 
+		  		PORTAL_STORY A
+			WHERE
+		  		MENU_CD = 1
+		  		AND APPROVAL = 'Y'
+		  		<isNotEmpty property="reg_start">
+			  		<isNotEmpty property="reg_end" prepend="AND">
+			  			REG_DATE BETWEEN #reg_start# AND #reg_end#
+			  		</isNotEmpty>
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchKeyword" prepend="AND">
+		  			TITLE LIKE '%' || #searchKeyword# || '%'
+		  		</isNotEmpty>
+		  		<isNotEmpty property="code" prepend="AND">
+		  			CODE = #code#
+		  		</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+			
+		<!-- SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+			  	, SEQ
+			  	, TITLE
+			  	, URL
+			  	, THUMB_URL 
+			  	, REG_DATE
+			  	, ORIGIN
+			FROM
+			  	PORTAL_LINK_NEWS
+			WHERE
+			  	MENU_CD = 1
+			  	<isNotEmpty property="reg_start">
+			  		<isNotEmpty property="reg_end" prepend="AND">
+			  			REG_DATE BETWEEN #reg_start# AND #reg_end#
+			  		</isNotEmpty>
+			  	</isNotEmpty>
+			  	<isNotEmpty property="searchKeyword" prepend="AND">
+		  			TITLE LIKE '%' || #searchKeyword# || '%'
+		  		</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no# -->
+	</select>
+	<select id="prosperityListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+	  		PORTAL_STORY
+		WHERE
+	  		MENU_CD = 1
+	  		AND APPROVAL = 'Y'
+	  		<isNotEmpty property="reg_start">
+		  		<isNotEmpty property="reg_end" prepend="AND">
+		  			REG_DATE BETWEEN #reg_start# AND #reg_end#
+		  		</isNotEmpty>
+		  	</isNotEmpty>
+		  	<isNotEmpty property="searchKeyword" prepend="AND">
+	  			TITLE LIKE '%' || #searchKeyword# || '%'
+	  		</isNotEmpty>
+	  		<isNotEmpty property="code" prepend="AND">
+	  			CODE = #code#
+	  		</isNotEmpty>
+	</select>
+	<select id="tourCategory" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+		    CTYPENAME AS NAME
+		    , CTYPE AS VALUE
+		FROM 
+		  PORTAL_TOUR
+		GROUP BY CTYPENAME , CTYPE
+	</select>
+	<select id="tourList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY PCN_BNO DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+				, PCN_BNO
+			  	, TITLE 
+			  	, SERVICEURL AS URL 
+			  	, TO_DATE(CREDT , 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE
+			  	, IMGURL
+			  	, CTYPE
+			  	, CTYPENAME AS CATEGORY
+			  	, CADDR
+			  	, XPTEL
+			  	, CREDT
+			FROM 
+			  PORTAL_TOUR
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="ctype" prepend="AND">
+					CTYPE = #ctype#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%' ||  #searchKeyword# || '%'
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="tourListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+		 	PORTAL_TOUR
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="ctype" prepend="AND">
+				CTYPE = #ctype#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%' ||  #searchKeyword# || '%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="educationList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY PCN_BNO DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+			  	, SEQ
+			  	, TITLE 
+			  	, UCI
+			  	, REG_DATE
+			  	, RIGHTS 
+			  	, PERIOD 
+			  	, '/edu/educationView.do?seq=' || seq AS URL
+			FROM
+			  	PORTAL_EDUCATION
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="ctype" prepend="AND">
+					CTYPE = #ctype#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%' ||  #searchKeyword# || '%'
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+		  	
+	</select>
+	<select id="educationListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+		  	PORTAL_EDUCATION
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="ctype" prepend="AND">
+				CTYPE = #ctype#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%' ||  #searchKeyword# || '%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="patternDesignList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT R.* 
+		FROM 
+		     (SELECT FLOOR((ROW_NUMBER()OVER( ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE , 
+		            A.SEQ AS seq, 
+		            A.TITLE AS title,
+		            A.XTITLE AS rights,
+		            CONTENT AS summary,
+		            IMAGE_NAME AS image,
+		            'D' AS code
+		       FROM PCN_PATTERN_DESIGN A
+		       WHERE STATUS = 'Y'
+		       <isNotEmpty property="search_word">
+		       AND TITLE LIKE '%' || #search_word# || '%'
+		       </isNotEmpty>
+		     ) R 
+		 WHERE R.PAGE = #page_no#
+	</select>
+	<select id="patternDesignListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_PATTERN_DESIGN A
+			WHERE STATUS = 'Y'
+		 <isNotEmpty property="search_word">
+	       	AND TITLE LIKE '%' || #search_word# || '%'
+	     </isNotEmpty>
+	</select>
+	
+	<select id="patternGalleryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * 
+		FROM 
+		     (SELECT FLOOR((ROW_NUMBER()OVER( ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE , 
+		            SEQ AS seq, 
+		            TITLE AS title,
+		            PATTERN_NAME AS rights,
+		            IMAGE_NAME AS image,
+		            CONCEPT AS summary,
+		            'G' AS code
+		       FROM PCN_PATTERN_GALLERY
+		       WHERE STATUS = 'Y'
+		       <isNotEmpty property="search_word">
+		       AND TITLE LIKE '%' || #search_word# || '%'
+		       </isNotEmpty>
+		     ) R 
+		WHERE R.PAGE = #page_no#
+	</select>
+	<select id="patternGalleryListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_PATTERN_GALLERY A
+			WHERE STATUS = 'Y'
+		 <isNotEmpty property="search_word">
+	       	AND TITLE LIKE '%' || #search_word# || '%'
+	     </isNotEmpty>
+	</select>
+	
+	<select id="cultureSupportList" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			*
+		FROM
+		(
+			SELECT
+				SEQ, TITLE, URL,
+				FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$+1) AS PAGE
+			FROM
+				PORTAL_CULTURE_SUPPORT
+			WHERE 1=1
+			AND ( SYSDATE BETWEEN TO_DATE(APPLY_START_DT, 'yyyy-mm-dd') AND TO_DATE(APPLY_END_DT, 'yyyy-mm-dd') OR TO_DATE(APPLY_START_DT, 'YYYYMMDD') > SYSDATE)
+			AND APPROVAL = 'Y' 
+			<isNotEmpty property="searchKeyword" prepend="AND">
+			(
+				TITLE LIKE '%'|| #searchKeyword# ||'%' OR
+				NOTICE LIKE '%'|| #searchKeyword# ||'%'
+			)
+			</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	
+	<select id="cultureSupportListCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+			COUNT(1)
+		FROM
+			PORTAL_CULTURE_SUPPORT
+		WHERE 1=1
+		AND ( SYSDATE BETWEEN TO_DATE(APPLY_START_DT, 'yyyy-mm-dd') AND TO_DATE(APPLY_END_DT, 'yyyy-mm-dd') OR TO_DATE(APPLY_START_DT, 'YYYYMMDD') > SYSDATE)
+		AND APPROVAL = 'Y' 
+		<isNotEmpty property="searchKeyword" prepend="AND">
+		(
+			TITLE LIKE '%'|| #searchKeyword# ||'%' OR
+			NOTICE LIKE '%'|| #searchKeyword# ||'%'
+		)
+		</isNotEmpty>
+	</select>
+</sqlMap>

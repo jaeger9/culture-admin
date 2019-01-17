@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_qna">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		/* culture_qna.list */
+		SELECT  
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT SEQ
+					 , SUBJECT					 									 
+					 , CASE WHEN COMMENTS IS NOT NULL THEN '완료'
+					        ELSE '대기' END AS STATUS_NM
+					 , CASE WHEN COMMENTS IS NOT NULL THEN 'Y'
+					        ELSE 'N' END AS STATUS					  					 
+					 , REG_ID
+					 , TO_CHAR(REG_DT, 'YYYY-MM-DD') REG_DT
+				  FROM CULTURE_QNA
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="status" prepend="AND">
+						<isEqual property="status" compareValue="Y">
+							COMMENTS IS NOT NULL
+						</isEqual>
+						<isEqual property="status" compareValue="N">
+							COMMENTS IS NULL
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(SUBJECT LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="subject">
+							SUBJECT LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENT LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="comments">
+							COMMENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_start" prepend="AND">
+							REG_DT BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							REG_DT BETWEEN  TO_DATE(#reg_end#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		/* culture_qna.listCnt */
+				SELECT COUNT(*) AS CNT
+				  FROM CULTURE_QNA
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="status" prepend="AND">
+						<isEqual property="status" compareValue="Y">
+							COMMENTS IS NOT NULL
+						</isEqual>
+						<isEqual property="status" compareValue="N">
+							COMMENTS IS NULL
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(SUBJECT LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="subject">
+							SUBJECT LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENT LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="comments">
+							COMMENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_start" prepend="AND">
+							REG_DT BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							REG_DT BETWEEN  TO_DATE(#reg_end#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+	    /* culture_qna.view */
+		SELECT A.SEQ
+             , A.SUBJECT
+             , A.CONTENT
+             , A.COMMENTS
+             , A.REG_ID
+             , TO_CHAR(A.REG_DT, 'YYYY-MM-DD') AS REG_DT
+             , A.REP_ID
+             , A.REP_DT             
+             , TO_CHAR(A.REP_DT, 'YYYY-MM-DD') AS REP_DT
+             , A.STATUS
+          FROM CULTURE_QNA A
+         WHERE A.SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">	    
+		/* culturenews.insert */
+		INSERT INTO CULTURE_QNA 
+		     ( 
+		       SEQ
+		     , SUBJECT
+		     , CONTENT		     
+		     , REG_ID
+		     , REG_DT		
+		     )
+       VALUES
+             ( 
+               SEQ_CULTURE_QNA.NEXTVAL
+             , #subject#
+             , #content2#             
+             , #reg_id#
+             , SYSDATE          
+             )
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		/* culturenews.update */
+		UPDATE CULTURE_QNA
+		   SET SUBJECT = #subject#
+		     , CONTENT = #content2#
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<update id="comments" parameterClass="paramMap">
+		/* culturenews.comments */
+		UPDATE CULTURE_QNA
+		   SET COMMENTS = #comments#
+		     , REP_ID = #rep_id#
+		     , REP_DT = SYSDATE
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM CULTURE_QNA WHERE SEQ = #seq#
+	</delete>
+</sqlMap>

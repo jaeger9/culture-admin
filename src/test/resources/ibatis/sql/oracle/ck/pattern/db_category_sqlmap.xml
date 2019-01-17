@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="db.category">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM 
+		(
+			SELECT 
+				/*+INDEX_ASC(A COLLECTIONS_PK) */
+				FLOOR((ROW_NUMBER()OVER(ORDER BY DCREATEDATE DESC) -1)/$list_unit$+1) AS PAGE
+		    	,ROWNUM NUM
+			  	,DCOLLECTIONID
+			  	,DPARENTCOLLECTIONID
+			  	,DCOLLECTIONNAME
+			  	,DCREATEDATE
+			  	,DHIDDEN
+		  	FROM 
+		  		COLLECTIONS@PATTERN A
+		  		<!-- COLLECTIONS A  -->
+		  	WHERE 
+		  		DPARENTCOLLECTIONID = #parentId#
+		) R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			COLLECTIONS@PATTERN A
+		  	<!-- COLLECTIONS A  -->
+		WHERE 
+			DPARENTCOLLECTIONID = #parentId#
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.*,
+  			B.DCOLLECTIONNAME PARENTNAME
+		FROM 
+			COLLECTIONS@PATTERN A,
+  			COLLECTIONS@PATTERN B
+  			<!-- COLLECTIONS A,
+  			COLLECTIONS B -->
+		WHERE 
+			A.DCOLLECTIONID     = #id#
+		AND A.DPARENTCOLLECTIONID = B.DCOLLECTIONID
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO 
+			COLLECTIONS@PATTERN(
+			<!-- COLLECTIONS ( -->
+			    DCOLLECTIONID,
+			    DCOLLECTIONGUID,
+			    DPARENTCOLLECTIONID,
+			    DCOLLECTIONNAME,
+			    DCOLLECTIONTYPE,
+			    DCOLLECTIONQUERIES,
+			    DCOLLECTIONENABLED,
+			    DCHILDMANIPULATION,
+			    DCREATEDATE,
+			    DALTERNATIVE,
+			    DHIDDEN,
+			    DABSTRACT
+  			) VALUES (
+    			(SELECT NVL(MAX(DCOLLECTIONID),0)+1 FROM COLLECTIONS@PATTER)
+    			<!-- (SELECT NVL(MAX(DCOLLECTIONID),0)+1 FROM COLLECTIONS) -->
+    			, '2010'
+    			, #dparentcollectionid#
+    			, #dcollectionname#
+			    , '0'
+			    , 1
+			    , 1
+			    , 1
+			    , SYSDATE
+			    , #dalternative#
+			    , #dhidden#
+			    , #dabstract#
+		  ) 
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			COLLECTIONS@PATTERN
+			<!-- COLLECTIONS -->
+		SET
+		    DPARENTCOLLECTIONID = #dparentcollectionid#,
+		    DCOLLECTIONNAME     = #dcollectionname#, 
+		    DLASTMODIFIEDDATE   = SYSDATE,
+		    DABSTRACT       	= #dabstract#,
+		    DHIDDEN       	   	= #dhidden#,
+		    DALTERNATIVE   	   	= #dalternative#
+		WHERE  
+			DCOLLECTIONID       = #id#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			COLLECTIONS@PATTERN
+			<!-- COLLECTIONS -->
+		WHERE  
+			DCOLLECTIONID       = #id#
+	</delete>
+</sqlMap>

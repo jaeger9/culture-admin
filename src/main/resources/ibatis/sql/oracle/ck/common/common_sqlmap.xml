@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="common">
+
+	<select id="codeList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+          	NAME , VALUE , CODE , PCODE , TYPE
+        FROM
+          	PCN_COMMON_CODE
+        WHERE
+          	<![CDATA[
+          	PCODE <> 0 
+          	]]>
+		<isNotEmpty property="common_code_type" prepend="AND">
+          	TYPE = #common_code_type#
+		</isNotEmpty>
+		<isNotEmpty property="common_code_pcode" prepend="AND">
+			PCODE = #common_code_pcode#
+		</isNotEmpty>
+	</select>
+	<select id="codeListSort" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+          	NAME , VALUE , CODE , PCODE , TYPE
+        FROM
+          	PCN_COMMON_CODE
+        WHERE
+          	<![CDATA[
+          	PCODE <> 0 
+          	]]>
+		<isNotEmpty property="common_code_type" prepend="AND">
+          	TYPE = #common_code_type#
+		</isNotEmpty>
+		<isNotEmpty property="common_code_pcode" prepend="AND">
+			PCODE = #common_code_pcode#
+		</isNotEmpty>
+		ORDER BY SORT
+	</select>	
+	<select id="codeListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+          	COUNT(1)
+        FROM
+          	PCN_COMMON_CODE
+        WHERE
+          	<![CDATA[
+          	PCODE <> 0 
+          	]]>
+		<isNotEmpty property="common_code_type" prepend="AND">
+          	TYPE = #common_code_type#
+		</isNotEmpty>
+		<isNotEmpty property="common_code_pcode" prepend="AND">
+			PCODE = #common_code_pcode#
+		</isNotEmpty>
+	</select>
+	<select id="codeTypeList" resultClass="commonMap">
+		SELECT 
+			NAME , TYPE 
+		FROM 
+			PCN_COMMON_CODE 
+        WHERE
+          	PCODE = 0 
+        GROUP BY NAME , TYPE
+	</select>
+	<select id="parentCodeList" resultClass="commonMap">
+		SELECT 
+			NAME , CODE 
+		FROM 
+			PCN_COMMON_CODE 
+        WHERE
+          	PCODE = 0 
+        GROUP BY NAME , CODE
+	</select>
+	<!-- 관련기관 select box -->
+	<select id="organList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.NAME	AS JOB_GROUP_NAME	
+		    , A.ORG_CODE AS PUBLISHER
+		FROM 
+			UCI_ORG A
+	</select>
+	<select id="metaOrganList" parameterClass="paramMap" resultClass="commonMap">
+		<!-- SELECT 
+			A.NAME	AS JOB_GROUP_NAME	
+		    , A.ORG_CODE AS PUBLISHER
+		FROM 
+			UCI_ORG A -->
+			
+			
+		SELECT 
+			U.NAME AS organize_name, 
+		 	U.ORG_CODE AS organize_code
+		FROM 
+		  	UCI_ORG U , 
+		  	(
+		    	SELECT
+		      		DISTINCT PUBLISHER
+		    	FROM 
+		    		PCN_RDF_METADATA
+		    	WHERE
+		      		TYPE = #type#
+		  	) M
+		WHERE
+		 	U.ORG_CODE = M.PUBLISHER
+	</select>
+	<select id="zipCodeList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  A.* FROM (
+
+			<isEqual property="zip_yn" compareValue="63" >
+				SELECT
+					B.ZIP_CODE		,
+					B.SIDO SIDO_NAME	,
+					B.GUGUN GU_NAME	,
+					B.DONG DONG_NAME1	,
+					B.BUNJI GI_NUM1	,
+					'' DONG_NAME2	,
+					'' ROAD_NAME	,
+					'' GI_NUM2		,
+					'' BUIL_NAME	,
+					'' BUIL_NUM1	,
+					'' BUIL_NUM2	,
+					(SELECT VALUE FROM PCN_COMMON_CODE C WHERE B.SIDO LIKE '%' || C.NAME || '%' AND ROWNUM = 1) LOCATION , 
+					FLOOR((ROW_NUMBER()OVER(ORDER BY zip_code )-1)/10+1) AS PAGE
+				FROM ZIP_CDE_TBL B
+				WHERE dong LIKE #dong#||'%'
+			</isEqual>
+			<isEqual property="zip_yn" compareValue="64" >
+				SELECT
+						B.ZIP_CODE	,
+						B.SIDO_NAME	,
+						B.GU_NAME		,
+						B.DONG_NAME1	,
+						B.DONG_NAME2	,
+						B.ROAD_NAME	,
+						B.BUIL_NUM1	,
+						B.BUIL_NUM2	,
+						B.BUIL_NAME 	,
+						B.GI_NUM1		,
+						B.GI_NUM2		,
+						(SELECT VALUE FROM PCN_COMMON_CODE C WHERE B.SIDO_NAME LIKE '%' || C.NAME || '%' AND ROWNUM = 1) LOCATION ,
+						FLOOR((ROW_NUMBER()OVER(ORDER BY b.gi_num1 )-1)/10+1) AS PAGE
+				FROM ZIP_CDE_NEW_ZIBUN B
+				WHERE road_name LIKE #road#||'%'
+				<isNotEmpty property="BUIL_NUM1" prepend="AND">
+					B.BUIL_NUM1 = #BUIL_NUM1#
+				</isNotEmpty>
+			</isEqual>
+
+		) A
+		WHERE
+			A.PAGE = #page_no#
+	</select>
+	<select id="zipCodeListCnt" parameterClass="paramMap" resultClass="int">
+		<isEqual property="zip_yn" compareValue="63" >
+			SELECT
+				COUNT(1)
+			FROM 
+				ZIP_CDE_TBL
+			WHERE 
+				DONG LIKE #dong#||'%'
+		</isEqual>
+		<isEqual property="zip_yn" compareValue="64" >
+			SELECT
+				COUNT(1)
+			FROM 
+				ZIP_CDE_NEW_ZIBUN b
+			WHERE 
+				ROAD_NAME LIKE #road#||'%'
+			<isNotEmpty property="BUIL_NUM1" prepend="AND">
+				BUIL_NUM1 = #BUIL_NUM1#
+			</isNotEmpty>
+		</isEqual>
+	</select>
+</sqlMap>

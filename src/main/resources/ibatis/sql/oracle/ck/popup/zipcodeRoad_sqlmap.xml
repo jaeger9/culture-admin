@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="zipcodeRoad">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="road_name" prepend="AND">
+			LOWER(A.ROAD_NAME) LIKE LOWER('%' || #road_name# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="buil_num1" prepend="AND">
+			LOWER(A.BUIL_NUM1) LIKE LOWER('%' || #buil_num1# || '%')
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			ZIP_CDE_NEW_ZIBUN A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ZIP_CODE
+			,A.SIDO_NAME
+			,A.GU_NAME
+			,A.DONG_NAME1
+			,A.DONG_NAME2
+			,A.ROAD_NAME
+			,A.BUIL_NUM1
+			,A.BUIL_NUM2
+			,A.BUIL_NAME
+			,A.GI_NUM1
+			,A.GI_NUM2
+		FROM
+			ZIP_CDE_NEW_ZIBUN A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.ROAD_NAME, A.GI_NUM1, A.GI_NUM2
+		<include refid="sqlPagingEnd" />
+	</select>
+
+</sqlMap>

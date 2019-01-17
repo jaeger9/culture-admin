@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="magazine.tags">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.*
+		FROM
+		(
+			SELECT
+				T.*
+				<isEqual property="sort_type" compareValue="use_cnt">
+			    	, FLOOR((ROW_NUMBER()OVER(ORDER BY USE_CNT DESC, SEQ)-1)/$list_unit$+1) AS PAGE
+			    </isEqual>
+				<isEqual property="sort_type" compareValue="name">
+			    	, FLOOR((ROW_NUMBER()OVER(ORDER BY NAME, SEQ)-1)/$list_unit$+1) AS PAGE
+			    </isEqual>
+			FROM (
+				SELECT
+					A.SEQ
+				    , A.DEL_YN
+				    , A.NAME
+				    , A.POPULAR_YN
+				    , A.REG_DATE
+				    , A.REG_ID
+				    , (SELECT COUNT(1) FROM PCN_TAG_MAPPING B WHERE B.TAG_SEQ = A.SEQ) AS USE_CNT
+				    , #sort_type# AS SORT_TYPE
+				FROM
+					PCN_MAGAZINE_TAG A
+				WHERE
+					A.DEL_YN != 'Y'
+					<isNotEmpty property="keyword" prepend="AND">
+						LOWER(A.NAME) LIKE '%' || LOWER(#keyword#) || '%'
+					</isNotEmpty>
+					<isNotEmpty property="type" prepend="AND">
+						A.TYPE = #type#
+				    </isNotEmpty>
+			) T
+		) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(SEQ)
+		FROM
+			PCN_MAGAZINE_TAG
+		WHERE
+			DEL_YN != 'Y'
+			<isNotEmpty property="keyword" prepend="AND">
+				LOWER(NAME) LIKE '%' || LOWER(#keyword#) || '%'
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="AND">
+				TYPE = #type#
+		    </isNotEmpty>
+	</select>
+	
+	<select id="popularList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+		    , A.DEL_YN
+		    , A.NAME
+		    , A.POPULAR_YN
+		    , A.REG_DATE
+		    , A.REG_ID
+		FROM
+			PCN_MAGAZINE_TAG A
+		WHERE
+			A.DEL_YN != 'Y'
+		    AND A.POPULAR_YN = 'Y'
+			<isNotEmpty property="type" prepend="AND">
+				A.TYPE = #type#
+		    </isNotEmpty>
+		ORDER BY A.POPULAR_ORDER
+	</select>
+	
+	<update id="merge" parameterClass="paramMap">
+		MERGE INTO PCN_MAGAZINE_TAG A
+        USING
+            DUAL
+        ON ( A.SEQ = #seq# )
+        
+        WHEN MATCHED THEN
+        	UPDATE SET A.NAME = #name#
+        WHEN NOT MATCHED THEN
+        	INSERT (SEQ, DEL_YN, NAME, POPULAR_YN, REG_DATE, REG_ID, TYPE)
+            VALUES ((SELECT NVL(MAX(SEQ),0)+1  FROM PCN_MAGAZINE_TAG), 'N', #name#, 'N', SYSDATE, #reg_id#, #type#)
+	</update>
+	
+	<select id="chkName" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(SEQ)
+		FROM
+			PCN_MAGAZINE_TAG
+		WHERE
+			DEL_YN != 'Y'
+			<isNotEmpty property="name" prepend="AND">
+				LOWER(NAME) = LOWER(#name#)
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="AND">
+				TYPE = #type#
+		    </isNotEmpty>
+	</select>
+	
+	<select id="using" parameterClass="paramMap" resultClass="String">
+        SELECT
+        	SUBSTR(XMLAgg(XMLElement(x, ', ', name) ORDER BY name).Extract('//text()'), 2) names
+        FROM (
+			<isEqual property="type" compareValue="1">
+	            SELECT
+	                MAX(A.NAME) NAME, 0 rnum
+	            FROM (
+	                SELECT *
+	                FROM PCN_TAG_MAPPING T1, PCN_MAGAZINE_TAG T2
+					<iterate prepend="WHERE TAG_SEQ IN " property="seqs" open="(" close=")" conjunction=",">
+						$seqs[]$
+					</iterate>
+	                AND T1.TAG_SEQ = T2.SEQ
+	                AND T2.DEL_YN != 'Y'
+	                AND MENU_TYPE = '1'	<!-- 문화이슈 -->
+	            ) A, CULTURE_ISSUE_CONTENTS B
+	            WHERE A.BOARD_SEQ = B.SEQ
+	            AND B.DEL_YN != 'Y'
+	            GROUP BY A.SEQ
+			</isEqual> 
+            
+			<isEqual property="type" compareValue="2">
+	            SELECT
+	                MAX(A.NAME) NAME, 0 rnum
+	            FROM (
+	                SELECT *
+	                FROM PCN_TAG_MAPPING A, PCN_MAGAZINE_TAG B
+					<iterate prepend="WHERE TAG_SEQ IN " property="seqs" open="(" close=")" conjunction=",">
+						$seqs[]$
+					</iterate>
+	                AND A.TAG_SEQ = B.SEQ
+	                AND MENU_TYPE IN ('2')	<!-- 문화공감 -->	
+	                AND B.DEL_YN != 'Y'
+	            ) A, PCN_RECOM_CULTURE B
+	            WHERE A.BOARD_SEQ = B.SEQ
+	            GROUP BY A.SEQ
+            </isEqual>
+        )
+        GROUP BY rnum
+	</select>
+	
+	<delete id="deleteMapping" parameterClass="paramMap">
+		DELETE
+			PCN_TAG_MAPPING
+			WHERE
+			<isNotEmpty property="seqs">
+				<iterate prepend="TAG_SEQ IN " property="seqs" open="(" close=")" conjunction=",">
+					$seqs[]$
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="array.boardSeq">
+				<iterate property="array.boardSeq" prepend="BOARD_SEQ IN " open="(" conjunction="," close=")" >
+		 			#array.boardSeq[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="menuType" prepend="AND">
+				MENU_TYPE = #menuType#
+			</isNotEmpty>
+	</delete>
+	
+	<update id="updateDeleteColumn" parameterClass="paramMap">
+		UPDATE
+			PCN_MAGAZINE_TAG
+		SET
+			DEL_YN = 'Y'
+		<iterate prepend="WHERE SEQ IN " property="seqs" open="(" close=")" conjunction=",">
+			$seqs[]$
+		</iterate>
+	</update>
+	
+<!-- 	<update id="updatePopular" parameterClass="paramMap">
+		UPDATE
+			PCN_MAGAZINE_TAG
+		SET
+			POPULAR_YN = #popular_yn#
+		<iterate prepend="WHERE SEQ IN " property="seqs" open="(" close=")" conjunction=",">
+			$seqs[]$
+		</iterate>
+	</update> -->
+	<update id="updatePopular" parameterClass="paramMap">
+		UPDATE
+			PCN_MAGAZINE_TAG
+		SET
+			POPULAR_YN = #popular_yn#
+			<isEqual property="popular_yn" compareValue="Y">
+	            ,POPULAR_ORDER = (
+	                   SELECT NVL(MAX(POPULAR_ORDER),0) + 1
+	                   FROM PCN_MAGAZINE_TAG A
+	                   WHERE POPULAR_YN = 'Y'
+	                   AND EXISTS (SELECT 1 FROM PCN_MAGAZINE_TAG B WHERE B.SEQ = #seq# AND A.TYPE = B.TYPE)
+	   			)
+			</isEqual>
+			<isNotEqual property="popular_yn" compareValue="Y">
+				,POPULAR_ORDER = 0
+			</isNotEqual>
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<insert id="insertTagMap" parameterClass="paramMap">
+		INSERT ALL
+		<dynamic>
+			<iterate prepend="" property="tagSeq">
+				INTO PCN_TAG_MAPPING (TAG_SEQ, BOARD_SEQ, MENU_TYPE)
+				VALUES ( #tagSeq[]#, #seq#, #menuType# )
+			</iterate>
+		</dynamic>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<select id="selectTagMap" parameterClass="paramMap" resultClass="String">
+		SELECT
+			SUBSTR(XMLAgg(XMLElement(x, ',', B.NAME) ORDER BY name).Extract('//text()'), 2) names
+		FROM
+			PCN_TAG_MAPPING A, PCN_MAGAZINE_TAG B
+		WHERE
+			A.TAG_SEQ = B.SEQ
+			AND B.DEL_YN != 'Y'
+			AND A.BOARD_SEQ = #seq#
+			AND A.MENU_TYPE = #menuType#
+	</select>
+</sqlMap>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="vod">
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TVM_TITLE)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.TVM_CONTENTS)	LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TVM_TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="contents" prepend="AND">
+				LOWER(A.TVM_CONTENTS)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="vcm_code" prepend="AND">
+			A.VCM_CODE = #vcm_code#
+		</isNotEmpty>
+		<isEmpty property="vcm_code">
+			<isNotEmpty property="vcm_up_code" prepend="AND">
+				(SELECT VCM_UP_CODE FROM VOD_CAI_MST WHERE VCM_CODE = A.VCM_CODE) = #vcm_up_code#
+			</isNotEmpty>			
+		</isEmpty>
+
+		<isNotEmpty property="org_code" prepend="AND">
+			A.ORG_CODE = #org_code#
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			TOT_VOD_MST A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			X.*
+			,(SELECT OOC_NAME FROM OTR_ORG_CDE WHERE ORG_CODE = X.ORG_CODE)		ORG_NAME
+			,(SELECT VCM_TITLE FROM VOD_CAI_MST WHERE VCM_CODE = X.VCM_CODE)	VCM_NAME
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*
+			FROM (
+				SELECT
+					A.TVM_SEQ
+					,A.VCM_CODE
+					,A.ORG_CODE
+					,A.TVM_TITLE
+					,A.TVM_VIEWFLAG
+					,TO_CHAR(A.TVM_REG_DATE, 'YYYY-MM-DD') TVM_REG_DATE
+				FROM
+					TOT_VOD_MST A
+				<include refid="sqlList-1" />
+				ORDER BY
+					A.TVM_SEQ DESC
+			) Z
+	<![CDATA[
+			WHERE
+				ROWNUM <= (#page_no# * #list_unit#)
+		) X
+		WHERE
+			X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ORG_CODE
+			,A.TVM_SEQ
+			,A.TVM_TITLE
+			,A.TVM_ETC_INFO
+			,A.TVM_CONTENTS
+			,A.TVM_IMG_NAME
+			,A.TVM_LOW_URL
+			,A.TVM_HIGH_URL
+			,A.TVM_VIEWFLAG
+			,TO_CHAR(A.TVM_REG_DATE, 'YYYY-MM-DD') TVM_REG_DATE
+			,A.TVM_TYPE
+			,A.TVM_LURL_EFCT
+			,A.TVM_HURL_EFCT
+			,A.TVM_LURL_EFCT_DATE
+			,A.TVM_HURL_EFCT_DATE
+			,A.TVM_URL
+			,A.TVM_URL_EFCT
+			,A.TVM_URL_EFCT_DATE
+			,A.VCM_CODE
+			,(SELECT VCM_UP_CODE FROM VOD_CAI_MST WHERE VCM_CODE = A.VCM_CODE) VCM_UP_CODE
+		FROM
+			TOT_VOD_MST A
+		WHERE
+			A.TVM_SEQ = #tvm_seq#
+		AND ROWNUM = 1
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="tvm_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(TVM_SEQ), 0) + 1 FROM TOT_VOD_MST
+		</selectKey>
+
+		INSERT INTO TOT_VOD_MST (
+			TVM_SEQ
+			,VCM_CODE
+			,ORG_CODE
+			,TVM_TITLE
+			,TVM_ETC_INFO
+			,TVM_CONTENTS
+			,TVM_LOW_URL
+			,TVM_HIGH_URL
+			,TVM_VIEWFLAG
+			,TVM_URL
+			,TVM_REG_DATE
+		) VALUES (
+			#tvm_seq#
+			,#vcm_code#
+			,#org_code#
+			,#tvm_title#
+			,#tvm_etc_info#
+			,#tvm_contents#
+			,#tvm_low_url#
+			,#tvm_high_url#
+			,#tvm_viewflag#
+			,#tvm_url#
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE TOT_VOD_MST
+		SET
+			VCM_CODE		=	#vcm_code#
+			,ORG_CODE		=	#org_code#
+			,TVM_TITLE		=	#tvm_title#
+			,TVM_ETC_INFO	=	#tvm_etc_info#
+			,TVM_CONTENTS	=	#tvm_contents#
+			,TVM_LOW_URL	=	#tvm_low_url#
+			,TVM_HIGH_URL	=	#tvm_high_url#
+			,TVM_VIEWFLAG	=	#tvm_viewflag#
+			,TVM_URL		=	#tvm_url#
+		WHERE
+			TVM_SEQ = #tvm_seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE TOT_VOD_MST
+		SET
+			TVM_VIEWFLAG	=	#tvm_viewflag#
+		WHERE
+			TVM_SEQ IN
+		<iterate property="array.tvm_seqs" open="(" conjunction="," close=")">
+			#array.tvm_seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM TOT_VOD_MST
+		WHERE
+			TVM_SEQ IN 
+		<iterate property="array.tvm_seqs" open="(" conjunction="," close=")">
+			#array.tvm_seqs[]#
+		</iterate>
+	</delete>
+
+	<!--
+	,A.VCM_GR_NO
+	,A.VCM_AR_NO
+	-->
+	<select id="listByVodCode" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VCM_TITLE
+			,A.VCM_DEPTH
+			,A.VCM_CODE
+			,A.VCM_UP_CODE
+		FROM
+			VOD_CAI_MST A
+		WHERE
+			A.VCM_STATUS	=	'0'
+		<isNotEmpty property="vcm_depth" prepend="AND">
+			A.VCM_DEPTH		=	#vcm_depth#
+		</isNotEmpty>
+		<isNotEmpty property="vcm_code" prepend="AND">
+			A.VCM_CODE		=	#vcm_code#
+		</isNotEmpty>
+		<isNotEmpty property="vcm_up_code" prepend="AND">
+			A.VCM_UP_CODE	=	#vcm_up_code#
+		</isNotEmpty>
+        ORDER BY
+        	A.VCM_CODE
+	</select>
+
+	<select id="listByVodOrg" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ORG_CODE
+			,A.OOC_NAME 
+		FROM
+			OTR_ORG_CDE A
+		WHERE
+			A.ORG_CODE <![CDATA[ <> ]]> '08'
+		ORDER BY
+        	A.OOC_NAME ASC
+        	,A.ORG_CODE ASC
+	</select>
+
+</sqlMap>

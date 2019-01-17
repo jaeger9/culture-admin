@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalWithdrawMember">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+
+		<isNotEmpty property="withdraw_date_start" prepend="AND"><![CDATA[
+			A.WITHDRAW_DATE >= TO_DATE(#withdraw_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="withdraw_date_end" prepend="AND"><![CDATA[
+			A.WITHDRAW_DATE <= TO_DATE(#withdraw_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_MEMBER_WITHDRAW A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.USER_ID
+			,A.CONTENT
+			,TO_CHAR(A.WITHDRAW_DATE, 'YYYY-MM-DD') WITHDRAW_DATE
+			,A.WITHDRAW_CAUSE
+		FROM
+			PCN_MEMBER_WITHDRAW A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.WITHDRAW_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+
+</sqlMap>

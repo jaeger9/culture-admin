@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="relay_gourp">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+	
+		SELECT 
+			R.*
+		FROM (
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY ORDER_SEQ ASC, SEQ DESC) -1)/$list_unit$+1) AS PAGE	
+				, SEQ
+				, NAME 
+				, TEL
+				, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE 
+				, HOMEPAGE
+				, DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+				, ORDER_SEQ
+			FROM 
+				EVENT_RELAYTICKET_COMPANY
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					NAME LIKE '%'||#searchKeyword#||'%'
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			EVENT_RELAYTICKET_COMPANY
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				NAME LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ,
+			NAME,
+			TEL,
+			REG_DATE,
+			HOMEPAGE,
+			ZIP_YN,
+			ZIP_CODE,
+			ADDR1,
+			ADDR2,
+			APPROVAL,
+			THUMB_URL,
+			ORDER_SEQ
+		FROM 
+			EVENT_RELAYTICKET_COMPANY
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT	INTO EVENT_RELAYTICKET_COMPANY(
+		    SEQ
+		    ,NAME
+		    ,TEL
+		    ,REG_DATE
+		    ,HOMEPAGE
+		    ,THUMB_URL
+		    ,ZIP_CODE
+		    ,ZIP_YN 
+		    ,ADDR1
+		    ,ADDR2
+		    ,APPROVAL
+		    ,ORDER_SEQ
+		) VALUES(
+    		(SELECT NVL(MAX(SEQ),0)+1 FROM EVENT_RELAYTICKET_COMPANY)
+    		,#name#
+    		,#tel#
+    		,SYSDATE
+    		,#homepage#
+    		,#file_sysname#
+    		,#zip_code#
+    		,#zip_yn# 
+		    ,#addr1#
+		    ,#addr2#
+		    ,#approval#
+		    ,#order_seq#
+  		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE EVENT_RELAYTICKET_COMPANY
+			SET NAME = #name# ,
+			TEL = #tel# ,
+			HOMEPAGE = #homepage# ,
+			ZIP_YN = #zip_yn# ,
+			ZIP_CODE = #zip_code# ,
+			ADDR1 = #addr1# ,
+			ADDR2 = #addr2# ,
+			APPROVAL = #approval# ,
+			ORDER_SEQ = #order_seq#
+			<isNotEmpty property="file_sysname" prepend=",">
+				THUMB_URL=#file_sysname#
+			</isNotEmpty>
+			<isEqual property="imagedelete" compareValue="Y" prepend=",">
+				<isEmpty property="file_sysname">
+					THUMB_URL = null
+				</isEmpty>
+			</isEqual>
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			EVENT_RELAYTICKET_COMPANY
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			EVENT_RELAYTICKET_COMPANY 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

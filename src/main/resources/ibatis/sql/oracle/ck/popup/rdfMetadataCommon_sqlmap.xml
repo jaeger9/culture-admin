@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="rdfMetadataCommon">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.TITLE) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+	</sql>
+
+	
+	
+	<select id="rdfPerformlist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06' 
+		<!--  임이랑 주임님 요청으로 삭제 : AND A.GENRE NOT LIKE '6'*/ -->
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="rdfNewlist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,REPLACE(A.UCI, '+', '%2b') UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06' 
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="rdfBothlist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,REPLACE(A.UCI, '+', '%2b') UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50' 
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="rdfFestivallist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50' AND A.GENRE LIKE '1'
+		
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	<select id="rdfEventlist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50' AND A.GENRE LIKE '2'
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	<select id="rdfDisplaylist" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06' AND A.GENRE LIKE '6'
+		<include refid="sqlList-1" />
+	ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="rdfBothcount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50'
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="rdfPerformcount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06' AND A.GENRE NOT LIKE '6'
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="rdfPerformcount2" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06'
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="rdfPerformlist2" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.UCI
+			,A.TYPE
+			,A.TITLE
+			,A.PERIOD
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD, 1, INSTR(A.PERIOD, '~', 1, 1) - 1) , '.', ''), '-', '') START_DT
+			,REPLACE(REPLACE( SUBSTR(A.PERIOD,    INSTR(A.PERIOD, '~', 1, 1) + 1) , '.', ''), '-', '') END_DT
+			,A.REFERENCE_IDENTIFIER
+			,A.REFERENCE_IDENTIFIER_ORG
+			,A.TIME
+      		,A.RIGHTS
+			,A.GENRE
+			,A.LOCATION
+			,A.VENUE
+			,A.EXTENT
+			,A.GRADE
+			,A.URL
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06'
+		<include refid="sqlList-1" />
+		ORDER BY REG_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="rdfEventcount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50' AND A.GENRE LIKE '2'	
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="rdfDisplaycount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06' AND A.GENRE LIKE '6'
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="rdfFestivalcount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '50' AND A.GENRE LIKE '1'	
+		<include refid="sqlList-1" />
+	</select>
+	<select id="rdfNewcount" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			PCN_RDF_METADATA A
+		WHERE
+			A.APPROVAL = 'Y'
+		AND A.TYPE LIKE '06'	
+		<include refid="sqlList-1" />
+	</select>
+	
+
+</sqlMap>

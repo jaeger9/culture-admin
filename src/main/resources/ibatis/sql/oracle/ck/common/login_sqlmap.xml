@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="login">
+
+	<select id="getUser" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+		<!-- select 
+       		username , password , enabled  
+		from 
+			users
+		where 
+			username = #username# -->
+			
+	    SELECT 
+		  	u.user_id as username , u.password , u.active , r.role_id
+		FROM 
+		     admin_users u , admin_user_role ur , admin_role r
+		WHERE
+			rownum = 1 AND
+		     u.user_id = ur.user_id AND
+		     ur.role_id = r.role_id AND
+		     u.user_id = #username#
+	</select>
+	
+	<select id="getUserAuth" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+		SELECT 
+		  	u.user_id as username , u.password , u.active , r.role_id as authority
+		FROM 
+		     admin_users u , admin_user_role ur , admin_role r
+		WHERE
+		     u.user_id = ur.user_id AND
+		     ur.role_id = r.role_id AND
+		     u.user_id = #username#
+	</select>
+	
+	
+	<select id="getUrlResourceAll" resultClass="java.util.HashMap">
+		SELECT 
+        	uy.url_string , ur.role_id 
+		FROM 
+    		admin_url_role ur , admin_url_repository uy
+		WHERE
+		     ur.url_id = uy.url_id and
+		     uy.url_type = 'web'
+		ORDER BY uy.url_string
+	</select>
+</sqlMap>

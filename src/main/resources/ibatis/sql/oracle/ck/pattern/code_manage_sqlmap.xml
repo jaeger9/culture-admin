@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="code.manage">
+	<select id="codeCnt" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PCOMCDED
+		WHERE
+			CDED_CODE = #cded_code# 
+			AND CDED_PCDE = #cded_pcde# 
+	</select>
+	<select id="categoryList" resultClass="commonMap">
+		SELECT 
+			* 
+		FROM 
+			PCOMCDEM@PATTERN 
+			<!-- PCOMCDEM -->
+		WHERE 
+			CDEM_USYN ='Y' 
+		ORDER BY CDEM_NAME
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM (
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY CDED_RGDT DESC,CDED_RGTM DESC) -1)/$list_unit$+1) AS PAGE , 
+				CDEM_NAME, 
+				CDED_CODE, 
+				CDED_PCDE, 
+				CDED_DESC, 
+				DECODE ( CDED_USYN  , 'Y' , '사용함' , '사용안함') CDED_USYN ,
+				TO_CHAR(TO_DATE(A.CDED_RGDT, 'YYYYMMDD'),'YYYY-MM-DD') CDED_RGDT
+			FROM 
+				PCOMCDED@PATTERN  A, PCOMCDEM@PATTERN B 
+				<!-- PCOMCDED A, PCOMCDEM B -->
+			WHERE 
+				A.CDED_PCDE = B.CDEM_CODE
+			<isNotEmpty property="keyword">
+				<isEqual property="searchGubun" compareValue="0">
+			        AND CDEM_CODE LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="1">
+			        AND CDEM_NAME LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="2">
+			        AND CDED_CODE LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="3">
+			        AND CDED_DESC LIKE '%'||#keyword#||'%' 
+				</isEqual>
+			</isNotEmpty>
+		) R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			PCOMCDED@PATTERN  A, PCOMCDEM@PATTERN B 
+			<!-- PCOMCDED A, PCOMCDEM B -->
+		WHERE 
+			A.CDED_PCDE = B.CDEM_CODE
+		<isNotEmpty property="keyword">
+			<isEqual property="searchGubun" compareValue="0">
+		        AND CDEM_CODE LIKE '%'||#keyword#||'%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="1">
+		        AND CDEM_NAME LIKE '%'||#keyword#||'%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="2">
+		        AND CDED_CODE LIKE '%'||#keyword#||'%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="3">
+		        AND CDED_DESC LIKE '%'||#keyword#||'%' 
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			* 
+		FROM 
+			PCOMCDED@PATTERN
+			<!-- PCOMCDED   -->
+		WHERE 
+			CDED_CODE = #cded_code# 
+		AND CDED_PCDE = #cded_pcde#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT
+			INTO PCOMCDED@PATTERN
+			<!-- INTO PCOMCDED -->
+			(
+			    CDED_PCDE,
+			    CDED_CODE,
+			    CDED_DESC,
+			    CDED_RGID,
+			    CDED_RGDT,
+			    CDED_RGTM,
+			    CDED_USYN
+			) VALUES (
+			    #cded_pcde#,
+			    #cded_code#,
+			    #cded_desc#,
+			    #admin_id#,
+			    TO_CHAR(SYSDATE, 'yyyymmdd'),
+			    TO_CHAR(SYSDATE, 'HH24MISS'),
+			    #cded_usyn#
+			)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCOMCDED@PATTERN 
+			<!-- PCOMCDED -->
+		SET 
+			CDED_PCDE = #cded_pcde#,
+			CDED_DESC = #cded_desc#,
+			CDED_UTID = #cded_utid#,
+			CDED_UTDT = TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			CDED_UTTM = TO_CHAR(SYSDATE, 'HH24MISS'),
+			CDED_USYN = #cded_usyn#
+		WHERE 
+			CDED_CODE = #cded_code# 
+		AND CDED_PCDE = #cded_pcde#
+	</update>
+	<delete id="delete" parameterClass="java.util.HashMap">
+		DELETE FROM 
+			PCOMCDED@PATTERN 
+			<!-- PCOMCDED -->
+		WHERE 
+			CDED_CODE = #cded_code# 
+			AND CDED_PCDE = #cded_pcde#
+	</delete>
+</sqlMap>

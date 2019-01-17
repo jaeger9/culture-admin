@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="banner">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM  
+		(
+		  	SELECT 
+		        FLOOR((ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE  
+		        , B.SEQ 
+		        , 'http://www.culture.go.kr/upload/banner/' || B.IMAGE_NAME AS "image_url"  
+		        , B.TITLE
+		        , B.BANNER_TITLE
+		        , C.NAME 
+		        , B.START_DATE 
+		        , B.END_DATE
+		        , CASE B.STATUS
+		            WHEN 'Y' THEN '승인'
+		            WHEN 'N' THEN '미승인'
+		            WHEN 'W' THEN '대기'
+		            ELSE ''
+		          END
+		          AS STATUS
+		        , IMAGE_NAME2
+				, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME2 AS "image_url2"
+				, IMAGE_NAME3
+				, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME3 AS "image_url3"
+				, IMAGE_NAME4
+				, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME3 AS "image_url4"
+				, MOBILE_IMAGE_NAME
+				, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME AS "mobile_image_url"
+				, MOBILE_IMAGE_NAME2
+				, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME2 AS "mobile_image_url2"
+				, MOBILE_IMAGE_NAME3
+				, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME3 AS "mobile_image_url3"
+				, TOP_BANNER_TYPE
+				, SUMMARY
+				, SUMMARY2
+				, SUMMARY3
+				, SUMMARY4
+				, URL2
+				, URL3
+				, URL4
+				, MOBILE_URL2
+				, MOBILE_URL3
+				, USER_ID
+			FROM PCN_MAIN_BANNER B ,
+		    	PCN_COMMON_CODE C
+		    WHERE
+		    	<!-- pcn_common_code 의 값을 비교 해야 할수도 있음 --> 
+		        <!-- C.NAME = #type# -->
+		        B.MENU_TYPE = C.CODE
+		        AND  B.MENU_TYPE = #menu_type#
+		        <isNotEmpty property="keyword" prepend="AND">
+		  			B.TITLE LIKE '%' || #keyword# || '%' 
+		  		</isNotEmpty>
+				<isNotEmpty property="status" prepend="AND">
+		  			B.STATUS = #status# 
+		  		</isNotEmpty>
+		  		<isNotEmpty property="start_date" prepend="AND">
+		  			<![CDATA[ START_DATE > #start_date# ]]>
+		  		</isNotEmpty>
+		  		<isNotEmpty property="end_date" prepend="AND">
+		  			<![CDATA[ END_DATE > #end_date# ]]>
+		  		</isNotEmpty>
+		          <!-- AND MENU_TYPE    IN
+		          ( 
+		            <![CDATA[  SELECT CODE FROM pcn_common_code WHERE type = 'MAIN_BANNER' AND PCODE <> 0 ]]>
+		          ) -->
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_MAIN_BANNER B ,
+		    PCN_COMMON_CODE C
+		WHERE 
+	    	<!-- pcn_common_code 의 값을 비교 해야 할수도 있음 --> 
+	        <!-- C.NAME = #type# -->
+	        B.MENU_TYPE = C.CODE
+	        AND  B.MENU_TYPE = #menu_type#
+	        <isNotEmpty property="keyword" prepend="AND">
+	  			B.TITLE LIKE '%' || #keyword# || '%' 
+	  		</isNotEmpty>
+			<isNotEmpty property="status" prepend="AND">
+	  			B.STATUS = #status# 
+	  		</isNotEmpty>
+	  		<isNotEmpty property="start_date" prepend="AND">
+	  			<![CDATA[ START_DATE > #start_date# ]]>
+	  		</isNotEmpty>
+	  		<isNotEmpty property="end_date" prepend="AND">
+	  			<![CDATA[ END_DATE > #end_date# ]]>
+	  		</isNotEmpty>
+	          <!-- AND MENU_TYPE    IN
+	          ( 
+	            <![CDATA[  SELECT CODE FROM pcn_common_code WHERE type = 'MAIN_BANNER' AND PCODE <> 0 ]]>
+	          ) -->
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ
+			, TITLE
+			, START_DATE
+			, END_DATE
+			, IMAGE_NAME
+			, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME AS "image_url"  
+			, URL
+			, MOBILE_URL
+			, USER_ID
+			, CONTENT
+			, STATUS
+			, MENU_TYPE
+			, TO_CHAR(REG_DATE, 'YYYY-MM-DD')									REG_DATE
+			, TO_CHAR(DECODE(UPD_DATE, NULL, REG_DATE, UPD_DATE), 'YYYY-MM-DD')	UPD_DATE 
+			, REQUEST
+			, TEL
+			, SUMMARY
+			, BANNER_TITLE
+			, IMAGE_NAME2
+			, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME2 AS "image_url2"
+			, IMAGE_NAME3
+			, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME3 AS "image_url3"
+			, IMAGE_NAME4
+			, 'http://www.culture.go.kr/upload/banner/' || IMAGE_NAME3 AS "image_url4"
+			, MOBILE_IMAGE_NAME
+			, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME AS "mobile_image_url"
+			, MOBILE_IMAGE_NAME2
+			, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME2 AS "mobile_image_url2"
+			, MOBILE_IMAGE_NAME3
+			, 'http://www.culture.go.kr/upload/banner/' || MOBILE_IMAGE_NAME3 AS "mobile_image_url3"
+			, TOP_BANNER_TYPE
+			, SUMMARY2
+			, SUMMARY3
+			, SUMMARY4
+			, URL2
+			, URL3
+			, URL4
+			, MOBILE_URL2
+			, MOBILE_URL3
+		FROM
+			PCN_MAIN_BANNER
+		WHERE
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_MAIN_BANNER (
+			SEQ
+			,TITLE
+			,START_DATE
+			,END_DATE
+			,IMAGE_NAME
+			,URL
+			,MOBILE_URL
+			,USER_ID
+			,CONTENT
+			,REG_DATE
+			,STATUS
+			,REQUEST
+			,MENU_TYPE
+			,UPD_DATE
+			,TEL
+			,SUMMARY
+			,BANNER_TITLE
+			,IMAGE_NAME2
+			,IMAGE_NAME3
+			,MOBILE_IMAGE_NAME
+			,MOBILE_IMAGE_NAME2
+			,MOBILE_IMAGE_NAME3
+			,TOP_BANNER_TYPE
+			,SUMMARY2
+			,SUMMARY3
+			,URL2
+			,URL3
+			,MOBILE_URL2
+			,MOBILE_URL3
+			,IMAGE_NAME4
+			,SUMMARY4
+			,URL4
+		) VALUES (
+			<!-- sequence 만들어라  -->
+			(SELECT NVL(MAX(SEQ), 0) + 1 FROM PCN_MAIN_BANNER)
+			,#title#
+			,#start_date#
+			,#end_date#
+			,#file_sysname#
+			,#url#
+			,#mobile_url#
+			,#session_admin_id#
+			,#content#
+			,SYSDATE
+			,#status#
+			,#request#
+			,#menu_type#
+			,SYSDATE
+			,#tel#
+			,#summary#
+			,#banner_title#
+			,#file_sysname2#
+			,#file_sysname3#
+			,#mobile_file_sysname#
+			,#mobile_file_sysname2#
+			,#mobile_file_sysname3#
+			,#top_banner_type#
+			,#summary2#
+			,#summary3#
+			,#url2#
+			,#url3#
+			,#mobile_url2#
+			,#mobile_url3#
+			,#file_sysname4#
+			,#summary4#
+			,#url4#
+		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		/* banner_update SQL*/
+		UPDATE 
+			PCN_MAIN_BANNER
+		SET
+			TITLE			=	#title#
+			,START_DATE		=	#start_date#
+			,END_DATE		=	#end_date#
+			<isNotEqual property="menu_type" compareValue="701">
+				<isNotEmpty property="file_sysname">
+					,IMAGE_NAME		=	#file_sysname#
+				</isNotEmpty>
+			</isNotEqual>
+			,URL			=	#url#
+			,MOBILE_URL		=	#mobile_url#
+			,CONTENT		=	#content#
+			,STATUS			=	#status#
+			,REQUEST		=	#request#
+			,UPD_DATE		=	SYSDATE
+			,TEL			=	#tel#
+			,SUMMARY		=	#summary#
+			,BANNER_TITLE	= 	#banner_title#
+			<isEqual property="menu_type" compareValue="701">
+				<isEqual property="top_banner_type" compareValue="A">
+					<isNotEmpty property="file_sysname">
+						,IMAGE_NAME		=	#file_sysname#
+					</isNotEmpty>
+					,IMAGE_NAME2 	=	''
+					,IMAGE_NAME3 	=	''
+					,IMAGE_NAME4 	=	''
+					<isNotEmpty property="mobile_file_sysname">
+						,MOBILE_IMAGE_NAME 		=	#mobile_file_sysname#
+					</isNotEmpty>
+					,MOBILE_IMAGE_NAME2 	=	''
+					,MOBILE_IMAGE_NAME3 	=	''
+				</isEqual>
+				<isEqual property="top_banner_type" compareValue="B">
+					<isNotEmpty property="file_sysname">
+						,IMAGE_NAME		=	#file_sysname#
+					</isNotEmpty>
+					<isNotEmpty property="file_sysname2">
+						,IMAGE_NAME2		=	#file_sysname2#
+					</isNotEmpty>
+					<isNotEmpty property="file_sysname3">
+						,IMAGE_NAME3		=	#file_sysname3#
+					</isNotEmpty>
+					<isNotEmpty property="mobile_file_sysname">
+						,MOBILE_IMAGE_NAME 		=	#mobile_file_sysname#
+					</isNotEmpty>
+					<isNotEmpty property="mobile_file_sysname2">
+						,MOBILE_IMAGE_NAME2 		=	#mobile_file_sysname2#
+					</isNotEmpty>
+					,MOBILE_IMAGE_NAME3 	=	''
+				</isEqual>
+				<isEqual property="top_banner_type" compareValue="C">
+					<isNotEmpty property="file_sysname">
+						,IMAGE_NAME		=	#file_sysname#
+					</isNotEmpty>
+					<isNotEmpty property="file_sysname2">
+						,IMAGE_NAME2		=	#file_sysname2#
+					</isNotEmpty>
+					<isNotEmpty property="file_sysname3">
+						,IMAGE_NAME3		=	#file_sysname3#
+					</isNotEmpty>
+					<isNotEmpty property="file_sysname4">
+						,IMAGE_NAME4		=	#file_sysname4#
+					</isNotEmpty>
+					<isNotEmpty property="mobile_file_sysname">
+						,MOBILE_IMAGE_NAME 		=	#mobile_file_sysname#
+					</isNotEmpty>
+					<isNotEmpty property="mobile_file_sysname2">
+						,MOBILE_IMAGE_NAME2 		=	#mobile_file_sysname2#
+					</isNotEmpty>
+					<isNotEmpty property="mobile_file_sysname3">
+						,MOBILE_IMAGE_NAME3 		=	#mobile_file_sysname3#
+					</isNotEmpty>
+				</isEqual>
+			</isEqual>
+			,TOP_BANNER_TYPE		=	#top_banner_type#
+			,SUMMARY2		=	#summary2#
+			,SUMMARY3 		=	#summary3#
+			,SUMMARY4 		=	#summary4#
+			,URL2 			=	#url2#
+			,URL3 			=	#url3#
+			,URL4 			=	#url4#
+			,MOBILE_URL2 	=	#mobile_url2#
+			,MOBILE_URL3 	=	#mobile_url3#
+		WHERE
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE 
+			PCN_MAIN_BANNER
+		SET 
+			STATUS = #updateStatus#
+		WHERE
+	 		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+				#array.seq[]#
+			</iterate>	
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE 
+			PCN_MAIN_BANNER
+		WHERE
+	 		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+				#array.seq[]#
+			</iterate>	
+	</delete>
+</sqlMap>

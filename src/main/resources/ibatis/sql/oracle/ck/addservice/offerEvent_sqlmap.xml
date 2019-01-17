@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="offerEvent">
+
+	<select id="offerListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* offerEvent.offerListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_OFFER
+		WHERE 1=1
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="title">
+				AND TITLE LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="offerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* offerEvent.offerList */
+			SEQ, USER_NM, TITLE, CATEGORY, REG_DATE, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, TITLE, CATEGORY, REG_DATE, 
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_OFFER
+			WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="title">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>		
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="offerExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* offerEvent.offerExcelList */
+			ROWNUM "num", "user_nm", "user_id", "email", "hp", "title", "category", "current_state", "contents", "reg_date"
+		FROM(
+			SELECT
+				O.USER_NM "user_nm", M.USER_ID "user_id", NVL(M.EMAIL, '') "email", NVL(M.HP, '') "hp", O.TITLE "title",
+				CASE 
+					WHEN O.CATEGORY = 'A' THEN '문화예술'
+					WHEN O.CATEGORY = 'B' THEN '체육'
+				    WHEN O.CATEGORY = 'C' THEN '관광'
+				    WHEN O.CATEGORY = 'D' THEN '문화격차 해소'
+					WHEN O.CATEGORY = 'E' THEN '한류확산'
+				END	"category",
+				O.CURRENT_STATE "current_state", O.CONTENTS "contents", O.REG_DATE "reg_date"
+			 FROM CULTURE_EVENT_OFFER O, PCN_MEMBER M
+			WHERE O.USER_ID = M.USER_ID
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND O.REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND O.REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND O.REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (O.USER_NM LIKE '%'||#search_keyword#||'%' OR O.TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND O.USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="title">
+					AND O.TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+			ORDER BY O.REG_DATE
+		)
+	</select>
+	
+	<select id="offerView" parameterClass="paramMap" resultClass="commonMap">
+		 SELECT /* offerEvent.offerView */
+		 	O.SEQ, TO_CHAR(O.REG_DATE,'YYYY-MM-DD') REG_DATE, M.USER_ID, M.NAME, M.EMAIL, M.HP, O.TITLE, O.CATEGORY, O.CURRENT_STATE, O.CONTENTS 
+		 FROM CULTURE_EVENT_OFFER O, PCN_MEMBER M
+		 WHERE O.USER_ID = M.USER_ID
+		 AND O.SEQ = #seq#
+	</select>
+	
+	<select id="commentListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* offerEvent.commentListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_SHARE
+		WHERE 1=1
+		AND GUBUN = '1'
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="commentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* offerEvent.commentList */
+			SEQ, USER_NM, URL, HP_NO, REG_DATE, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, URL, HP_NO, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_SHARE
+			WHERE 1=1
+			AND GUBUN = '1'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>		
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="commentExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT  /* offerEvent.commentExcelList */
+			ROWNUM "num", "user_nm", "hp_no", "url", "reg_date"
+		FROM(
+			SELECT
+		    	USER_NM "user_nm", HP_NO "hp_no",  NVL(URL, '-') "url", TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date"
+		    FROM CULTURE_EVENT_SHARE
+		    WHERE GUBUN = '1'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			ORDER BY REG_DATE
+		)
+	</select>
+
+	<select id="commentWinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* offerEvent.commentWinnerList */
+			W.SEQ, W.EVENT_SEQ, E.USER_NM, E.URL, E.HP_NO
+		FROM CULTURE_EVENT_SHARE E, CULTURE_EVENT_SHARE_WINNER W
+		WHERE E.SEQ = W.EVENT_SEQ
+		AND E.GUBUN = '1'
+	</select>
+	
+	<insert id="commentWinnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* offerEvent.commentWinnerInsert */ 
+		INTO CULTURE_EVENT_SHARE_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_EVENT_SHARE_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+	
+	<delete id="commentWinnerDelete" parameterClass="paramMap">
+		DELETE 
+		FROM CULTURE_EVENT_SHARE_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<select id="commentEntryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+		    MAX(A.SEQ) EVENT_SEQ, A.USER_NM, A.HP_NO, MAX(A.URL) URL, MAX(A.REG_DATE) REG_DATE
+		FROM CULTURE_EVENT_SHARE A
+		WHERE 1 = 1
+		AND GUBUN ='1' <!-- 국민의견공모 이벤트 구분 '1' -->
+		  AND NOT EXISTS (
+		    SELECT 
+		    	*
+		    FROM CULTURE_EVENT_SHARE_WINNER S1 , CULTURE_EVENT_SHARE S2
+		    WHERE GUBUN = '1' 
+		    AND S1.EVENT_SEQ = S2.SEQ
+		    AND (S2.USER_NM = A.USER_NM 		OR S2.HP_NO = A.HP_NO	 	OR S2.URL = A.URL)
+		  )
+		GROUP BY A.USER_NM, A.HP_NO
+	</select>
+</sqlMap>

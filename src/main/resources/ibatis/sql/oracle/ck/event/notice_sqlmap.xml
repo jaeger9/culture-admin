@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="notice">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			A.IS_DELETE = 'N'
+		<isNotEmpty property="top_yn" prepend="AND">
+			DECODE(A.TOP_YN, 'Y', 'Y', 'N') = #top_yn#
+		</isNotEmpty>
+		<isNotEmpty property="content_type" prepend="AND">
+			NVL(A.CONTENT_TYPE, '1') = #content_type#
+		</isNotEmpty>
+		<isNotEmpty property="confirm_yn" prepend="AND">
+			DECODE(A.CONFIRM_YN, 'N', 'N', 'W', 'W', 'Y') = #confirm_yn#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+			(
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.COMPANY)	LIKE LOWER('%' || #search_word# || '%')
+			OR	DBMS_LOB.INSTR(A.CONTENT, #search_word#) > 0
+			)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="company" prepend="AND">
+				LOWER(A.COMPANY)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				DBMS_LOB.INSTR(A.CONTENT, #search_word#) > 0
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			CL_TOTAL_NEWS A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			SEQ
+			,NVL(A.HIT, 0) HIT
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.CONFIRM_YN, 'N', 'N', 'W', 'W', 'Y') CONFIRM_YN
+			,A.CATEGORY
+			,DECODE(A.IS_DELETE, 'Y', 'Y', 'N') IS_DELETE
+			,A.ACCEPT
+			,A.TITLE
+			,A.COMPANY
+			,A.CONTENT
+			,A.USER_ID
+			,A.URL
+			,NVL(A.CONTENT_TYPE, '1') CONTENT_TYPE
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+		FROM
+			CL_TOTAL_NEWS A
+		<include refid="sqlList-1" />
+		ORDER BY
+			SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			,NVL(A.HIT, 0) HIT
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.CONFIRM_YN, 'N', 'N', 'W', 'W', 'Y') CONFIRM_YN
+			,A.CATEGORY
+			,DECODE(A.IS_DELETE, 'Y', 'Y', 'N') IS_DELETE
+			,A.ACCEPT
+			,A.TITLE
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+			,A.COMPANY
+			,A.CONTENT
+			,A.USER_ID
+			,A.URL
+			,NVL(A.CONTENT_TYPE, '1') CONTENT_TYPE
+		FROM
+			CL_TOTAL_NEWS A
+		WHERE
+			A.SEQ = #seq#
+		AND A.IS_DELETE = 'N'
+		AND	ROWNUM = 1
+	</select>
+
+	<!-- 미사용
+		creator
+		win_approval
+		link_type
+	-->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM CL_TOTAL_NEWS
+		</selectKey>
+		INSERT INTO CL_TOTAL_NEWS (
+			SEQ
+			,CATEGORY
+			,CONTENT_TYPE
+			,TITLE
+			,TOP_YN
+			,COMPANY
+			,URL
+			,CONTENT
+			,CONFIRM_YN
+			,USER_ID
+			,REG_DATE
+			,HIT
+			,IS_DELETE
+			,ACCEPT
+		) VALUES (
+			#seq#
+			,#category#
+			,#content_type#
+			,#title#
+			,DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,#company#
+			,#url#
+			,#content#
+			,#confirm_yn#
+			,#user_id#
+			,SYSDATE
+			,0
+			,'N'
+			,#accept#
+		)
+	</insert>
+
+	<!--
+		,HIT
+		,USER_ID
+		,REG_DATE
+	-->
+	<update id="update" parameterClass="paramMap">
+		UPDATE CL_TOTAL_NEWS
+		SET
+			CONTENT_TYPE	=	#content_type#
+			,TITLE			=	#title#
+			,TOP_YN			=	#top_yn#
+			,CATEGORY		=	#category#
+			,COMPANY		=	#company#
+			,URL			=	#url#
+			,CONTENT		=	#content#
+			,CONFIRM_YN		=	#confirm_yn#
+			,ACCEPT			=	#accept#
+		WHERE
+			SEQ			=	#seq#
+		AND IS_DELETE	=	'N'
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE CL_TOTAL_NEWS
+		SET
+			CONFIRM_YN = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+	
+	<update id="updateDelete" parameterClass="paramMap">
+		UPDATE CL_TOTAL_NEWS
+		SET
+			IS_DELETE = 'Y'
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+</sqlMap>

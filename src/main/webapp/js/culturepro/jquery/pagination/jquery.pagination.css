@@ -1,0 +1,6 @@
+/* paging */
+.pagination {margin-top:13px;text-align:center}
+.pagination a {text-decoration:none;border: solid 1px #dfdfdf;color: #444;text-decoration:none;}
+.pagination a, .pagination span {display:inline-block;padding:0.2em 0.6em 0.1em 0.6em;margin-right: 4px;margin-bottom: 4px;font-size:0.92em;line-height:1.2}
+.pagination .current {background: #d50008;color: #fff;border: solid 1px #d50008;text-decoration:none;font-weight:bold;}
+.pagination .current.prev, .pagination .current.next{color:#aaa;border-color:#dfdfdf;background:#fff;font-weight:normal;}

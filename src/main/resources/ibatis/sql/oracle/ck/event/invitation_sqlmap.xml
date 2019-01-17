@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="invitation">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y') = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<!-- controller에서 둘 중에 하나라도 값이 있을 경우 display_dt_start, display_dt_end 값 설정 -->
+		<isNotEmpty property="display_dt_start">
+			<isNotEmpty property="display_dt_end" prepend="AND"><![CDATA[
+			(
+				A.START_DT	BETWEEN TO_DATE(#display_dt_start#, 'YYYY-MM-DD') AND TO_DATE(#display_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			OR	A.END_DT	BETWEEN TO_DATE(#display_dt_start#, 'YYYY-MM-DD') AND TO_DATE(#display_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			)			
+			]]></isNotEmpty>
+		</isNotEmpty>
+
+		<isNotEmpty property="win_dt_start" prepend="AND"><![CDATA[
+			A.WIN_DT >= TO_DATE(#win_dt_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="win_dt_end" prepend="AND"><![CDATA[
+			A.WIN_DT <= TO_DATE(#win_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_PERFORM_INVITATION A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			Y.*
+			,(SELECT COUNT(1) FROM PCN_PERFORM_INVITATION_PERSON T WHERE T.EVENT_SEQ = Y.SEQ) PERSON_CNT
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*,
+				(	
+					select count(*) from PCN_PERFORM_INVITATION_PERSON 
+	            	where (USER_ID=Z.USER_ID and win_yn='Y') AND ( to_char(add_months(SYSDATE,-3),'YYYY-MM-dd') <![CDATA[<]]>  reg_date  and reg_date <![CDATA[<=]]> SYSDATE )
+	            )
+	            AS win_cnt,
+	            (select max(reg_date) from PCN_PERFORM_INVITATION_PERSON where USER_ID=Z.USER_ID and win_yn='Y') 
+	            AS last_win_dat
+			FROM (
+				SELECT
+					A.SEQ
+					,A.TITLE
+					,A.PREFORM_TITLE					PERFORM_TITLE
+					,A.USER_ID
+					,TO_CHAR(A.START_DT, 'YYYY-MM-DD')	START_DT
+					,TO_CHAR(A.END_DT, 'YYYY-MM-DD')	END_DT
+					,TO_CHAR(A.WIN_DT, 'YYYY-MM-DD')	WIN_DT
+					,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')	REG_DATE
+					,NVL(A.VIEW_CNT, 0)					VIEW_CNT
+					,NVL(A.CONTENT_TYPE, '1')			CONTENT_TYPE
+					,DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y')	APPROVAL
+					,(
+						CASE
+							WHEN TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') &gt;= A.START_DT AND TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') &lt;= A.END_DT
+							THEN 1
+							WHEN TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') &lt; A.START_DT
+							THEN 0
+							ELSE 2
+						END
+					) STATUS
+				FROM
+					PCN_PERFORM_INVITATION A
+				<include refid="sqlList-1" />
+				ORDER BY
+					SEQ DESC
+			) Z
+	<![CDATA[
+			WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) Y
+		WHERE Y.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+			,NVL(A.CONTENT_TYPE, '1') CONTENT_TYPE
+			,A.TITLE
+			,A.UCI
+			,A.PREFORM_TITLE PERFORM_TITLE
+			,A.INVITATION
+			,TO_CHAR(A.START_DT, 'YYYY-MM-DD')	START_DT
+			,TO_CHAR(A.END_DT, 'YYYY-MM-DD')	END_DT
+			,TO_CHAR(A.WIN_DT, 'YYYY-MM-DD')	WIN_DT
+			,A.WIN_URL
+			,A.RIGHTS
+			,A.REFERENCES
+			,A.CONTENT
+			,A.REQUEST
+			,DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y') APPROVAL
+			,A.USER_ID
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')	REG_DATE
+			,(SELECT COUNT(1) FROM PCN_PERFORM_INVITATION_PERSON T WHERE T.EVENT_SEQ = A.SEQ) PERSON_CNT
+			,A.INVT_DETAIL
+			,A.INVT_CMT
+		FROM
+			PCN_PERFORM_INVITATION A
+		WHERE
+			SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 AS seq FROM PCN_PERFORM_INVITATION
+		</selectKey>
+
+		INSERT INTO PCN_PERFORM_INVITATION (
+			SEQ
+			,TITLE
+			,CONTENT_TYPE
+			,UCI
+			,PREFORM_TITLE
+			,START_DT
+			,END_DT
+			,WIN_DT
+			,WIN_URL
+			,INVITATION
+			,RIGHTS
+			,REFERENCES
+			,CONTENT
+			,REQUEST
+			,APPROVAL
+			,USER_ID
+			,REG_DATE
+			,VIEW_CNT
+			,INVT_DETAIL
+			,INVT_CMT
+		) VALUES(
+			#seq#
+			,#title#
+			,#content_type#
+			,#uci#
+			,#perform_title#
+			,TO_DATE(#start_dt#, 'YYYY-MM-DD')
+			,TO_DATE(#end_dt#, 'YYYY-MM-DD')
+			,TO_DATE(#win_dt#, 'YYYY-MM-DD')
+			,#win_url#
+			,#invitation#
+			,#rights#
+			,#references#
+			,#content#
+			,#request#
+			,#approval#
+			,#user_id#
+			,SYSDATE
+			,0
+			,#invt_detail#
+			,#invt_cmt#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_INVITATION
+		SET
+			TITLE			=	#title#
+			,CONTENT_TYPE	=	#content_type#
+			,UCI			=	#uci#
+			,PREFORM_TITLE	=	#perform_title#
+			,START_DT		=	TO_DATE(#start_dt#, 'YYYY-MM-DD')
+			,END_DT			=	TO_DATE(#end_dt#, 'YYYY-MM-DD')
+			,WIN_DT			=	TO_DATE(#win_dt#, 'YYYY-MM-DD')
+			,WIN_URL		=	#win_url#
+			,INVITATION		=	#invitation#
+			,RIGHTS			=	#rights#
+			,REFERENCES		=	#references#
+			,CONTENT		=	#content#
+			,REQUEST		=	#request#
+			,APPROVAL		=	#approval#
+			,USER_ID		=	#user_id#
+			,INVT_DETAIL	=	#invt_detail#
+			,INVT_CMT		=	#invt_cmt#
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<!-- 당첨자 승인 -->
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_INVITATION_PERSON
+		SET
+			WIN_DATE = SYSDATE,
+		<isEqual property="win_yn" compareValue="Y">
+			WIN_YN='Y'
+		</isEqual>
+		<isEqual property="win_yn" compareValue="N">
+			WIN_YN='N'
+		</isEqual>
+		WHERE
+			SEQ IN ($str_seq$)
+	</update>
+	
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_PERFORM_INVITATION
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_PERFORM_INVITATION
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

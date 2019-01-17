@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalSampleMenu">
+
+	<select id="listByTree" resultClass="commonMap">
+		SELECT
+		    LEVEL												AS MENU_LEVEL
+			,B.MENU_ID
+		    ,B.MENU_PID
+		    ,B.MENU_SORT
+		    ,B.MENU_NAME
+		    ,B.MENU_DESC
+		    ,B.USER_ID											AS MENU_USER_ID
+		    ,DECODE(B.APPROVAL, 'N', 'N', 'Y')					AS MENU_APPROVAL
+		    ,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD')					AS MENU_REG_DATE
+			,TO_CHAR(B.UPT_DATE, 'YYYY-MM-DD')					AS MENU_UPT_DATE
+		    ,SUBSTR(SYS_CONNECT_BY_PATH(B.MENU_ID, '>'), 2)		AS MENU_IDS
+		    ,SUBSTR(SYS_CONNECT_BY_PATH(B.MENU_NAME, '>'), 2)	AS MENU_NAMES
+		    ,DECODE(B.MENU_TARGET, '2', '2', '1')				AS MENU_TARGET
+		FROM
+		    PORTAL_MENU B
+		START WITH
+		    B.MENU_PID = '0'
+		CONNECT BY PRIOR
+		    B.MENU_ID = B.MENU_PID
+		ORDER SIBLINGS BY
+		    B.MENU_SORT
+	</select>
+
+	<insert id="merge" parameterClass="paramMap">
+		MERGE INTO
+			PORTAL_MENU A
+		USING
+			DUAL
+		ON (
+			MENU_ID = #menu_id#
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+				A.MENU_PID		=	#menu_pid#
+				,A.MENU_SORT	=	#menu_sort#
+				,A.MENU_NAME	=	#menu_name#
+				,A.MENU_DESC	=	#menu_desc#
+				,A.USER_ID		=	#user_id#
+				,A.UPT_DATE		=	SYSDATE
+				,A.APPROVAL		=	DECODE(#menu_approval#, 'N', 'N', 'Y')
+				,A.MENU_TARGET	=	#menu_target#
+		WHEN NOT MATCHED THEN
+			INSERT (
+				A.MENU_ID
+				,A.MENU_PID
+				,A.MENU_SORT
+				,A.MENU_NAME
+				,A.MENU_DESC
+				,A.USER_ID
+				,A.REG_DATE
+				,A.UPT_DATE
+				,A.APPROVAL
+				,A.MENU_TARGET
+			) VALUES (
+				'M_' || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISSFF3')
+				,#menu_pid#
+				,#menu_sort#
+				,#menu_name#
+				,#menu_desc#
+				,#user_id#
+				,SYSDATE
+				,SYSDATE
+				,DECODE(#menu_approval#, 'N', 'N', 'Y')
+				,DECODE(#menu_target#, '2', '2', '1')
+				,
+			)
+	</insert>
+
+	<update id="updateMenuSort" parameterClass="paramMap">
+		UPDATE PORTAL_MENU
+		SET
+			MENU_PID	=	#menu_pid#
+			,MENU_SORT	=	#menu_sort#
+			,USER_ID	=	#user_id#
+		WHERE
+			MENU_ID = #menu_id#
+	</update>
+
+	<!-- 메뉴가 삭제되는 경우 -->
+	<delete id="deleteByMenuIdTree" parameterClass="paramMap">
+		DELETE FROM PORTAL_MENU MM
+		WHERE
+			MM.MENU_ID IN (
+				SELECT
+				    B.MENU_ID
+				FROM
+				    PORTAL_MENU B
+				START WITH
+				    B.MENU_ID = #menu_id#
+				CONNECT BY PRIOR
+				    B.MENU_ID = B.MENU_PID
+		    )
+	</delete>
+
+</sqlMap>

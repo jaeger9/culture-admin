@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalSampleUrlRepository">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.URL_STRING) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="create_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#create_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="create_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#create_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_start" prepend="AND"><![CDATA[
+			NVL(A.UPT_DATE, A.REG_DATE) >= TO_DATE(#modify_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_end" prepend="AND"><![CDATA[
+			NVL(A.UPT_DATE, A.REG_DATE) <= TO_DATE(#modify_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PORTAL_URL_REPOSITORY A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.URL_ID
+			,A.URL_STRING
+			,A.URL_DESC
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			,A.USER_ID
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,TO_CHAR(NVL(A.UPT_DATE, A.REG_DATE), 'YYYY-MM-DD') UPT_DATE
+		FROM
+			PORTAL_URL_REPOSITORY A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.URL_STRING ASC
+			,A.URL_DESC ASC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.URL_ID
+			,A.URL_STRING
+			,A.URL_DESC
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			,A.USER_ID
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,TO_CHAR(NVL(A.UPT_DATE, A.REG_DATE), 'YYYY-MM-DD') UPT_DATE
+		FROM
+			PORTAL_URL_REPOSITORY A
+		WHERE
+			A.URL_ID = #url_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="url_id" resultClass="string" type="pre">
+			SELECT 'U_' || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISSFF3') FROM DUAL
+		</selectKey>
+
+		INSERT INTO PORTAL_URL_REPOSITORY (
+		    URL_ID
+		    ,URL_STRING
+		    ,URL_DESC
+		    ,APPROVAL
+		    ,USER_ID
+		    ,REG_DATE
+		    ,UPT_DATE
+		) VALUES (
+			#url_id#
+		    ,#url_string#
+		    ,#url_desc#
+		    ,DECODE(#approval#, 'N', 'N', 'Y')
+		    ,#user_id#
+		    ,SYSDATE
+		    ,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PORTAL_URL_REPOSITORY
+		SET
+			URL_DESC	=	#url_desc#
+			,APPROVAL	=	DECODE(#approval#, 'N', 'N', 'Y')
+			,UPT_DATE	=	SYSDATE
+		WHERE
+			URL_ID = #url_id#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PORTAL_URL_REPOSITORY
+		SET
+			APPROVAL = #approval#
+		WHERE
+			URL_ID IN
+		<iterate property="array.url_ids" open="(" conjunction="," close=")">
+			#array.url_ids[]#
+		</iterate>
+	</update>
+
+	<delete id="deleteByUrlId" parameterClass="paramMap">
+		DELETE FROM PORTAL_URL_REPOSITORY
+		WHERE
+			URL_ID IN
+		<iterate property="array.url_ids" open="(" conjunction="," close=")">
+			#array.url_ids[]#
+		</iterate>
+	</delete>
+
+	<!-- admin user 등록 시 id 중복 체크 -->
+	<select id="countByUrlString" parameterClass="string" resultClass="int">
+		SELECT COUNT(1) FROM PORTAL_URL_REPOSITORY WHERE URL_STRING = #value#
+	</select>
+
+</sqlMap>

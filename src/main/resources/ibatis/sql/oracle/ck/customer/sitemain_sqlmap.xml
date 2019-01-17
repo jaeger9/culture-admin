@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="sitemain">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="category1" prepend="AND">
+			A.CATEGORY1 = #category1#
+		</isNotEmpty>
+		<isNotEmpty property="category2" prepend="AND">
+			A.CATEGORY2 = #category2#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.NAME) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_CUSTOMER_SITE A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.NAME
+			,NVL(A.CNT, 0) CNT
+			,TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,(SELECT T.NAME FROM PCN_COMMON_CODE T WHERE T.CODE = A.CATEGORY1) CATEGORY1
+			,(SELECT T.NAME FROM PCN_COMMON_CODE T WHERE T.CODE = A.CATEGORY2) CATEGORY2
+		FROM
+			PCN_CUSTOMER_SITE A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.NAME
+			,NVL(A.CNT, 0) CNT
+			,TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,A.CATEGORY1
+			,A.CATEGORY2
+		FROM
+			PCN_CUSTOMER_SITE A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PCN_CUSTOMER_SITE
+		</selectKey>
+		INSERT INTO PCN_CUSTOMER_SITE(
+			SEQ
+			,CATEGORY1
+			,CATEGORY2
+			,NAME
+			,CNT
+			,REG_DATE
+		) VALUES (
+			#seq#
+			,#category1#
+			,#category2#
+			,#name#
+			,0
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_CUSTOMER_SITE
+		SET
+			CATEGORY1 = #category1#
+			,CATEGORY2 = #category2#
+			,NAME = #name#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_CUSTOMER_SITE
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

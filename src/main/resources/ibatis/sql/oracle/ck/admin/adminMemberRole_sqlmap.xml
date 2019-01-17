@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="adminMemberRole">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<select id="listByAdminRole" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			AA.ROLE_ID
+			,AA.NAME
+			,CASE WHEN B.CNT > 0 THEN 'Y' ELSE 'N' END APPROVAL
+		FROM
+			ADMIN_ROLE AA,
+			(
+				SELECT
+					A.ROLE_ID
+					,COUNT(1) CNT
+				FROM
+					ADMIN_USER_ROLE A
+				WHERE
+					A.USER_ID = #user_id#
+				GROUP BY
+					A.ROLE_ID
+			) B
+		WHERE
+			AA.ROLE_ID = B.ROLE_ID(+)
+		ORDER BY
+			AA.NAME
+	</select>
+
+	<insert id="insertList" parameterClass="paramMap">
+		INSERT ALL
+		<iterate conjunction=" " property="roleList">
+			INTO ADMIN_USER_ROLE (
+				USER_ID, ROLE_ID, CREATE_DATE
+			) VALUES (
+				#roleList[].user_id#, #roleList[].role_id#, SYSDATE
+			)
+		</iterate>
+		SELECT * FROM DUAL
+	</insert>
+
+	<delete id="deleteByUserId" parameterClass="paramMap">
+		DELETE FROM ADMIN_USER_ROLE
+		WHERE
+			USER_ID IN
+		<iterate property="array.user_ids" open="(" conjunction="," close=")">
+			#array.user_ids[]#
+		</iterate>
+	</delete>
+
+	<delete id="deleteByRoleId" parameterClass="paramMap">
+		DELETE FROM ADMIN_USER_ROLE
+		WHERE
+			ROLE_ID IN
+		<iterate property="array.role_ids" open="(" conjunction="," close=")">
+			#array.role_ids[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

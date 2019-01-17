@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="culture.olympic">
+	<select id="vodList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*
+		FROM (
+			SELECT /* culture.olympic.vodList */
+				ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+
+					C.IDX, C.TITLE, C.USER_NAME, O.REPRESENTATIVE_YN
+				FROM COMS_MOVIE_REG C, OLYMPIC_VOD O, 
+					(SELECT * 
+                	FROM TVM_THUMBNAIL 
+               		WHERE DELEGATE = 1
+              		) T
+				WHERE 1=1
+				<isEqual property="gubun" compareValue="all">
+				AND C.IDX= O.VOD_IDX(+)
+				</isEqual>
+				<isEqual property="gubun" compareValue="olympic">
+				AND C.IDX= O.VOD_IDX
+				</isEqual>
+				AND C.CID = T.CID(+) 
+				AND C.STATE = '3'
+				AND C.DUP = 'Y'
+         <isNotEmpty property="keyword">
+         	<isEqual property="searchGubun" compareValue="">
+         		AND ( C.USER_NAME LIKE '%' || #keyword# || '%' OR C.TITLE LIKE '%' || #keyword# || '%' )
+         	</isEqual>
+         	<isEqual property="searchGubun" compareValue="title">
+         		AND C.TITLE LIKE '%' || #keyword# || '%'
+         	</isEqual>
+         	<isEqual property="searchGubun" compareValue="name">
+         		AND C.USER_NAME LIKE '%' || #keyword# || '%'
+         	</isEqual>
+         </isNotEmpty>
+				ORDER BY C.WRITE_DAT DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+	</select>
+	
+	<select id="vodListCount" parameterClass="paramMap" resultClass="int">
+		SELECT
+		   COUNT(*) CNT
+		FROM COMS_MOVIE_REG C, OLYMPIC_VOD O,
+			(SELECT * 
+             FROM TVM_THUMBNAIL 
+             WHERE DELEGATE = 1
+            ) T
+		WHERE 1=1
+		<isEqual property="gubun" compareValue="all">
+		AND C.IDX= O.VOD_IDX(+)
+		</isEqual>
+		<isEqual property="gubun" compareValue="olympic">
+		AND C.IDX= O.VOD_IDX
+		</isEqual>
+		AND C.STATE = '3'
+		AND C.CID = T.CID(+) 
+		AND C.STATE = '3'
+		AND C.DUP = 'Y'
+	<isNotEmpty property="keyword">
+       	<isEqual property="searchGubun" compareValue="">
+       		AND ( C.USER_NAME LIKE '%' || #keyword# || '%' OR C.TITLE LIKE '%' || #keyword# || '%' )
+       	</isEqual>
+       	<isEqual property="searchGubun" compareValue="title">
+       		AND C.TITLE LIKE '%' || #keyword# || '%'
+       	</isEqual>
+       	<isEqual property="searchGubun" compareValue="name">
+       		AND C.USER_NAME LIKE '%' || #keyword# || '%'
+       	</isEqual>
+       </isNotEmpty>
+	</select>
+	
+	<select id="representVod" resultClass="commonMap">
+		SELECT
+			C.IDX, C.TITLE, C.USER_NAME, O.REPRESENTATIVE_YN
+		FROM COMS_MOVIE_REG C, OLYMPIC_VOD O
+		WHERE C.IDX= O.VOD_IDX(+)
+		AND C.STATE = '3'
+		AND C.DUP = 'Y'
+		AND O.REPRESENTATIVE_YN = 'Y'
+	</select>
+	
+	<select id="olympicVodCheck" parameterClass="paramMap" resultClass="commonMap">
+		 SELECT
+			C.IDX, C.TITLE, C.USER_NAME, O.REPRESENTATIVE_YN
+		FROM COMS_MOVIE_REG C, OLYMPIC_VOD O
+		WHERE C.IDX= O.VOD_IDX(+)
+		AND C.STATE = '3'
+		AND C.DUP = 'Y'
+		AND C.IDX = #seq#
+	</select>
+	
+	<update id="representVodUpdate" parameterClass="paramMap">
+		UPDATE OLYMPIC_VOD
+		SET 
+			REPRESENTATIVE_YN = #represent_yn#
+		WHERE 1=1
+		AND VOD_IDX = #seq#
+	</update>
+	
+	<insert id="insertOlympicVod" parameterClass="paramMap">
+		INSERT INTO OLYMPIC_VOD(
+			SEQ
+			,VOD_IDX
+			,REPRESENTATIVE_YN
+			,REG_DATE
+		)VALUES(
+			(SELECT NVL(MAX(SEQ),0) + 1 FROM OLYMPIC_VOD)
+			,#seq#
+			,'N'
+			,SYSDATE
+		)
+	</insert>
+	
+	<delete id="deleteOlympicVod" parameterClass="paramMap">
+		DELETE FROM OLYMPIC_VOD WHERE VOD_IDX = #seq#
+	</delete>
+	
+	<select id="olympicVodCount" parameterClass="paramMap" resultClass="int">
+		SELECT
+		   COUNT(*) CNT
+		FROM COMS_MOVIE_REG C, OLYMPIC_VOD O,
+			(SELECT * 
+             FROM TVM_THUMBNAIL 
+             WHERE DELEGATE = 1
+            ) T
+		WHERE 1=1
+		AND C.IDX= O.VOD_IDX
+		AND C.STATE = '3'
+		AND C.CID = T.CID(+) 
+		AND C.STATE = '3'
+		AND C.DUP = 'Y'
+	</select>
+	
+</sqlMap>

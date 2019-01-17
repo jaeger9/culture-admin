@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="commoncode">
+	<select id="parentCodeList" resultClass="commonMap">
+		SELECT 
+      		R.CODE , R.NAME
+    	FROM
+    	(
+      		SELECT
+        		0 AS CODE  , '부모코드' AS NAME
+      		FROM
+        		DUAL
+      		UNION ALL
+	      	SELECT
+	        	CODE 
+	          , NAME
+	      	FROM
+	        	PCN_COMMON_CODE
+	      	WHERE
+	        	PCODE = 0
+    	) R
+		ORDER BY R.CODE
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* commoncode.list */
+		  	R.*
+		FROM
+		(
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER( ORDER BY PCODE ASC , SORT ASC)-1)/$list_unit$+1) AS PAGE
+				, CODE 
+				, PCODE 
+				, NAME 
+				, TYPE 
+				, SORT
+			FROM 
+		  		PCN_COMMON_CODE
+		  	<dynamic prepend="WHERE">
+		  		<isNotEmpty property="searchKey">
+		  			<isNotEmpty property="searchKeyword">
+			  			<isEqual property="searchKey" compareValue="title">
+			  				name LIKE '%' || #searchKeyword# || '%'
+			  			</isEqual>
+						<isEqual property="searchKey" compareValue="type">
+			  				type LIKE '%' || #searchKeyword# || '%'
+			  			</isEqual>
+			  		</isNotEmpty>
+	  			</isNotEmpty>
+		  	</dynamic>
+		) R
+		WHERE
+		  PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT  /* commoncode.listCnt */
+			COUNT(1)
+		FROM 
+	  		PCN_COMMON_CODE
+	  	<dynamic prepend="WHERE">
+	  		<isNotEmpty property="searchKey">
+	  			<isNotEmpty property="searchKeyword">		  			
+		  			<isEqual property="searchKey" compareValue="title">
+		  				name LIKE '%' || #searchKeyword# || '%'
+		  			</isEqual>
+					<isEqual property="searchKey" compareValue="type">
+		  				type LIKE '%' || #searchKeyword# || '%'
+		  			</isEqual>
+		  		</isNotEmpty>
+	  		</isNotEmpty>
+	  	</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			C.CODE  
+		  	, C.PCODE 
+		  	, C.NAME  
+		  	, C.SORT  
+		  	, C.TYPE  
+		  	, C.VALUE
+		FROM
+		  PCN_COMMON_CODE C
+		  
+		WHERE 
+		  C.CODE = #code#
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_COMMON_CODE(
+			CODE
+			, PCODE
+			, NAME
+			, TYPE
+			, VALUE
+			, SORT
+		) VALUES(
+			(SELECT NVL(MAX(CODE),0)+1 FROM PCN_COMMON_CODE)
+			, #pcode#
+			, #name#
+			, #type#
+			, #value#
+			<isEmpty property="sort" prepend=",">
+				(SELECT DECODE(#pcode#, 0, 1, NVL(MAX(SORT),0)+1) FROM PCN_COMMON_CODE WHERE PCODE = #pcode#)
+			</isEmpty>
+			<isNotEmpty property="sort" prepend=",">
+				#sort#
+			</isNotEmpty>
+		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_COMMON_CODE
+		SET 
+			PCODE = #pcode#
+			, NAME = #name#
+			, TYPE = #type#
+			, SORT = #sort#
+			, VALUE = #value#
+		WHERE 
+			CODE = #code#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE
+			PCN_COMMON_CODE
+		WHERE
+		<iterate property="array.code" prepend="CODE IN " open="(" close=")" conjunction=",">
+			#array.code[]#
+		</iterate>
+	</delete>
+</sqlMap>

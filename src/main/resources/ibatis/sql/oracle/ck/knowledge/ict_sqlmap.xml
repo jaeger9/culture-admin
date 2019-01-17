@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ict">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd">
+		) WHERE PAGE = #page_no#
+	</sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			DECODE(A.APPROVAL, 'N', 'N', 'Y') = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="top_yn" prepend="AND">
+			DECODE(A.TOP_YN, 'Y', 'Y', 'N') = #top_yn#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CREATOR)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.DESCRIPTION)	LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="creator" prepend="AND">
+				LOWER(A.CREATOR)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.DESCRIPTION)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="insert_date_start" prepend="AND"><![CDATA[
+			A.INSERT_DATE >= TO_DATE(#insert_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="insert_date_end" prepend="AND"><![CDATA[
+			A.INSERT_DATE <= TO_DATE(#insert_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="array.publishers">
+			<iterate property="array.publishers" prepend="AND PUBLISHER IN " open="(" close=")" conjunction=",">
+				#array.publishers[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="array.creators">
+			<iterate property="array.creators" prepend="AND CREATOR IN " open="(" close=")" conjunction=",">
+				#array.creators[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="array.sub_titles">
+			<iterate property="array.sub_titles" prepend="AND SUB_TITLE IN " open="(" close=")" conjunction=",">
+				#array.sub_titles[]#
+			</iterate>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			MV_RDF_METADATA_ICT A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			REPLACE(A.UCI, '+', '%2b') UCI
+			,A.TITLE
+			,A.CREATOR
+			,A.PUBLISHER
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+			,A.REG_DATE
+			,A.INSERT_DATE
+			,A.REFERENCE_IDENTIFIER
+			,A.DESCRIPTION
+			,A.URL
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+			,SUB_TITLE
+			,FLOOR((ROW_NUMBER() OVER(ORDER BY A.REG_DATE DESC NULLS LAST, A.UCI DESC)-1)/$list_unit$+1) PAGE
+		FROM
+			MV_RDF_METADATA_ICT A
+		<include refid="sqlList-1" />
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			REPLACE(A.UCI, '+', '%2b') UCI
+			,A.TITLE
+			,A.ALTERNATIVE_TITLE
+			,A.SUB_TITLE
+			,A.CREATOR
+			,A.REG_DATE
+			,A.CREATED_DATE
+			,A.MODIFIED_DATE
+			,A.ISSUED_DATE
+			,A.DIGITALIZED_DATE
+			,A.PUBLISHER
+			,A.POSSESION_PLACE
+			,A.COLLECTION_DB
+			,A.COLLECTION_NAME
+			,A.COLLECTION_NO
+			,A.SUBJECT
+			,A.SUBJECT_CATEGORY
+			,A.SUBJECT_KEYWORD
+			,A.TYPE
+			,A.FORMAT
+			,A.EXTENT
+			,A.MEDIUM
+			,A.ABSTRACT
+			,A.TABLE_OF_CONTENTS
+			,A.COVERAGE
+			,A.SPATIAL
+			,A.TEMPORAL
+			,A.PERSON
+			,A.LANGUAGE
+			,A.RELATION
+			,A.REFERENCE
+			,A.REFERENCE_IDENTIFIER
+			,A.HASPART
+			,A.IDENTIFIER
+			,A.LOCAL_ID
+			,A.RIGHTS
+			,A.COPYRIGHT_OTHERS
+			,A.URL
+			,A.CONTRIBUTOR
+			,NVL(A.SOURCE, 'RDF') SOURCE
+			,A.CONTEXT_NAME
+			,A.INSERT_DATE
+			,A.GRADE
+			,A.CHARGE
+			,A.VENUE
+			,A.PERIOD
+			,A.TIME
+			,A.JOB_GROUP_ID
+			,A.JOB_ID
+			,A.JOB_NAME
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N') TOP_YN
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			,A.DESCRIPTION
+			,A.MAIN_YN
+			,A.MAIN_DATE
+		FROM
+			MV_RDF_METADATA_ICT A
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+		AND ROWNUM = 1 
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="uci" type="pre" resultClass="string">
+			SELECT 'G706+' || #publisher# || '-' || #cate_type# || '.' || FN_CURRENT_TIME_MILLIS() AS uci FROM DUAL
+		</selectKey>
+
+		INSERT INTO MV_RDF_METADATA_ICT (
+			UCI
+			,CONTEXT_NAME
+			,TITLE
+			,TOP_YN
+			,CREATOR
+			,PUBLISHER
+			,FORMAT
+			,URL
+			,DESCRIPTION
+			,REG_DATE
+			,INSERT_DATE
+			,REFERENCE_IDENTIFIER
+			,APPROVAL
+			,SOURCE
+			,VIEW_CNT
+		) VALUES (
+			#uci#
+			,'&lt;http://www.culture.go.kr&gt;'
+			,#title#
+			,DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,#creator#
+			,#publisher#
+			,#format#
+			,#url#
+			,#description#
+			,SYSDATE
+			,SYSDATE
+			,#reference_identifier#
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,'CUL'
+			,0
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_ICT
+		SET
+			TITLE			=	#title#
+			,TOP_YN			=	DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,CREATOR		=	#creator#
+			,PUBLISHER		=	#publisher#
+			,FORMAT			=	#format#
+			,URL			=	#url#
+			,DESCRIPTION	=	#description#
+			,APPROVAL		=	DECODE(#approval#, 'N', 'N', 'Y')
+			,REFERENCE_IDENTIFIER	=	#reference_identifier#
+		WHERE
+			REPLACE(UCI, '+', '%2b') = REPLACE(#uci#, '+', '%2b')
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE MV_RDF_METADATA_ICT
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM MV_RDF_METADATA_ICT
+		WHERE
+			REPLACE(UCI, '+', '%2b') IN 
+		<iterate property="array.ucis" open="(" conjunction="," close=")">
+			REPLACE(#array.ucis[]#, '+', '%2b')
+		</iterate>
+	</delete>
+
+	<select id="creatorList" parameterClass="paramMap" resultClass="string">
+		SELECT	DISTINCT CREATOR
+		FROM	MV_RDF_METADATA_ICT
+        WHERE	CREATOR IS NOT NULL
+		ORDER BY CREATOR
+	</select>
+
+</sqlMap>

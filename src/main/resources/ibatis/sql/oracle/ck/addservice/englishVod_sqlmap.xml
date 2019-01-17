@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="englishVod">
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="approval" prepend="AND">
+			NVL(A.APPROVAL,'Y') = #approval#
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			CULTURE_ENGLISH_VOD A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			X.*
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*
+			FROM (
+				SELECT
+					A.SEQ
+					,A.TITLE
+					,A.URL
+					,A.USER_ID
+					,A.APPROVAL
+					,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+				FROM
+					CULTURE_ENGLISH_VOD A
+				<include refid="sqlList-1" />
+				ORDER BY
+					A.REG_DATE DESC
+			) Z
+	<![CDATA[
+			WHERE
+				ROWNUM <= (#page_no# * #list_unit#)
+		) X
+		WHERE
+			X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.TITLE
+			,A.URL
+			,A.USER_ID
+			,A.APPROVAL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+		FROM
+			CULTURE_ENGLISH_VOD A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM CULTURE_ENGLISH_VOD
+		</selectKey>
+
+		INSERT INTO CULTURE_ENGLISH_VOD (
+			SEQ
+			,TITLE
+			,USER_ID
+			,REG_DATE
+			,URL
+			,APPROVAL
+		) VALUES (
+			#seq#
+			,#title#
+			,#user_id#
+			,sysdate
+			,#url#
+			,#approval#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE CULTURE_ENGLISH_VOD
+		SET
+			TITLE = #title#
+			,URL = #url#
+			,APPROVAL = #approval#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE CULTURE_ENGLISH_VOD
+		SET
+			APPROVAL	=	#approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM CULTURE_ENGLISH_VOD
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+</sqlMap>

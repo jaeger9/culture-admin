@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="culture.recommand">
+	<select id="vodList" parameterClass="paramMap" resultClass="commonMap">
+		 
+		SELECT
+			A.*
+		FROM (
+			SELECT 
+				ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+					IDX, TITLE, SERVICE_ID, AREA_ID, MOVIE_PIC_PATH2_SYSNAME, CONTENTS SUMMARY, CID, CULTURE100, AREA_GROUP ,STATE ,USER_NAME,USER_ID,WRITE_DAT
+				FROM COMS_MOVIE_REG 
+				WHERE STATE = '3'
+				
+				<isNotEmpty property="area_group" prepend="AND">
+					<!-- <isEqual property="area_group" compareValue="total">
+						(AREA_GROUP ='0' or AREA_GROUP ='1')
+					</isEqual> -->
+					<isEqual property="area_group" compareValue="0">
+						AREA_GROUP ='0'
+					</isEqual>
+					<isEqual property="area_group" compareValue="1">
+						AREA_GROUP ='1'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="culture_review" prepend="AND">
+					CULTURE_REVIEW = #culture_review#
+				</isNotEmpty>
+				<isNotEmpty property="job30" prepend="AND">
+					JOB30 = #job30#
+				</isNotEmpty>
+				<isNotEmpty property="culture100" prepend="AND">
+					CULTURE100 = #culture100#
+				</isNotEmpty>
+				<isNotEmpty property="human_lecture" prepend="AND">
+					HUMAN_LECTURE = #human_lecture#
+				</isNotEmpty>
+				<isNotEmpty property="forecast" prepend="AND">
+					FORECAST = #forecast#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #keyword# || '%' OR USER_NAME LIKE '%' || #keyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="name">
+							USER_NAME LIKE '%' || #keyword# || '%'
+						</isEqual>
+				</isNotEmpty>
+				ORDER BY IDX DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+		
+		
+	</select>
+	<select id="vodListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			COMS_MOVIE_REG 
+		WHERE 
+			STATE = '3'
+		<isNotEmpty property="area_group" prepend="AND">
+			<isEqual property="area_group" compareValue="total">
+				(AREA_GROUP ='0' or AREA_GROUP ='1')
+			</isEqual>
+			<isEqual property="area_group" compareValue="0">
+				AREA_GROUP ='0'
+			</isEqual>
+			<isEqual property="area_group" compareValue="1">
+				AREA_GROUP ='1'
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="culture_review" prepend="AND">
+			CULTURE_REVIEW = #culture_review#
+		</isNotEmpty>
+		<isNotEmpty property="job30" prepend="AND">
+			JOB30 = #job30#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="human_lecture" prepend="AND">
+			HUMAN_LECTURE = #human_lecture#
+		</isNotEmpty>
+		<isNotEmpty property="forecast" prepend="AND">
+			FORECAST = #forecast#
+		</isNotEmpty>
+		<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR USER_NAME LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="name">
+					USER_NAME LIKE '%' || #keyword# || '%'
+				</isEqual>
+		</isNotEmpty>
+	</select>
+	
+	
+	<insert id="recomInsert" parameterClass="java.util.Map">
+		INSERT INTO COMS_RECOM_MOVIE(
+			IDX,THEME_TITLE,RECOM_START_DAT,RECOM_END_DAT,RECOM_LIVE_YN,RECOM_LIVE_PLAY_DAT,RECOM_LIVE_START_TIME,RECOM_LIVE_END_TIME,RECOM_URL,APPROVAL_YN,MENU_TYPE,REC_MOV_IDX,USER_NAME,WRITE_DAT,CONTENTS
+		)VALUES(
+			#idx#,#theme_title#,#recom_start_dat#,#recom_end_dat#,#recom_live_yn#,#recom_live_play_dat#,#recom_live_start_time#,#recom_live_end_time#,#recom_url#,#approval_yn#,#menu_type#,#rec_mov_idx#,#user_name#,SYSDATE,#contents#
+		)
+	</insert>     
+	
+	
+	<update id="recomUpdate" parameterClass="java.util.Map">
+		UPDATE 
+		COMS_RECOM_MOVIE SET
+			THEME_TITLE=#theme_title#,
+			RECOM_START_DAT=#recom_start_dat#,
+			RECOM_END_DAT=#recom_end_dat#,
+			RECOM_LIVE_YN=#recom_live_yn#,
+			RECOM_LIVE_PLAY_DAT=#recom_live_play_dat#,
+			RECOM_LIVE_START_TIME=#recom_live_start_time#,
+			RECOM_LIVE_END_TIME=#recom_live_end_time#,
+			RECOM_URL=#recom_url#,
+			APPROVAL_YN=#approval_yn#,
+			MENU_TYPE=#menu_type#,
+			REC_MOV_IDX=#rec_mov_idx#,
+			USER_NAME=#user_name#,
+			CONTENTS=#contents#,
+			WRITE_DAT=SYSDATE
+		WHERE IDX = #idx#
+	</update>
+	
+	<select id="incrementIdx" resultClass="int" parameterClass="java.util.Map">
+			SELECT MAX(IDX)+1 FROM COMS_RECOM_MOVIE 
+	</select>
+	
+	
+	<!-- 추천 항목 조회 -->
+	<select id="recomVodList" parameterClass="paramMap" resultClass="commonMap">
+		 
+		SELECT
+			A.*
+		FROM (
+			SELECT 
+				ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+					IDX
+					,(SELECT TITLE FROM COMS_MOVIE_REG WHERE TO_CHAR(IDX) = A.REC_MOV_IDX) AS TITLE 
+					,THEME_TITLE,RECOM_START_DAT,RECOM_END_DAT,RECOM_LIVE_YN,RECOM_LIVE_PLAY_DAT,RECOM_LIVE_START_TIME,RECOM_LIVE_END_TIME,RECOM_URL,APPROVAL_YN,MENU_TYPE,REC_MOV_IDX,USER_NAME,WRITE_DAT
+				FROM COMS_RECOM_MOVIE A  
+				WHERE
+				MENU_TYPE = #menu_type#
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(THEME_TITLE LIKE '%' || #keyword# || '%' OR USER_NAME LIKE '%' || #keyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						THEME_TITLE LIKE '%' || #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="name">
+						USER_NAME LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isEmpty property="select_type" prepend="AND">
+					<isNotEmpty property="approval_yn">
+						APPROVAL_YN = #approval_yn#
+					</isNotEmpty>
+				</isEmpty>
+				ORDER BY IDX DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+		
+		
+	</select>
+	<select id="recomVodListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			COMS_RECOM_MOVIE 
+		WHERE 
+			MENU_TYPE = #menu_type#
+				
+		<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(THEME_TITLE LIKE '%' || #keyword# || '%' OR USER_NAME LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					THEME_TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="name">
+					USER_NAME LIKE '%' || #keyword# || '%'
+				</isEqual>
+		</isNotEmpty>
+		<isEmpty property="select_type" prepend="AND">
+					<isNotEmpty property="approval_yn">
+						APPROVAL_YN = #approval_yn#
+					</isNotEmpty>
+		</isEmpty>
+	</select>
+	
+	
+	<select id="recomVodView" parameterClass="paramMap" resultClass="commonMap">
+				SELECT
+					IDX,THEME_TITLE,RECOM_START_DAT,RECOM_END_DAT,RECOM_LIVE_YN,RECOM_LIVE_PLAY_DAT,RECOM_LIVE_START_TIME,RECOM_LIVE_END_TIME,RECOM_URL,APPROVAL_YN,MENU_TYPE,REC_MOV_IDX,USER_NAME,WRITE_DAT,CONTENTS
+				FROM COMS_RECOM_MOVIE  
+				WHERE
+				MENU_TYPE = #menu_type#
+				and IDX = #idx#
+	</select>
+	
+	<select id="recomDetailList" parameterClass="paramMap" resultClass="commonMap">
+				SELECT
+					IDX, TITLE, SERVICE_ID, AREA_ID, MOVIE_PIC_PATH2_SYSNAME, CONTENTS SUMMARY, CID, CULTURE100, AREA_GROUP ,STATE ,USER_NAME,USER_ID,WRITE_DAT
+				FROM COMS_MOVIE_REG
+				where  
+				IDX IN ($rec_mov_idx$)
+				
+	</select>
+	
+	
+	<!-- 문화 이슈 컨텐츠 삭제 -->
+	<delete id="recomDelete" parameterClass="paramMap">
+		DELETE 
+		FROM
+		COMS_RECOM_MOVIE
+		where  
+		IDX IN ($rec_mov_idx$)
+	</delete>
+	
+	<update id="approvalUpdate" parameterClass="java.util.Map">
+		UPDATE 
+		COMS_RECOM_MOVIE SET
+			APPROVAL_YN=#approval_yn#
+		WHERE 
+		IDX IN ($rec_mov_idx$)
+	</update>
+	
+</sqlMap>

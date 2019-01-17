@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="contestAgent">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			DECODE(A.APPROVAL, 'N', 'N', 'Y') = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.AGENT)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.SERVICE)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.INFO)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="agent" prepend="AND">
+				LOWER(A.AGENT)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="service" prepend="AND">
+				LOWER(A.SERVICE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="info" prepend="AND">
+				LOWER(A.INFO)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="cate_type" prepend="AND">
+			A.CATE_TYPE = #cate_type#
+		</isNotEmpty>
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_CONTEST_AGENT A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.AGENT
+			,A.SERVICE
+			,A.INFO
+			,A.URL
+			,A.SITENAME
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y')	APPROVAL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')	REG_DATE
+		FROM
+			PCN_CONTEST_AGENT A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.AGENT
+			,A.SERVICE
+			,A.INFO
+			,A.URL
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y')	APPROVAL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')	REG_DATE
+			,TO_CHAR(A.UPD_DATE, 'YYYY-MM-DD')	UPD_DATE
+			,A.SITENAME
+			,A.CATE_TYPE
+			,A.CATEGORY
+		FROM
+			PCN_CONTEST_AGENT A
+		WHERE
+			A.SEQ = #seq#
+		AND ROWNUM = 1
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PCN_CONTEST_AGENT
+		</selectKey>
+
+		INSERT INTO PCN_CONTEST_AGENT (
+			SEQ
+			,AGENT
+			,SERVICE
+			,INFO
+			,URL
+			,APPROVAL
+			,REG_DATE
+			,UPD_DATE
+			,SITENAME
+			,CATE_TYPE
+			,CATEGORY
+		) VALUES (
+			#seq#
+			,#agent#
+			,#service#
+			,#info#
+			,#url#
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,SYSDATE
+			,SYSDATE
+			,#sitename#
+			,#cate_type#
+			,#category#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_CONTEST_AGENT
+		SET
+			AGENT		=	#agent#
+			,SERVICE	=	#service#
+			,INFO		=	#info#
+			,URL		=	#url#
+			,SITENAME	=	#sitename#
+			,CATE_TYPE	=	#cate_type#
+			,CATEGORY	=	#category#
+			,APPROVAL	=	DECODE(#approval#, 'N', 'N', 'Y')
+			,UPD_DATE	=	SYSDATE
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_CONTEST_AGENT
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_CONTEST_AGENT
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

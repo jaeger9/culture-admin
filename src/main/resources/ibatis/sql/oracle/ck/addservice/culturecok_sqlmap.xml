@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="culturecok">
+
+	<select id="eventStateList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			ROWNUM NUM, REG_DATE, CNT
+		FROM(
+		  SELECT
+		      TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE, COUNT(*) CNT
+		  FROM CULTURE_PRO_EVENT_ENTRY
+		  WHERE GUBUN = #gubun#
+			<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+				REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			]]></isNotEmpty>
+			<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+				REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			]]></isNotEmpty>
+		  GROUP BY TO_CHAR(REG_DATE,'YYYY-MM-DD')
+		)ORDER BY REG_DATE DESC
+	</select>
+	
+	<select id="eventTotal" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			COUNT(*) DAY_CNT, SUM(CNT) ALL_CNT
+		FROM(
+		  SELECT
+		      TO_CHAR(REG_DATE,'YYYY-MM-DD'), COUNT(*) CNT
+		  FROM  CULTURE_PRO_EVENT_ENTRY
+		  WHERE GUBUN = #gubun#
+			<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+				REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			]]></isNotEmpty>
+			<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+				REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			]]></isNotEmpty>
+		  GROUP BY TO_CHAR(REG_DATE,'YYYY-MM-DD')
+		)
+	</select>
+	
+	<select id="eventCnt" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    COUNT(*) TODAY_CNT, (SELECT COUNT(*) FROM CULTURE_PRO_EVENT_ENTRY WHERE GUBUN=#gubun#) ALL_CNT
+		FROM  CULTURE_PRO_EVENT_ENTRY
+		WHERE GUBUN = #gubun#
+		AND TO_CHAR(REG_DATE,'YYYY-MM-DD') = TO_CHAR(SYSDATE,'YYYY-MM-DD')
+		GROUP BY TO_CHAR(REG_DATE,'YYYY-MM-DD')
+	</select>
+	
+	
+	<select id="eventEntryCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+		   COUNT(*) CNT
+		FROM CULTURE_PRO_EVENT_ENTRY
+		WHERE GUBUN = #gubun#
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+					OR LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+				LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="hp_no" prepend="AND">
+				LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	
+	<select id="eventEntryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM(
+			SELECT
+			   SEQ
+			  ,NAME
+			  ,HP_NO
+			  ,EMAIL
+			  ,MEMO
+			  ,FILE_NAME
+			  ,FILE_SYSNAME
+			  ,URL
+			  ,TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+			  ,GUBUN
+			  ,FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_PRO_EVENT_ENTRY
+			WHERE GUBUN = #gubun#
+			<isNotEmpty property="search_word">
+				<isEqual property="search_type" compareValue="all" prepend="AND">
+					(
+						LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+						OR LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+					)
+				</isEqual>
+				<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+				<isEqual property="search_type" compareValue="hp_no" prepend="AND">
+					LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+			</isNotEmpty>
+		)WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="eventEntryExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* culturecok.eventEntryExcelList */    
+		    ROWNUM "num","reg_date","memo","name","hp_no","email","file_name","url","gubun"
+		FROM ( 
+		    SELECT
+				TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date"
+		        , NVL(MEMO,'-') "memo"
+		        , NVL(NAME,'-') "name"
+		        , NVL(HP_NO,'-') "hp_no"
+		        , NVL(EMAIL,'-') "email"
+		        , NVL(FILE_SYSNAME,'-') "file_name"
+		        , NVL(URL,'-') "url"
+		        , DECODE(GUBUN,'A','앱인증이벤트','S','홍보인증이벤트','-') "gubun"
+		    FROM CULTURE_PRO_EVENT_ENTRY
+		    WHERE 1=1
+		    <isNotEmpty property="gubun" prepend="AND">
+		    	GUBUN = #gubun#
+		    </isNotEmpty>
+		    <isNotEmpty property="search_word">
+				<isEqual property="search_type" compareValue="all" prepend="AND">
+					(
+						LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+						OR LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+					)
+				</isEqual>
+				<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+				<isEqual property="search_type" compareValue="hp_no" prepend="AND">
+					LOWER(HP_NO)		LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+			</isNotEmpty>			
+		    ORDER BY REG_DATE DESC
+		)
+	</select>
+	
+	<select id="eventHelpCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+		   COUNT(*) CNT
+		FROM CULTURE_PRO_EVENT_HELP
+		WHERE 1=1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+					OR LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+				LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="email" prepend="AND">
+				LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	
+	<select id="eventHelpList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM(
+			SELECT
+			    SEQ
+			  ,TITLE
+			  ,CONTENT
+			  ,NAME
+			  ,EMAIL
+			  ,STATE
+			  ,TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+			  ,REPLY_CONTENT
+			  ,TO_CHAR(REPLY_DATE,'YYYY-MM-DD') REPLY_DATE
+			  ,FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_PRO_EVENT_HELP
+			WHERE 1=1
+			<isNotEmpty property="search_word">
+				<isEqual property="search_type" compareValue="all" prepend="AND">
+					(
+						LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+						OR LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+					)
+				</isEqual>
+				<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+				<isEqual property="search_type" compareValue="email" prepend="AND">
+					LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+			</isNotEmpty>
+		)WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="eventHelpExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* culturecok.eventHelpExcelList */    
+		    ROWNUM "num","reg_date","title","content","name","email","state","reply_date","reply_content"
+		FROM ( 
+		    SELECT
+				NVL(TO_CHAR(REG_DATE, 'YYYY-MM-DD'),'-') "reg_date"
+		        , NVL(TITLE,'-') "title"
+		        , NVL(CONTENT,'-') "content"
+		        , NVL(NAME,'-') "name"
+		        , NVL(EMAIL,'-') "email"
+		        , NVL(STATE,'-') "state"
+		        , NVL(TO_CHAR(REG_DATE, 'YYYY-MM-DD'),'-') "reply_date"
+		        , NVL(REPLY_CONTENT,'-') "reply_content"
+		    FROM CULTURE_PRO_EVENT_HELP
+		    WHERE 1=1
+		    <isNotEmpty property="search_word">
+				<isEqual property="search_type" compareValue="all" prepend="AND">
+					(
+						LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+						OR LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+					)
+				</isEqual>
+				<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(NAME)			LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+				<isEqual property="search_type" compareValue="email" prepend="AND">
+					LOWER(EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				</isEqual>
+			</isNotEmpty>			
+		    ORDER BY REG_DATE DESC
+		)
+	</select>
+	
+	<select id="eventHelpView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    SEQ
+		  ,TITLE
+		  ,CONTENT
+		  ,NAME
+		  ,EMAIL
+		  ,STATE
+		  ,TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+		  ,REPLY_CONTENT
+		  ,TO_CHAR(REPLY_DATE,'YYYY-MM-DD') REPLY_DATE
+		FROM CULTURE_PRO_EVENT_HELP
+		WHERE SEQ = #seq#
+	</select>
+	
+	<update id="eventHelpUpdate" parameterClass="paramMap">
+		UPDATE CULTURE_PRO_EVENT_HELP SET
+			STATE = #state#
+			<isNotEmpty property="reply_content">
+		    , REPLY_CONTENT = #reply_content# 
+		    , REPLY_DATE = SYSDATE
+		    </isNotEmpty>
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 당첨자 목록 -->
+	<select id="winnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* culturecok.winnerList */
+		    W.SEQ, W.EVENT_SEQ, E.NAME, E.URL, E.HP_NO, E.EMAIL
+		FROM CULTURE_PRO_EVENT_ENTRY E, CULTURE_PRO_EVENT_WINNER W
+		WHERE E.SEQ = W.EVENT_SEQ
+		AND E.GUBUN = #gubun#
+		ORDER BY W.SEQ
+	</select>
+	
+	<!-- 당첨가능한 사람 목록 -->	
+	<select id="winnerPotentialList" parameterClass="paramMap" resultClass="commonMap"> 
+		SELECT /* culturecok.winnerPotentialList */
+		    MAX(A.SEQ) EVENT_SEQ, A.NAME, A.HP_NO, MAX(A.URL) URL, MAX(A.REG_DATE) REG_DATE
+		FROM CULTURE_PRO_EVENT_ENTRY A
+		WHERE 1 = 1
+		AND GUBUN = #gubun#
+		  AND NOT EXISTS (
+		    SELECT
+		        *
+		    FROM CULTURE_PRO_EVENT_WINNER S1 , CULTURE_PRO_EVENT_ENTRY S2
+		    WHERE GUBUN = #gubun#
+		    AND S1.EVENT_SEQ = S2.SEQ
+		    AND (	
+		    		S2.NAME = A.NAME 		
+		    		OR S2.HP_NO = A.HP_NO
+		    		<isNotEqual property="gubun" compareValue="T">
+		    		OR S2.URL = A.URL
+		    		</isNotEqual> 	
+		    		<isEqual property="gubun" compareValue="T">
+		    		OR S2.EMAIL = A.EMAIL
+		    		</isEqual>
+		    	)
+		  )
+		GROUP BY A.NAME, A.HP_NO <isEqual property="gubun" compareValue="T">, A.EMAIL</isEqual>
+	</select>
+	
+	<!-- 당첨자 insert -->
+	<insert id="winnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* culturecok.winnerInsert */ 
+		INTO CULTURE_PRO_EVENT_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_PRO_EVENT_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 당첨자 삭제 -->
+	<delete id="winnerDelete" parameterClass="paramMap">
+		DELETE  /* culturecok.winnerDelete */
+		FROM CULTURE_PRO_EVENT_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<!-- 당첨자 엑셀 다운로드 목록 -->
+	<select id="winnerExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* culturecok.winnerExcelList */    
+		    ROWNUM "num",
+	        "name",
+	        "hp_no",
+            "email",
+            "memo",
+	        "reg_date",
+            "url"   
+	    FROM ( 
+		    SELECT
+		        NVL(E.NAME,'-') "name",
+                NVL(E.HP_NO,'-') "hp_no",  
+                NVL(E.EMAIL,'-') "email",
+                NVL(E.MEMO,'-') "memo",
+		        W.REG_DATE "reg_date",
+                NVL(E.URL,'-') "url"
+		    FROM CULTURE_PRO_EVENT_ENTRY E,
+		        CULTURE_PRO_EVENT_WINNER W   
+		    WHERE
+		        E.SEQ = W.EVENT_SEQ   
+		        AND E.GUBUN = #gubun#
+		    ORDER BY W.SEQ 
+		)	    
+	</select>
+	
+	<!-- 당첨자 엑셀 다운로드 목록 ::: 스탬프 적립 이벤트-->
+	<select id="winnerExcelList2" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		
+		SELECT
+			<![CDATA[
+			CASE WHEN "num" <= 10 THEN '1등당첨자' WHEN "num" BETWEEN 10 AND 30 THEN '2등당첨자' WHEN "num" > 30 THEN '3등당첨자' ELSE '-' END "gubun",
+			]]>
+			"num",
+		    "name",
+		    "id",
+		    "hp_no",
+		    "email"
+		FROM(
+		    SELECT /* culturecok.winnerExcelList2 */    
+		        ROWNUM "num",
+		        A.*  
+		    FROM ( 
+		        SELECT
+		            NVL(E.NAME,'-') "name",
+		            NVL(E.HP_NO,'-') "hp_no",  
+		            NVL(E.EMAIL,'-') "email",
+		            NVL(E.MEMO,'-') "memo",
+		            W.REG_DATE "reg_date",
+		            NVL(E.URL,'-') "url",
+		            NVL(E.FILE_NAME,'-') "id"
+		        FROM CULTURE_PRO_EVENT_ENTRY E,
+		            CULTURE_PRO_EVENT_WINNER W   
+		        WHERE
+		            E.SEQ = W.EVENT_SEQ   
+		            AND E.GUBUN = #gubun#
+		        ORDER BY W.SEQ 
+		    )A
+		)	  
+	</select>
+
+</sqlMap>

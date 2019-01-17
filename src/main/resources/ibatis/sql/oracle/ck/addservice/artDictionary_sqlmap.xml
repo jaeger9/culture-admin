@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="artDictionary">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TAD_NAME)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.ABSTRACT)	LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="tad_name" prepend="AND">
+				LOWER(A.TAD_NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="abstract" prepend="AND">
+				LOWER(A.ABSTRACT)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			TDS_ART_DIC A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ID
+			,A.GENRE1
+			,A.GENRE2
+			,A.GENRE3
+			,A.TAD_NAME
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+		FROM
+			TDS_ART_DIC A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.ID DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ID
+			,A.SUB_NAME1
+			,A.SUB_NAME2
+			,A.CHINESE
+			,A.ENGLISH
+			,A.ABSTRACT
+			,A.DETAIL_TXT
+			,A.PUBLICATION
+			,A.REPORT
+			,A.PERSON
+			,A.ORGAN
+			,A.GENRE1
+			,A.GENRE2
+			,A.GENRE3
+			,A.TAD_NAME
+			,A.CONTENTS
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+		FROM
+			TDS_ART_DIC A
+		WHERE
+			A.ID = #id#
+		AND ROWNUM = 1
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="id" type="pre" resultClass="int">
+			SELECT SEQ_TDS.NEXTVAL FROM DUAL
+		</selectKey>
+
+		INSERT INTO TDS_ART_DIC (
+			ID
+			,SUB_NAME1
+			,SUB_NAME2
+			,CHINESE
+			,ENGLISH
+			,ABSTRACT
+			,DETAIL_TXT
+			,PUBLICATION
+			,REPORT
+			,PERSON
+			,ORGAN
+			,GENRE1
+			,GENRE2
+			,GENRE3
+			,TAD_NAME
+			,CONTENTS
+			,VIEW_CNT
+		) VALUES (
+			#id#
+			,#sub_name1#
+			,#sub_name2#
+			,#chinese#
+			,#english#
+			,#abstract#
+			,#detail_txt#
+			,#publication#
+			,#report#
+			,#person#
+			,#organ#
+			,#genre1#
+			,#genre2#
+			,#genre3#
+			,#tad_name#
+			,#contents#
+			,0
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE TDS_ART_DIC
+		SET
+			SUB_NAME1		=	#sub_name1#
+			,SUB_NAME2		=	#sub_name2#
+			,CHINESE		=	#chinese#
+			,ENGLISH		=	#english#
+			,ABSTRACT		=	#abstract#
+			,DETAIL_TXT		=	#detail_txt#
+			,PUBLICATION	=	#publication#
+			,REPORT			=	#report#
+			,PERSON			=	#person#
+			,ORGAN			=	#organ#
+			,GENRE1			=	#genre1#
+			,GENRE2			=	#genre2#
+			,GENRE3			=	#genre3#
+			,TAD_NAME		=	#tad_name#
+			,CONTENTS		=	#contents#
+		WHERE
+			ID = #id#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM TDS_ART_DIC
+		WHERE
+			ID IN 
+		<iterate property="array.ids" open="(" conjunction="," close=")">
+			#array.ids[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

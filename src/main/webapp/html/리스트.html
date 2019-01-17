@@ -1,0 +1,340 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>리스트 | KCISA 문화포털 통합관리시스템</title>
+<link href="../css/common.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery.pagination.js"></script>
+<script type="text/javascript">
+$(function () {
+	$('#paging').addClass('pagination').pagination(1000, {
+		current_page		:	(3 - 1) // 3 page 일 경우 2 (index)
+		,items_per_page		:	10
+		,num_display_entries:	10
+		,num_edge_entries	:	1
+		,prev_text			:	"<<"
+		,next_text			:	">>"
+		,callback			:	function (page_id, $this) {
+			console.log( 'view page id : ' + (page_id + 1) );
+		}
+	});
+});
+</script>
+</head>
+<body>
+<div id="wrap">
+	<div id="header">
+		<h1 class="logo"><img src="/images/layout/logo.jpg" alt="KCISA 문화포털 통합관리시스템" /></h1>
+		<div class="loginInfo">
+			<span class="name"><strong>홍길동</strong>님</span>
+			<a href="#url">로그아웃</a>
+		</div>
+		<ul class="gnb">
+			<!-- 선택 될경우 a 태그에 class="focus" 추가 해주세요 -->
+			<li><a href="#url" class="focus">메인/공통</a></li>
+			<li><a href="#url">공연/전시</a></li>
+			<li><a href="#url">행사/교육</a></li>
+			<li><a href="#url">매거진/미디어</a></li>
+			<li><a href="#url">전통디자인</a></li>
+			<li><a href="#url">문화공간</a></li>
+			<li><a href="#url">문화지식/정책</a></li>
+			<li><a href="#url">이벤트/소식</a></li>
+			<li><a href="#url">이용안내</a></li>
+			<li><a href="#url">회원관리</a></li>
+			<li><a href="#url">메타관리</a></li>
+			<li><a href="#url">부가서비스</a></li>
+			<li><a href="#url">삭제메뉴</a></li>
+		</ul>
+	</div>
+	<div id="container">
+		<div id="lnb">
+			<h2><a href="#url">메인/공통</a></h2>
+			<ul class="depth1">
+				<li>
+					<!-- 선택 될경우 a 태그에 class="focus" 추가 해주세요 -->
+					<a href="#url" class="focus">메인/공통</a>
+					<!-- 선택 될경우 style="display:block" 추가 해주세요 -->
+					<ul class="depth2" style="display:block">
+						<li>
+							<!-- 선택 될경우 a 태그에 class="focus" 추가 해주세요 -->
+							<a href="#url" class="focus">메인/공통</a>
+						</li>
+						<li><a href="#url">아카이브분류체계관리</a></li>
+						<li><a href="#url">공공문화정보API</a></li>
+						<li><a href="#url">활용콘텐츠저작권관리</a></li>
+						<li><a href="#url">문양 설문조사 추첨</a></li>
+						<li><a href="#url">문양 설문조사 추첨첨첨</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#url">메인/공통</a>
+					<!-- 선택 될경우 style="display:block" 추가 해주세요 -->
+					<ul class="depth2">
+						<li>
+							<!-- 선택 될경우 a 태그에 class="focus" 추가 해주세요 -->
+							<a href="#url" class="focus">메인/공통</a>
+						</li>
+						<li><a href="#url">아카이브분류체계관리</a></li>
+						<li><a href="#url">공공문화정보API</a></li>
+						<li><a href="#url">활용콘텐츠저작권관리</a></li>
+						<li><a href="#url">문양 설문조사 추첨</a></li>
+						<li><a href="#url">문양 설문조사 추첨첨첨</a></li>
+					</ul>
+				</li>
+				<li><a href="#url">메인/공통</a></li>
+			</ul>
+		</div>
+		<div id="contentWrap">
+			<div id="content">
+				<h3 class="title01">배너관리</h3>
+				<div class="location">
+					<span class="home">home</span>
+					<span>메인/공통 </span>
+					<strong>배너관리</strong>
+				</div>
+				<!-- tab style-->
+				<ul class="tab">
+					<li><a href="#url" class="focus">문화의 날 배너</a></li>
+					<li><a href="#url">문화추천 배너</a></li>
+					<li><a href="#url">이벤트 배너</a></li>
+					<li><a href="#url">홍보 배너</a></li>
+					<li><a href="#url">관련기관 배너</a></li>
+					<li><a href="#url">핫존</a></li>
+					<li><a href="#url">내부홍보배너</a></li>
+					<li><a href="#url">타기관홍보배너</a></li>
+				</ul>
+				<fieldset class="searchBox">
+					<legend>검색</legend>
+					<div class="tableWrite">
+						<table summary="게시판 글 검색">
+							<caption>게시판 글 검색</caption>
+							<colgroup><col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
+							<tbody>
+								<tr>
+									<th scope="row">출처</th>
+									<td colspan="3">
+										<select title="출처 선택">
+											<option>전체</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">기간</th>
+									<td colspan="3">
+										<select title="기간 선택">
+											<option>기간을 선책하세요.</option>
+										</select>
+										<input type="text" title="기간을 입력" />
+										<span>~</span>
+										<input type="text" title="기간을 입력" />
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">승인여부</th>
+									<td>
+										<select title="승인여부 선택">
+											<option>전체</option>
+										</select>
+									</td>
+									<th scope="row">행사/축제</th>
+									<td>
+										<select title="행사/축제 선택">
+											<option>전체</option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">검색어</th>
+									<td colspan="3">
+										<select title="검색어 선택">
+											<option>전체</option>
+										</select>
+										<input type="text" />
+										<span class="btn darkS">
+											<button type="button">검색</button>
+										</span>
+									</td>
+								</tr> 
+							</tbody>
+						</table>
+					</div>
+				</fieldset>
+				<div class="topBehavior">
+					<p class="totalCnt">총 <span>257</span>건</p>
+					<ul class="sortingList">
+						<li class="on"><a href="#url">최신순</a></li>
+						<li><a href="#url">인기순</a></li>
+					</ul>
+				</div>
+				<!-- table list -->
+				<div class="tableList">
+					<table summary="게시판 글 목록">
+						<caption>게시판 글 목록</caption>
+						<colgroup><col style="width:8%" /><col style="width:12%" /><col style="width:10%" /><col style="width:35%" /><col style="width:15%" /><col style="width:15%" /><col style="width:10%" /></colgroup>
+						<thead>
+							<tr>
+								<th scope="col"><input type="checkbox" title="리스트 전체 선택" /></th>
+								<th scope="col">505</th>
+								<th scope="col">이미지</th>
+								<th scope="col">제목</th>
+								<th scope="col">시작일</th>
+								<th scope="col">종료일</th>
+								<th scope="col">승인여부</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><input type="checkbox" title="리스트 전체 선택" /></td>
+								<td>505</td>
+								<td><img src="https://dev.culture.kr:8900/upload/banner/1112C6D4BB38D654B9B4B808C774D2F0CF13C758D504B85CD3ECC988BA54C778BC30B1081.png"  alt="10/11월 문화릴레이티켓의 프로포즈" /></td>
+								<td class="subject"><a href="#url">10/11월 문화릴레이티켓의 프로포즈</a></td>
+								<td>2014-10-02</td>
+								<td>2014-10-31</td>
+								<td>승인</td>
+							</tr>
+							<tr>
+								<td><input type="checkbox" title="리스트 전체 선택" /></td>
+								<td>505</td>
+								<td><span class="btn whiteS"><a href="#url">보기</a></span></td>
+								<td class="subject"><a href="#url">10/11월 문화릴레이티켓의 프로포즈</a></td>
+								<td>2014-10-02</td>
+								<td>2014-10-31</td>
+								<td>승인</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="paging">
+				</div>
+				<div class="btnBox">
+					<span class="btn white"><a href="#url">승인</a></span>
+					<span class="btn white"><a href="#url">미승인</a></span>
+					<span class="btn white"><button type="button">삭제</button></span>
+					<span class="btn dark fr"><a href="#url">등록</a></span>
+				</div>
+				<div class="sTitBar">
+					<h4>인기키워드입력
+						<label><input type="checkbox" />인기키워드입력</label>
+					</h4>
+					<span class="btn whiteS"><a href="#url">보기</a></span>
+				</div>
+				<div class="tableWrite">
+					<table summary="게시판 글 작성">
+						<caption>게시판 글 작성</caption>
+						<colgroup><col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
+						<tbody>
+							<tr>
+								<th scope="row">사이트명</th>
+								<td colspan="3"><input type="text" style="width:670px" value="매달 마지막 수요일은 문화가 있는 날!" /></td>
+							</tr>
+							<tr>
+								<th scope="row">제목</th>
+								<td colspan="3">
+									<input type="text" style="width:580px" value="『대한제국흥망사(The Passing of Korea)』" />
+									<label><input type="checkbox" /> 상단노출</label>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">출처/작성자</th>
+								<td>itbank</td>
+								<th scope="row">등록일</th>
+								<td>2014-10-27 </td>
+							</tr>
+							<tr>
+								<th scope="row">URL</th>
+								<td colspan="3"><input type="text" style="width:670px" value="http://www.culture.go.kr/wday" /></td>
+							</tr>
+							<tr>
+								<th scope="row">홈페이지</th>
+								<td colspan="3">
+									<input type="text" style="width:583px" value="http://www.culture.go.kr/wday" />
+									<span class="btn whiteS"><a href="#url">유효성검사</a></span>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">사이트 이미</th>
+								<td>
+									<div class="inputBox">
+										<label><input type="radio" /> 이미지</label>
+										<label><input type="radio" /> url</label>
+									</div>
+									<div class="fileInputs">
+										<input type="file" name="upFile" class="file hidden" title="첨부파일 선택" />
+										<div class="fakefile">
+											<input type="text" title="" class="inputText" />
+											<span class="btn whiteS"><button>찾아보기</button></span>
+										</div>
+									</div>
+									<div class="inputBox">
+										<label><input type="checkbox" /> <strong>삭제</strong>  1415769104322로비음악회(소).jpg</label>
+									</div>
+									<span class="txt">481 * 282 px에 맞추어 등록해주시기 바랍니다.</span>
+									<div class="imgBox"><img src="https://dev.culture.kr:8900/upload/banner/1112C6D4BB38D654B9B4B808C774D2F0CF13C758D504B85CD3ECC988BA54C778BC30B1081.png"  alt="10/11월 문화릴레이티켓의 프로포즈" /></div>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">소개</th>
+								<td></td>
+							</tr>
+							<tr>
+								<th scope="row">승인여부</th>
+								<td colspan="3">
+									<label><input type="radio" /> 승인</label>
+									<label><input type="radio" /> 미승인</label>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">상세주소</th>
+								<td colspan="3">
+									<div class="inputBox">
+										<label><input type="radio" /> 지번주소</label>
+										<label><input type="radio" /> 도로명주소</label>
+									</div>
+									<div class="inputBox">
+										<input type="text" title="우편번호입력" style="width:150px" />
+										<span class="btn whiteS"><a href="#url">우편번호 찾기</a></span>
+									</div>
+									<div class="inputBox">
+										<input type="text" title="우편번호입력" style="width:400px" />
+										<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
+										<input type="text" title="우편번호입력" style="width:400px;margin-top:5px" />
+									</div>
+								</td>
+							</tr>  
+						</tbody>
+					</table>
+				</div>
+				<div class="btnBox textRight">
+					<span class="btn white fl"><button type="button">답변등록</button></span>
+					<span class="btn white"><button type="button">수정</button></span>
+					<span class="btn white"><button type="button">삭제</button></span>
+					<span class="btn gray"><a href="#url">목록</a></span>
+				</div>
+				<dl class="reple">
+					<dt>댓글(1)</dt>
+					<dd>
+						<div>
+							<em>postcorea</em><span>2014-05-29 </span><span>18:28:37</span>
+							<p>안녕하세요 회원님! 어머니와 좋은 시간 보내셨나요? 참으로 매력적인 캐릭터들이지요.. 포털지기는 이들의 자유스러움이 좋기도 하면서도 안타까움도 동시에 들기도 합니다.. 뮤지컬 배우로 변신한 가수들의 연기도 재미를 더 하지 않았네 싶네요:) 소중한 관람후기 감사드리며 즐거운 문화향유를 경험하실 수 있는 문화포털이 되도록 노력하겠습니다. 앞으로도 문화포털에 많은 관심과 애정 부탁드리며 매월 진행되는 문화초대이벤트와 문화릴레이티켓 초대이벤트도 지켜봐주세요. 감사합니다.
+								<span class="btn whiteSS"><a href="#url">삭제</a></span>
+							</p>
+						</div>
+						<div>
+							<em>postcorea</em><span>2014-05-29 </span><span>18:28:37</span>
+							<p>게시판의 운영정책에 위배되어 게시물이 삭제되었습니다.
+								<span class="btn whiteSS"><a href="#url">삭제</a></span>
+							</p>
+						</div>
+					</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	<div id="footer">
+		<p class="copyright">Copyrightⓒ  2014 <strong>Korea Culyure Infotmation Service Agency</strong> All Rights Reserved.</p>
+	</div>
+</div>
+</body>
+</html>

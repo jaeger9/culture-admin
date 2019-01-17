@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="event">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			A.DEL_YN = 'N'
+		<isNotEmpty property="top_yn" prepend="AND">
+			DECODE(A.TOP_YN, 'Y', 'Y', 'N') = #top_yn#
+		</isNotEmpty>
+		<isNotEmpty property="approval" prepend="AND">
+			DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y') = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+			(
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.RIGHTS)		LIKE LOWER('%' || #search_word# || '%')
+			OR	DBMS_LOB.INSTR(A.CONTENT, #search_word#) > 0
+			)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="rights" prepend="AND">
+				LOWER(A.RIGHTS)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				DBMS_LOB.INSTR(A.CONTENT, #search_word#) > 0
+			</isEqual>
+		</isNotEmpty>
+
+		<!-- controller에서 둘 중에 하나라도 값이 있을 경우 display_dt_start, display_dt_end 값 설정 -->
+		<isNotEmpty property="display_dt_start">
+			<isNotEmpty property="display_dt_end" prepend="AND"><![CDATA[
+			(
+				A.START_DT	BETWEEN TO_DATE(#display_dt_start#, 'YYYY-MM-DD') AND TO_DATE(#display_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			OR	A.END_DT	BETWEEN TO_DATE(#display_dt_start#, 'YYYY-MM-DD') AND TO_DATE(#display_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			)			
+			]]></isNotEmpty>
+		</isNotEmpty>
+
+		<isNotEmpty property="win_date_start" prepend="AND"><![CDATA[
+			A.WIN_DATE >= TO_DATE(#win_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="win_date_end" prepend="AND"><![CDATA[
+			A.WIN_DATE <= TO_DATE(#win_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PCN_EVENT A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.EVENT_ID
+			,A.UCI
+			,A.TITLE
+			,A.CREATOR
+			,A.RIGHTS
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N')				TOP_YN
+			,DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y')	APPROVAL
+			,TO_CHAR(A.START_DT, 'YYYY-MM-DD')				START_DT
+			,TO_CHAR(A.END_DT, 'YYYY-MM-DD')				END_DT
+			,TO_CHAR(A.WIN_DATE, 'YYYY-MM-DD')				WIN_DATE
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')				REG_DATE
+			,TO_CHAR(A.UPDATE_DATE, 'YYYY-MM-DD')			UPDATE_DATE
+			,NVL(A.VIEW_CNT, 0)								VIEW_CNT
+		FROM
+			PCN_EVENT A
+		<include refid="sqlList-1" />
+		ORDER BY
+			EVENT_ID DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.EVENT_ID
+			,A.UCI
+			,NVL(A.VIEW_CNT, 0)						VIEW_CNT
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD')		REG_DATE
+			,TO_CHAR(A.UPDATE_DATE, 'YYYY-MM-DD')	UPDATE_DATE
+			,A.GUBUN
+			,A.TITLE
+			,DECODE(A.TOP_YN, 'Y', 'Y', 'N')		TOP_YN
+			,A.RIGHTS
+			,A.FILE_NM
+			,A.FILE_ORG
+			,TO_CHAR(A.START_DT, 'YYYY-MM-DD')		START_DT
+			,TO_CHAR(A.END_DT, 'YYYY-MM-DD')		END_DT
+			,TO_CHAR(A.WIN_DATE, 'YYYY-MM-DD')		WIN_DATE
+			,A.WIN_URL
+			,A.CONTENT
+			,A.LINK_URL
+			,A.REQUEST
+			,DECODE(A.APPROVAL, 'N', 'N', 'W', 'W', 'Y')	APPROVAL
+			,A.LINK_TYPE
+			,A.CREATOR
+			,A.WIN_APPROVAL
+			,A.USER_ID
+			,DECODE(A.DEL_YN, 'N', 'N', 'Y')		DEL_YN
+		FROM
+			PCN_EVENT A
+		WHERE
+			A.EVENT_ID = #event_id#
+		AND A.DEL_YN = 'N'
+		AND	ROWNUM = 1
+	</select>
+
+	<!-- 미사용
+		creator
+		win_approval
+		link_type
+	-->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="event_id" resultClass="int">
+			SELECT EVENT_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO PCN_EVENT (
+			EVENT_ID
+			,UCI
+			,GUBUN
+			,TITLE
+			,TOP_YN
+			,RIGHTS
+			,START_DT
+			,END_DT
+			,WIN_DATE
+			,LINK_URL
+			,CONTENT
+			,WIN_URL
+			,CREATOR
+			,USER_ID
+			,REQUEST
+			,REG_DATE
+			,UPDATE_DATE
+			,APPROVAL
+			,DEL_YN
+			,VIEW_CNT
+		<isNotEmpty property="file_nm">
+			,FILE_NM
+		</isNotEmpty>
+		<isNotEmpty property="file_org">
+			,FILE_ORG
+		</isNotEmpty>
+		) VALUES (
+			#event_id#
+			,'G706' || FN_CURRENT_TIME_MILLIS()
+			,#gubun#
+			,#title#
+			,DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,#rights#
+			,TO_DATE(#start_dt#, 'YYYY-MM-DD')
+			,TO_DATE(#end_dt#, 'YYYY-MM-DD')
+			,TO_DATE(#win_date#, 'YYYY-MM-DD')
+			,#link_url#
+			,#content#
+			,#win_url#
+			,#user_id#
+			,#user_id#
+			,#request#
+			,SYSDATE
+			,SYSDATE
+			,DECODE(#approval#, 'W', 'W', 'Y', 'Y', 'N')
+			,'N'
+			,0
+		<isNotEmpty property="file_nm">
+			,#file_nm#
+		</isNotEmpty>
+		<isNotEmpty property="file_org">
+			,#file_org#
+		</isNotEmpty>
+		)
+	</insert>
+
+	<!-- 미사용
+		CREATOR
+		WIN_APPROVAL
+		LINK_TYPE
+	-->
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_EVENT
+		SET
+			GUBUN			=	#gubun#
+			,TITLE			=	#title#
+			,TOP_YN			=	DECODE(#top_yn#, 'Y', 'Y', 'N')
+			,RIGHTS			=	#rights#
+			,START_DT		=	TO_DATE(#start_dt#, 'YYYY-MM-DD')
+			,END_DT			=	TO_DATE(#end_dt#, 'YYYY-MM-DD')
+			,WIN_DATE		=	TO_DATE(#win_date#, 'YYYY-MM-DD')
+			,WIN_URL		=	#win_url#
+			,CONTENT		=	#content#
+			,LINK_URL		=	#link_url#
+			,REQUEST		=	#request#
+			,APPROVAL		=	DECODE(#approval#, 'W', 'W', 'Y', 'Y', 'N')
+			,USER_ID		=	#user_id#
+		<isNotEmpty property="file_nm">
+			,FILE_NM		=	#file_nm#
+		</isNotEmpty>
+		<isNotEmpty property="file_org">
+			,FILE_ORG		=	#file_org#
+		</isNotEmpty>
+			,UPDATE_DATE	=	SYSDATE
+		WHERE
+			EVENT_ID	=	#event_id#
+		AND DEL_YN		=	'N'
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_EVENT
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			EVENT_ID IN
+		<iterate property="array.event_ids" open="(" conjunction="," close=")">
+			#array.event_ids[]#
+		</iterate>
+	</update>
+	
+	<update id="updateDelete" parameterClass="paramMap">
+		UPDATE PCN_EVENT
+		SET
+			DEL_YN = 'Y'
+		WHERE
+			EVENT_ID IN
+		<iterate property="array.event_ids" open="(" conjunction="," close=")">
+			#array.event_ids[]#
+		</iterate>
+	</update>
+<!-- 
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_EVENT
+		WHERE
+			EVENT_ID IN
+		<iterate property="array.event_ids" open="(" conjunction="," close=")">
+			#array.event_ids[]#
+		</iterate>
+	</delete>
+-->
+</sqlMap>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="campaign">
+
+	<!-- 문화선물캠페인 이벤트 목록 -->
+	<select id="eventList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.eventList */
+			SEQ, TITLE, START_DT, END_DT, USE_YN
+		FROM CAMPAIGN_EVENT_INFO
+		WHERE USE_YN = #use_yn#
+		ORDER BY SEQ ASC
+	</select>
+	
+</sqlMap>

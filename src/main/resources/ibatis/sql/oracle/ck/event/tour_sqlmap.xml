@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="tour">
+	<select id="list" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY A.PCN_BNO DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+			  	, A.PCN_BNO 
+			  	, A.TITLE 
+			  	, A.CTYPENAME 
+			  	, B.NAME loc
+			FROM 
+			  	PORTAL_TOUR A,
+				PCN_COMMON_CODE B
+			WHERE
+				A.XPAREA = B.VALUE
+			AND
+				B.PCODE = '615'
+			AND
+				(A.METACALL = 'KOREAVISIT' OR A.METACALL = '홍천문화관광포털 DB')
+			<isNotEmpty property="sWord" prepend="AND">
+				(
+					A.title LIKE '%' || #sWord# || '%' OR
+					A.content LIKE '%' || #sWord# || '%'
+				)
+			</isNotEmpty>
+			<isNotEmpty property="xparea" prepend="AND">
+				A.XPAREA = #xparea#
+			</isNotEmpty>
+			<isNotEmpty property="ctype" prepend="AND">
+				A.CTYPE = #ctype#
+			</isNotEmpty>
+			<isEmpty property="ctype" prepend="AND">
+				A.CTYPE IN (SELECT value FROM PCN_COMMON_CODE WHERE PCODE = '633')
+			</isEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+			
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+			COUNT(1)
+		FROM 
+		  	PORTAL_TOUR A,
+			PCN_COMMON_CODE B
+		WHERE
+			A.XPAREA = B.VALUE
+		AND
+			B.PCODE = '615'
+		AND
+			(A.METACALL = 'KOREAVISIT' OR A.METACALL = '홍천문화관광포털 DB')
+		<isNotEmpty property="sWord" prepend="AND">
+			(
+				A.title LIKE '%' || #sWord# || '%' OR
+				A.content LIKE '%' || #sWord# || '%'
+			)
+		</isNotEmpty>
+		<isNotEmpty property="xparea" prepend="AND">
+			A.XPAREA = #xparea#
+		</isNotEmpty>
+		<isNotEmpty property="ctype" prepend="AND">
+			A.CTYPE = #ctype#
+		</isNotEmpty>
+		<isEmpty property="ctype" prepend="AND">
+			A.CTYPE IN (SELECT value FROM PCN_COMMON_CODE WHERE PCODE = '633')
+		</isEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			PCN_BNO
+			,METACALL
+			,TITLE
+			,SERVICEURL
+			,SUBSTR(CREDT, 0, 4) || '-' || SUBSTR(CREDT, 5,2) || '-' || SUBSTR(CREDT, 7,2) CREDT
+			,SUBSTR(UPDDT, 0, 4) || '-' || SUBSTR(UPDDT, 5,2) || '-' || SUBSTR(UPDDT, 7,2) UPDDT
+			,IMGURL
+			,CTYPENAME
+			,CTYPE
+			,CADDR
+			,CONTRIBUTOR
+			,XPTEL
+			,XPAREA
+			,XMAPX
+			,XMAPY
+			,XPAREA2
+			,IDATE
+			,SUBTITLE
+			,CAT1
+			,CAT2
+			,CAT3
+			,CONTENT
+			,TITLE2
+			,RIGHTS
+			,SUBSTR(ISSUED, 0, 4) || '-' || SUBSTR(ISSUED, 5,2) || '-' || SUBSTR(ISSUED, 7,2) ISSUED
+			,CODE
+			,CREDT_DATE
+		FROM
+			PORTAL_TOUR
+		WHERE 
+			PCN_BNO = #pcn_bno#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="pcn_bno" resultClass="int">
+			SELECT NVL(MAX(pcn_bno), 0) + 1 FROM PORTAL_TOUR
+		</selectKey>
+		INSERT INTO PORTAL_TOUR
+		(
+			PCN_BNO
+			,METACALL
+			,TITLE
+			,SERVICEURL
+			,CREDT
+			,UPDDT
+			,IMGURL
+			,CTYPENAME
+			,CTYPE
+			,CADDR
+			,CONTRIBUTOR
+			,XPTEL
+			,XPAREA
+			,XMAPX
+			,XMAPY
+			,XPAREA2
+			,SUBTITLE
+			,CAT1
+			,CAT2
+			,CAT3
+			,CONTENT
+			,TITLE2
+			,RIGHTS
+			,ISSUED
+			,CODE
+		) VALUES(
+			#pcn_bno#
+			,'KOREAVISIT'
+			,#title#
+			,#serviceurl#
+			,#credt#
+			,#upddt#
+			,#imgurl#
+			,#ctypename#
+			,#ctype#
+			,#caddr#
+			,#contributor#
+			,#xptel#
+			,#xparea#
+			,#xmapx#
+			,#xmapy#
+			,#xparea2#
+			,#subtitle#
+			,#cat1#
+			,#cat2#
+			,#cat3#
+			,#content#
+			,#title2#
+			,#rights#
+			,#issued#
+			,#code#
+		)
+	
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PORTAL_TOUR
+		SET
+			TITLE				=#title#
+			,SERVICEURL			=#serviceurl#
+			,CREDT				=#credt#
+			,UPDDT				=#upddt#
+			,IMGURL				=#imgurl#
+			,CTYPENAME			=#ctypename#
+			,CTYPE				=#ctype#
+			,CADDR				=#caddr#
+			,CONTRIBUTOR		=#contributor#
+			,XPTEL				=#xptel#
+			,XPAREA				=#xparea#
+			,XMAPX				=#xmapx#
+			,XMAPY				=#xmapy#
+			,XPAREA2			=#xparea2#
+			,SUBTITLE			=#subtitle#
+			,CAT1				=#cat1#
+			,CAT2				=#cat2#
+			,CAT3				=#cat3#
+			,CONTENT			=#content#
+			,TITLE2				=#title2#
+			,RIGHTS				=#rights#
+			,ISSUED				=#issued#
+			,CODE				=#code#
+		WHERE
+			PCN_BNO = #pcn_bno#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_TOUR 
+		WHERE 
+		<iterate property="array.pcn_bno" open="PCN_BNO IN (" conjunction="," close=")">
+			#array.pcn_bno[]#
+		</iterate>
+	</delete>
+</sqlMap>

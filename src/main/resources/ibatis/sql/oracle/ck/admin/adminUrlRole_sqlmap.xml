@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="adminUrlRole">
+
+	<delete id="deleteByRoleId" parameterClass="paramMap">
+		DELETE FROM ADMIN_URL_ROLE
+		WHERE
+			ROLE_ID IN
+		<iterate property="array.role_ids" open="(" conjunction="," close=")">
+			#array.role_ids[]#
+		</iterate>
+	</delete>
+
+	<delete id="deleteByUrlId" parameterClass="paramMap">
+		DELETE FROM ADMIN_URL_ROLE
+		WHERE
+			URL_ID IN
+		<iterate property="array.url_ids" open="(" conjunction="," close=")">
+			#array.url_ids[]#
+		</iterate>
+	</delete>
+
+	<select id="listByRoleId" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.URL_ID
+		    ,A.URL_STRING
+		    ,A.DESCRIPTION
+		    ,DECODE(B.URL_ID, NULL, 'N', 'Y') APPROVAL
+		FROM
+			ADMIN_URL_REPOSITORY A
+		    ,(
+		    	SELECT
+		        	DISTINCT URL_ID
+		        FROM
+		        	ADMIN_URL_ROLE UR
+		        WHERE
+		        	UR.ROLE_ID = #role_id#
+		    ) B
+		WHERE
+			A.URL_ID = B.URL_ID(+)
+		ORDER BY
+			A.URL_STRING ASC NULLS LAST
+			,A.DESCRIPTION ASC NULLS LAST
+	</select>
+
+	<insert id="insertList" parameterClass="paramMap">
+		INSERT ALL
+		<iterate conjunction=" " property="urlRoleList">
+			INTO ADMIN_URL_ROLE (
+				ROLE_ID
+				,URL_ID
+				,CREATE_DATE
+			) VALUES (
+				#urlRoleList[].role_id#
+				,#urlRoleList[].url_id#
+				,SYSDATE
+			)
+		</iterate>
+		SELECT * FROM DUAL
+	</insert>
+
+	<insert id="insertIntoList" parameterClass="paramMap">
+		DECLARE
+		BEGIN
+			<iterate conjunction=" " property="urlRoleList">
+				INSERT INTO /* adminUrlRole.insertIntoList */ 
+				ADMIN_URL_ROLE (
+					ROLE_ID, URL_ID, CREATE_DATE
+				) VALUES (
+					#urlRoleList[].role_id#, #urlRoleList[].url_id#, SYSDATE
+				);
+			</iterate>
+		END;
+	</insert>
+
+</sqlMap>

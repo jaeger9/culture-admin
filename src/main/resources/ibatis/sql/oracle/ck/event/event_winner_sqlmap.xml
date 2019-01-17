@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="event.winner">
+
+	<insert id="insert" parameterClass="java.util.HashMap">
+		INSERT /* event.winner */ 
+		INTO EVENT_WINNER (
+			EVENT_CD, USER_ID, USER_NM, USER_EMAIL, HP_NO, REG_DATE
+		) VALUES (
+			#event_cd#, #user_id#, #user_nm#, #user_email#, #hp_no#, SYSDATE
+		)
+	</insert>
+
+	<select id="list" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT /* event.winner.list */
+			EVENT_CD "event_cd", USER_ID "user_id", USER_NM "user_nm", 
+			USER_EMAIL "user_email", HP_NO "hp_no", TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date"
+		FROM EVENT_WINNER
+		WHERE EVENT_CD = #event_cd#
+		ORDER BY USER_NM ASC
+	</select>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE 
+		FROM EVENT_WINNER
+		WHERE EVENT_CD = #event_cd#
+		AND USER_ID IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

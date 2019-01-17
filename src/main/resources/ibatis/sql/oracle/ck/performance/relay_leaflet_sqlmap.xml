@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="relay_leaflet">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			TO_CHAR(SYSDATE,'yyyy') YEAR,
+			level GUBUN
+		FROM(
+	    	select 1 from dual
+		) <![CDATA[CONNECT BY LEVEL <= 6
+		ORDER BY year DESC,GUBUN DESC ]]>
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			6
+		FROM 
+			DUAL 
+	</select>
+</sqlMap>

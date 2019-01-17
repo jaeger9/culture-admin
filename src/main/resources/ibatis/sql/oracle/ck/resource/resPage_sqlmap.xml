@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="resPage">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+	
+	<sql id="sqlWhere">
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEqual property="search_type" compareValue="all">
+				(
+					TITLE LIKE '%' || #search_keyword# || '%'
+					OR
+					NAME LIKE '%' || #search_keyword# || '%'
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title">
+				TITLE LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_type" compareValue="writer">
+				NAME LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+		
+		<isNotEmpty property="srch_approval" prepend="AND">
+			APPROVAL = #srch_approval#
+		</isNotEmpty>
+		
+		<isNotEmpty property="array.page_type" prepend="AND">
+		   	<iterate property="array.page_type" open="PAGE_TYPE IN (" conjunction="," close=")">
+				#array.page_type[]#
+			</iterate>
+		</isNotEmpty>
+		
+		<isNotEmpty property="array.form_type" prepend="AND">
+		   	<iterate property="array.form_type" open="FORM_TYPE IN (" conjunction="," close=")">
+				#array.form_type[]#
+			</iterate>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT count(1) FROM (
+			SELECT
+				A.TITLE
+			    , (SELECT B.NAME FROM ADMIN_USERS B WHERE B.USER_ID = A.REG_ID) AS NAME
+			    , A.APPROVAL
+			FROM
+				PCN_INFO_RESOURCE_PAGE A
+			WHERE
+				A.DEL_YN != 'Y'
+		)
+		WHERE 1=1
+		<include refid="sqlWhere" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+			SELECT * FROM (
+				SELECT
+					A.SEQ
+				    , A.TITLE
+				    , A.MENU_ID
+				    , A.SUB_TITLE
+				    , A.IMAGE
+				    , A.PAGE_TYPE
+				    , A.FORM_TYPE
+				    , A.APPROVAL
+				    , A.REG_ID
+				    , TO_CHAR(A.REG_DATE,'YYYY.MM.DD') REG_DATE
+				    , A.UPD_ID
+				    , TO_CHAR(A.UPD_DATE,'YYYY.MM.DD') UPD_DATE
+				    , A.DEL_YN
+				    , (SELECT B.NAME FROM ADMIN_USERS B WHERE B.USER_ID = A.REG_ID) AS NAME
+				    , A.TITLE || '( ' || A.PAGE_TYPE || '타입 )' AS TITLE_PAGE_TYPE
+				FROM
+					PCN_INFO_RESOURCE_PAGE A
+				WHERE
+					A.DEL_YN != 'Y'
+			)
+			WHERE 1=1
+			<include refid="sqlWhere" />
+			ORDER BY SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_INFO_RESOURCE_PAGE
+			(SEQ, TITLE, MENU_ID, SUB_TITLE, IMAGE, PAGE_TYPE, FORM_TYPE, APPROVAL, REG_ID, REG_DATE, DEL_YN)
+		VALUES
+			((SELECT NVL(MAX(SEQ),0)+1 FROM PCN_INFO_RESOURCE_PAGE), #title#, #menu_id#, #sub_title#, #image#, #page_type#, #form_type#, #approval#, #reg_id#, SYSDATE, 'N')
+	</insert>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (
+			SELECT
+				A.SEQ
+			    , A.TITLE
+			    , A.MENU_ID
+			    , A.SUB_TITLE
+			    , A.IMAGE
+			    , A.PAGE_TYPE
+			    , A.FORM_TYPE
+			    , A.APPROVAL
+			    , A.REG_ID
+			    , TO_CHAR(A.REG_DATE,'YYYY.MM.DD') REG_DATE
+			    , A.UPD_ID
+			    , TO_CHAR(A.UPD_DATE,'YYYY.MM.DD') UPD_DATE
+			    , A.DEL_YN
+			    , (SELECT B.NAME FROM ADMIN_USERS B WHERE B.USER_ID = A.REG_ID) AS NAME
+			    , (SELECT B.MENU_NAME FROM PORTAL_MENU B WHERE B.MENU_ID = A.MENU_ID) AS MENU_NAME
+			FROM
+				PCN_INFO_RESOURCE_PAGE A
+			WHERE
+				A.DEL_YN != 'Y'
+		)
+		WHERE seq = #seq#
+	</select>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PCN_INFO_RESOURCE_PAGE
+		SET
+			TITLE = #title#
+		    , MENU_ID = #menu_id#
+		    , SUB_TITLE = #sub_title#
+		    <isEqual property="imagedelete" compareValue="Y">
+			    , IMAGE = ''
+		    </isEqual>
+		    <isNotEqual property="imagedelete" compareValue="Y">
+		    	<isNotEmpty property="image">
+				    , IMAGE = #image#
+		    	</isNotEmpty>
+		    </isNotEqual>
+		    , PAGE_TYPE = #page_type#
+		    , FORM_TYPE = #form_type#
+		    , APPROVAL = #approval#
+		    , UPD_ID = #upd_id#
+		    , UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_PAGE
+		SET DEL_YN = 'Y'
+		WHERE
+		   	<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PCN_INFO_RESOURCE_PAGE 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<select id="isMenuYn" parameterClass="java.lang.String" resultClass="int">
+		SELECT COUNT(1) cnt
+		FROM PCN_INFO_RESOURCE_MENU
+		WHERE PSEQ = #pseq#
+		AND DEL_YN = 'N'
+	</select>
+</sqlMap>

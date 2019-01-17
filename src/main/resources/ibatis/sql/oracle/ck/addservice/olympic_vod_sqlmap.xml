@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="olympic">
+
+	<!-- 댓글참여자 조회 -->
+	<select id="commentListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* olympic.commentListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_SHARE
+		WHERE 1=1
+		AND GUBUN = '3'
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="entry_month">
+				AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="commentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* olympic.commentList */
+			SEQ, USER_NM, URL, HP_NO, REG_DATE, SUMMARY, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, URL, SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) HP_NO
+				, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, SUMMARY,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_SHARE
+			WHERE 1=1
+			AND GUBUN = '3'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="commentWinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* olympic.commentWinnerList */
+			W.SEQ, W.EVENT_SEQ, E.USER_NM, E.URL, E.HP_NO
+		FROM CULTURE_EVENT_SHARE E, CULTURE_EVENT_SHARE_WINNER W
+		WHERE E.SEQ = W.EVENT_SEQ
+		AND E.GUBUN = '3'
+	</select>
+	
+	<insert id="commentWinnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* olympic.commentWinnerInsert */ 
+		INTO CULTURE_EVENT_SHARE_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_EVENT_SHARE_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+	
+	<delete id="commentWinnerDelete" parameterClass="paramMap">
+		DELETE  /* olympic.commentWinnerDelete */
+		FROM CULTURE_EVENT_SHARE_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<select id="commentWinnerPotentialList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* olympic.commentWinnerPotentialList */
+		    MAX(A.SEQ) EVENT_SEQ, A.USER_NM, A.HP_NO, MAX(A.URL) URL, MAX(A.REG_DATE) REG_DATE
+		FROM CULTURE_EVENT_SHARE A
+		WHERE 1 = 1
+			AND GUBUN ='3' <!-- 올림픽영상 구분 '3' -->
+			AND NOT EXISTS (
+				SELECT
+				    *
+				FROM CULTURE_EVENT_SHARE_WINNER S1 , CULTURE_EVENT_SHARE S2
+				WHERE 1=1
+				AND S1.EVENT_SEQ = S2.SEQ
+				AND S2.GUBUN = '3'
+				AND (S2.USER_NM = A.USER_NM 		OR S2.HP_NO = A.HP_NO	 	OR S2.URL = A.URL)
+			)
+		GROUP BY A.USER_NM, A.HP_NO
+	</select>
+	
+	<select id="commentWinnerExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* olympic.commentWinnerExcelList */    
+		    ROWNUM "num",
+	        "user_nm",
+	        "hp_no",
+	        "url",
+	        "summary",
+	        "reg_date"   
+	    FROM ( 
+		    SELECT
+		        NVL(E.USER_NM,'-') "user_nm",
+		        NVL(E.URL,'-') "url",
+		        NVL(E.SUMMARY,'-') "summary",
+		        NVL(E.HP_NO,'-') "hp_no",  
+		        W.REG_DATE "reg_date"
+		    FROM CULTURE_EVENT_SHARE E,
+		        CULTURE_EVENT_SHARE_WINNER W   
+		    WHERE
+		        E.SEQ = W.EVENT_SEQ   
+		        AND E.GUBUN = '3'
+		    ORDER BY W.REG_DATE  
+	    )
+	</select>
+	
+	<select id="commentExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT  /* olympic.commentExcelList */
+			ROWNUM "num", "user_nm", "hp_no", "url", "summary", "reg_date"
+		FROM(
+			SELECT
+		    	USER_NM "user_nm", SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) "hp_no"
+		    	,  NVL(URL, '-') "url", TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date",  NVL(SUMMARY, '-') "summary"
+		    FROM CULTURE_EVENT_SHARE
+		    WHERE GUBUN = '3'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			ORDER BY REG_DATE
+		)
+	</select>
+</sqlMap>

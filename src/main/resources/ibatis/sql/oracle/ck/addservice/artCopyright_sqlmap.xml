@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="artCopyright">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlTable-1">
+		SELECT
+			'K'					VVM_GUBUN
+			,KCC_SEQ			VVM_SEQ
+			,KCC_TITLE			VVM_TITLE
+			,TO_CHAR(KCT_SEQ)	CCM_CODE
+			,(SELECT DECODE(COUNT(*), 0, 'N', 'Y') FROM VLI_FIL_MAP WHERE VVM_SEQ = A.KCC_SEQ AND VVM_GUBUN = 'K') VVM_FILE_FLAG
+			,KCC_COPYRIGHT		VVM_COPYRIGHT
+			,TO_CHAR(KCC_REG_DATE, 'YYYY-MM-DD') VVM_REG_DATE
+		FROM KID_CHD_CNT A
+		WHERE A.KCC_STATUS = 0
+		UNION ALL
+		SELECT
+			'C'					VVM_GUBUN
+			,VVM_SEQ
+			,VVM_TITLE
+			,CCM_CODE
+			,(SELECT DECODE(COUNT(*), 0, 'N', 'Y') FROM VLI_FIL_MAP WHERE VVM_SEQ = A.VVM_SEQ AND VVM_GUBUN = 'C') VVM_FILE_FLAG
+			,VVM_COPYRIGHT
+			,TO_CHAR(VVM_REG_DATE, 'YYYY-MM-DD') VVM_REG_DATE
+		FROM VLI_VLI_MST A
+		WHERE VVM_STATUS = 0
+		AND CCM_CODE NOT IN (
+			SELECT CCM_CODE
+			FROM VLI_VLI_MST
+			WHERE CCM_CODE LIKE 'D%'
+			AND VVM_TYPE = 0
+		)
+		UNION ALL
+		SELECT
+			'A'					VVM_GUBUN
+			,ARC_SEQ			VVM_SEQ
+			,ARC_TITLE			VVM_TITLE
+			,'I000'				CCM_CODE
+			,(SELECT DECODE(COUNT(*), 0, 'N', 'Y') FROM VLI_FIL_MAP WHERE VVM_SEQ = A.ARC_SEQ AND VVM_GUBUN = 'A') VVM_FILE_FLAG
+			,ARC_COPYRIGHT_FLAG	VVM_COPYRIGHT
+			,TO_CHAR(ARC_CREATE_DATE, 'YYYY-MM-DD') VVM_REG_DATE
+		FROM ARC_CLS_MST A
+		WHERE ARC_STATUS = 0
+		UNION ALL
+		SELECT
+			'E'					VVM_GUBUN
+			,B.ELM_CODE			VVM_SEQ
+			,ELM_TITLE			VVM_TITLE
+			,(SELECT MIN(CCM_CODE) FROM EDU_CAI_CLS WHERE ECT_CODE = A.ECT_CODE) CCM_CODE
+			,(SELECT DECODE(COUNT(*),0,'N', 'Y') FROM VLI_FIL_MAP WHERE VVM_SEQ =  B.ELM_CODE AND VVM_GUBUN='E') VVM_FILE_FLAG
+			,ELM_COPYRIGHT		VVM_COPYRIGHT
+			,TO_CHAR(ELM_REG_DATE, 'YYYY-MM-DD') VVM_REG_DATE
+		FROM EDU_COU_MST A, EDU_LCT_MST B
+		WHERE A.ECM_OP_CHK = 'Y'
+		AND B.ECM_CODE = A.ECM_CODE
+	</sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.VVM_TITLE) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM (
+			<include refid="sqlTable-1" />
+		) A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.*
+		FROM (
+			<include refid="sqlTable-1" />
+		) A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.VVM_REG_DATE DESC
+		    ,A.VVM_SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="viewC" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			'C' VVM_GUBUN,
+			(
+				SELECT 
+					MIN(DECODE(ROWNUM,4,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-' ))) ||    
+					MIN(DECODE(ROWNUM,3,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,2,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,1,DECODE(CCM_TITLE,'',' ',CCM_TITLE)))          		
+				FROM CAI_CAI_MST
+				CONNECT BY CCM_CODE = PRIOR CCM_PARENT          		
+				START WITH CCM_CODE = X.CCM_CODE
+			) CCM_NAME,
+			X.VVM_TITLE, 
+			VVM_COPYRIGHT, 
+			TO_CHAR(X.VVM_REG_DATE,'YYYY-MM-DD') VVM_REG_DATE,
+			Y.VVM_FILE_SEQ,
+			Y.VVM_COMMENT,
+			Y.VVM_FILE_NAME,
+			X.VVM_SEQ
+		FROM VLI_VLI_MST X, (
+			SELECT 
+				B.VVM_SEQ , B.VVM_FILE_SEQ ,  C.VVM_FILE_NAME, VVM_COMMENT 
+			FROM VLI_FIL_MAP B,  VLI_VLI_FIL C 
+			WHERE B.VVM_SEQ = #vvm_seq#
+			AND B.VVM_GUBUN='C' 
+			AND C.VVM_FILE_SEQ = B.VVM_FILE_SEQ
+		) Y
+		WHERE X.VVM_SEQ = #vvm_seq#
+		AND X.VVM_SEQ = Y.VVM_SEQ(+)
+	</select>
+	
+	<select id="viewA" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			'A'						VVM_GUBUN,
+			(
+				SELECT 
+					MIN(DECODE(ROWNUM,4,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-' ))) ||    
+					MIN(DECODE(ROWNUM,3,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,2,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,1,DECODE(CCM_TITLE,'',' ',CCM_TITLE)))          		
+				FROM CAI_CAI_MST
+				CONNECT BY CCM_CODE = PRIOR CCM_PARENT          		
+				START WITH CCM_CODE = 'I000'
+			) CCM_NAME,
+			X.ARC_TITLE				VVM_TITLE,
+			X.ARC_COPYRIGHT_FLAG	VVM_COPYRIGHT,
+			TO_CHAR(X.ARC_CREATE_DATE,'YYYY-MM-DD') VVM_REG_DATE,
+			Y.VVM_FILE_SEQ,
+			Y.VVM_COMMENT,
+			Y.VVM_FILE_NAME,
+			X.ARC_SEQ				VVM_SEQ
+		FROM ARC_CLS_MST X, (
+			SELECT 
+				B.VVM_SEQ , B.VVM_FILE_SEQ ,  C.VVM_FILE_NAME, VVM_COMMENT 
+			FROM VLI_FIL_MAP B, VLI_VLI_FIL C
+			WHERE B.VVM_SEQ = #vvm_seq#
+			AND B.VVM_GUBUN='A'
+			AND C.VVM_FILE_SEQ = B.VVM_FILE_SEQ
+		) Y
+		WHERE X.ARC_SEQ = #vvm_seq#
+		AND X.ARC_SEQ = Y.VVM_SEQ(+)
+	</select>
+	
+	<select id="viewK" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			'K'					VVM_GUBUN,
+			(
+				SELECT 
+					MIN(DECODE(ROWNUM,4,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-' ))) ||    
+					MIN(DECODE(ROWNUM,3,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,2,DECODE(CCM_TITLE,'',' ',CCM_TITLE || '-'))) ||          
+					MIN(DECODE(ROWNUM,1,DECODE(CCM_TITLE,'',' ',CCM_TITLE)))          		
+				FROM CAI_CAI_MST
+				CONNECT BY CCM_CODE = PRIOR CCM_PARENT          		
+				START WITH CCM_CODE = TO_CHAR(KCT_SEQ)
+			) CCM_NAME,
+			X.KCC_TITLE			VVM_TITLE,
+			X.KCC_COPYRIGHT		VVM_COPYRIGHT,
+			TO_CHAR(X.KCC_REG_DATE,'YYYY-MM-DD') VVM_REG_DATE,
+			Y.VVM_FILE_SEQ,
+			Y.VVM_COMMENT,
+			Y.VVM_FILE_NAME,
+			X.KCC_SEQ			VVM_SEQ
+		FROM KID_CHD_CNT X, (
+			SELECT
+				B.VVM_SEQ, B.VVM_FILE_SEQ, C.VVM_FILE_NAME, VVM_COMMENT
+			FROM VLI_FIL_MAP B, VLI_VLI_FIL C
+			WHERE B.VVM_SEQ = #vvm_seq#
+			AND B.VVM_GUBUN='K'
+			AND C.VVM_FILE_SEQ = B.VVM_FILE_SEQ
+		) Y
+		WHERE X.KCC_SEQ = #vvm_seq#
+		AND X.KCC_SEQ = Y.VVM_SEQ(+)
+	</select>
+	
+	<select id="viewE" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			'E'					VVM_GUBUN,
+			''					CCM_NAME,
+			X.ELM_TITLE			VVM_TITLE,
+			ELM_COPYRIGHT		VVM_COPYRIGHT,
+			TO_CHAR(X.ELM_REG_DATE,'YYYY-MM-DD') VVM_REG_DATE,
+			Y.VVM_FILE_SEQ,
+			Y.VVM_COMMENT,
+			Y.VVM_FILE_NAME,
+			X.ELM_CODE			VVM_SEQ
+		FROM EDU_LCT_MST X, (
+			SELECT
+				B.VVM_SEQ , B.VVM_FILE_SEQ, C.VVM_FILE_NAME, VVM_COMMENT
+			FROM VLI_FIL_MAP B, VLI_VLI_FIL C
+			WHERE B.VVM_SEQ = #vvm_seq#
+			AND B.VVM_GUBUN='E'
+			AND C.VVM_FILE_SEQ = B.VVM_FILE_SEQ
+		) Y
+		WHERE X.ELM_CODE = #vvm_seq#
+		AND X.ELM_CODE = Y.VVM_SEQ(+)
+	</select>
+<!--
+	<update id="updateC" parameterClass="paramMap">
+		UPDATE VLI_VLI_MST
+		SET
+			VVM_TITLE	= #vvm_title#
+		WHERE
+			VVM_SEQ = #vvm_seq#
+	</update>
+
+	<update id="updateA" parameterClass="paramMap">
+		UPDATE ARC_CLS_MST
+		SET
+			ARC_TITLE = #vvm_title#
+		WHERE
+			ARC_SEQ = #vvm_seq#
+	</update>
+	
+	<update id="updateK" parameterClass="paramMap">
+		UPDATE KID_CHD_CNT
+		SET
+			KCC_TITLE = #vvm_title#
+		WHERE
+			KCC_SEQ = #vvm_seq#
+	</update>
+	
+	<update id="updateE" parameterClass="paramMap">
+		UPDATE EDU_LCT_MST
+		SET
+			ELM_TITLE = #vvm_title#
+		WHERE
+			ELM_CODE = #vvm_seq#
+	</update>
+
+	<insert id="insertVliMap" parameterClass="paramMap">
+		INSERT INTO VLI_FIL_MAP(
+			VVM_SEQ, VVM_FILE_SEQ, VVM_GUBUN
+		) VALUES (
+			#vvm_seq#, #vvm_file_seq#, #vvm_gubun#
+		)
+	</insert>
+
+	<insert id="insertVliFile" parameterClass="paramMap">
+		<selectKey keyProperty="vvm_file_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(VVM_FILE_SEQ), 0) + 1 FROM VLI_VLI_FIL
+		</selectKey>
+
+		INSERT INTO VLI_VLI_FIL (
+			VVM_FILE_SEQ, VVM_FILE_NAME, VVM_FILE_DATE, VVM_COMMENT, VVM_GUBUN
+		) VALUES(
+			#vvm_file_seq#, #vvm_file_name#, TO_CHAR(SYSDATE,'YY/MM/DD'), #vvm_comment#, #vvm_gubun#
+		)
+	</insert>
+-->
+	<update id="updateFileComment" parameterClass="paramMap">
+		UPDATE VLI_VLI_FIL
+		SET
+			VVM_COMMENT = #vvm_comment#
+		WHERE
+			VVM_FILE_SEQ = #vvm_file_seq#
+	</update>
+
+	<delete id="deleteVliMap" parameterClass="paramMap">
+		DELETE FROM VLI_FIL_MAP
+		WHERE
+			VVM_FILE_SEQ IN 
+		<iterate property="array.vvm_file_seqs" open="(" conjunction="," close=")">
+			#array.vvm_file_seqs[]#
+		</iterate>
+	</delete>
+
+	<delete id="deleteVliFile" parameterClass="paramMap">
+		DELETE FROM VLI_VLI_FIL
+		WHERE
+			VVM_FILE_SEQ IN 
+		<iterate property="array.vvm_file_seqs" open="(" conjunction="," close=")">
+			#array.vvm_file_seqs[]#
+		</iterate>
+	</delete>
+
+
+</sqlMap>

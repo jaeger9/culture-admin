@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="db.content">
+	<select id="codeList" resultClass="commonMap">
+		SELECT 
+			CDED_CODE, CDED_DESC 
+		FROM 
+			PCOMCDED@PATTERN
+			<!-- PCOMCDED  -->
+		WHERE 
+			CDED_USYN='Y' 
+		AND CDED_PCDE='04' 
+		ORDER BY CDED_CODE
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.*
+		FROM 
+		(
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY ECIM_ECGB, ECIM_ECID ) -1)/$list_unit$+1) AS PAGE  ,
+				ECIM_ECGB,
+				CDED_DESC,
+				ECIM_ECID,
+				ECIM_NAME,
+				ECIM_FILE,
+				TO_DATE(NVL(ECIM_UTDT, ECIM_RGDT), 'YYYY-MM-DD') AS DT
+			FROM 
+				PWOMECIM@PATTERN, PCOMCDED@PATTERN 
+				<!-- PWOMECIM, PCOMCDED -->
+			WHERE ECIM_ECGB = CDED_CODE
+				AND CDED_PCDE='04'
+			<isNotEmpty property="ecgbname">
+		        AND ECIM_NAME LIKE '%'||#ecgbname#||'%'
+	        </isNotEmpty>
+			<isNotEmpty property="ecgb">
+		        AND ECIM_ECGB = #ecgb#
+			</isNotEmpty>
+		) R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PWOMECIM@PATTERN, PCOMCDED@PATTERN 
+			<!-- PWOMECIM, PCOMCDED -->
+		WHERE ECIM_ECGB = CDED_CODE
+			AND CDED_PCDE='04'
+		<isNotEmpty property="ecgbname">
+	        AND ECIM_NAME LIKE '%'||#ecgbname#||'%'
+        </isNotEmpty>
+		<isNotEmpty property="ecgb">
+	        AND ECIM_ECGB = #ecgb#
+		</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+		  	ECIM_ECGB,
+		  	CDED_DESC,
+		  	ECIM_ECID,
+		  	ECIM_NAME,
+		  	ECIM_FILE
+		FROM 
+		  	PWOMECIM@PATTERN,PCOMCDED@PATTERN
+		  	<!-- PWOMECIM,PCOMCDED -->
+		WHERE 
+		  	ECIM_ECID = #ecim_ecid#
+		  	AND ECIM_ECGB   = CDED_CODE
+		  	AND CDED_PCDE   = '04'
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PWOMECIM@PATTERN(
+		<!-- INSERT INTO PWOMECIM( -->
+		    ECIM_ECGB,
+		    ECIM_ECID,
+		    ECIM_NAME,
+		    ECIM_FILE,
+		    ECIM_RGID,
+		    ECIM_RGDT,
+		    ECIM_RGTM
+	  	) VALUES (
+		    #ecim_ecgb#,
+		    #ecim_ecid#,
+		    #ecim_name#,
+		    #file_sysname#,
+		    #ecim_rgid#,
+		    TO_CHAR(SYSDATE,'YYYYMMDD'),
+		    TO_CHAR(SYSDATE, 'HHMISS')
+	  	)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE PWOMECIM@PATTERN
+		<!-- UPDATE PWOMECIM -->
+		SET 
+			ECIM_ECGB = #ecim_ecgb#, 
+			ECIM_NAME = #ecim_name#, 
+		<isNotEmpty property="file_sysname">
+			ECIM_FILE = #file_sysname#, 
+		</isNotEmpty>
+			ECIM_UTID = #ecim_utid#,
+			ECIM_UTDT = TO_CHAR(SYSDATE,'YYYYMMDD'), 
+			ECIM_UTTM = TO_CHAR(SYSDATE,'HHMISS')
+		WHERE 
+			ECIM_ECID = #ecim_ecid#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PWOMECIM@PATTERN
+			<!-- PWOMECIM  -->
+		WHERE 
+		<iterate property="array.ecim_ecid" open="ECIM_ECID IN (" conjunction="," close=")">
+			#array.ecim_ecid[]#
+		</iterate>
+	</delete>
+</sqlMap>

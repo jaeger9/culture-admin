@@ -1,0 +1,730 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="archive">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<!-- 예술자료전시관 > 아카이브관리 -->
+	<select id="categoryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			MST_CLASS
+			,MST_TITLE
+			,ARC_THM_ID
+		FROM
+			ARC_CDE_MST
+		WHERE
+			ARC_THM_ID = #arc_thm_id#
+		ORDER BY
+			MST_DSP_SEQ
+	</select>
+
+	<select id="subCategoryList" parameterClass="commonMap" resultClass="commonMap">
+		SELECT
+			DTL_CODE
+			,DTL_CDE_TITLE
+		FROM
+			ARC_CDE_DTL
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+		AND	MST_CLASS	=	#mst_class#
+		ORDER BY
+			DTL_DSP_SEQ
+	</select>
+
+	<select id="themeList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_THM_ID
+			,A.ARC_THM_TITLE
+		FROM
+			ARC_CAT_THM A
+		ORDER BY
+			A.THM_DSP_SEQ
+	</select>
+	
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="arc_thm_id"><![CDATA[
+		AND	A.ARC_THM_ID	=	#arc_thm_id#
+		AND	A.ARC_STATUS	<>	'2'
+		]]></isNotEmpty>
+		<isNotEmpty property="arc_period_type" prepend="AND">
+			A.ARC_PERIOD_TYPE	=	#arc_period_type#
+		</isNotEmpty>
+		<isNotEmpty property="arc_zone_type" prepend="AND">
+			A.ARC_ZONE_TYPE		=	#arc_zone_type#
+		</isNotEmpty>
+		<isNotEmpty property="arc_event_type" prepend="AND">
+			A.ARC_EVENT_TYPE	=	#arc_event_type#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+			LOWER(A.ARC_TITLE) LIKE '%' || LOWER(#search_word#) || '%'
+			</isEqual>
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM
+			ARC_CLS_MST A
+		<include refid="sqlList-1" />
+	</select>
+	
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ACM_CLS_CD
+			,A.ARC_TITLE
+			,A.ARC_GROUP_TITLE
+			,A.ARC_FILE_SUB_NAME
+			,A.ARC_THM_ID
+			,A.ARC_STATUS
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+			,TO_CHAR(A.ARC_CREATE_DATE, 'YYYY-MM-DD') ARC_CREATE_DATE
+		FROM
+			ARC_CLS_MST A
+		<include refid="sqlList-1" />
+		ORDER BY
+			ARC_CREATE_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE ARC_CLS_MST
+		SET
+			ARC_STATUS = #arc_status#
+		WHERE
+			ACM_CLS_CD IN
+		<iterate property="array.acm_cls_cds" open="(" conjunction="," close=")">
+			#array.acm_cls_cds[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM ARC_CLS_MST
+		WHERE
+			ACM_CLS_CD IN
+		<iterate property="array.acm_cls_cds" open="(" conjunction="," close=")">
+			#array.acm_cls_cds[]#
+		</iterate>
+	</delete>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ACM_CLS_CD
+			,A.ARC_THM_ID
+			,A.ARC_TITLE
+			,A.ARC_GROUP_TITLE
+			,A.ARC_STAFF
+			,A.ARC_SOURCE_DESC
+			,A.ARC_DATA_FORM
+			,A.ARC_URL
+			,A.ARC_EMAIL
+			,A.ARC_COPYRIGHT_FLAG
+			,A.ARC_MAKE_DATE
+			,A.ARC_KWD
+			,A.ARC_CREATE_BY
+			,A.ARC_UPDATE_BY
+			,A.ARC_PERIOD_TYPE
+			,A.ARC_ZONE_TYPE
+			,A.ARC_EVENT_TYPE
+			,A.ARC_SOURCE_TYPE
+			,A.ARC_FILE
+			,A.ARC_FILE_NAME
+			,A.ARC_FILE_SUB
+			,A.ARC_FILE_SUB_NAME
+			,A.ARC_PLY_CDE
+			,A.ARC_DIS_CDE
+			,A.ARC_STATUS
+			,A.ARC_SEQ
+			,NVL(A.VIEW_CNT, 0) VIEW_CNT
+			,TO_CHAR(A.ARC_CREATE_DATE, 'YYYY-MM-DD') ARC_CREATE_DATE
+			,TO_CHAR(A.ARC_UPDATE_DATE, 'YYYY-MM-DD') ARC_UPDATE_DATE
+		FROM
+			ARC_CLS_MST A
+		WHERE
+			A.ACM_CLS_CD = #acm_cls_cd#
+	</select>
+
+	<select id="contentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ACD_CONTENTS
+		FROM
+			ARC_CLS_DES A
+		WHERE
+			A.ACM_CLS_CD = #acm_cls_cd#
+	</select>
+
+	<select id="addContentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ACT_CONTENT_CD
+			,A.ACT_TITLE
+			,A.ACM_CLS_CD
+		FROM
+			ARC_CLS_CNT A
+		WHERE
+			A.ACM_CLS_CD = #acm_cls_cd#
+		ORDER BY
+			A.ACT_CONTENT_CD
+	</select>
+
+	<!--
+		,A.AMD_FILE
+		,A.AMD_FILE_SUB
+	-->
+	<select id="fileList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ACM_CLS_CD
+			,A.AMD_MED_CD
+			,A.AMD_TITLE
+			,A.AMD_MIME_TYPE
+			,A.AMD_FILE_NAME
+			,A.AMD_FILE_NAME_SUB
+			,A.AMD_FILE_SIZE
+			,A.AMD_ADULT_CHK
+		FROM
+			ARC_MED_INF A
+		WHERE
+			A.ACM_CLS_CD = #acm_cls_cd#
+	</select>
+
+	<select id="mapList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			MAP_M_TABLE_KEY_1
+			,MAP_M_TABLE_KEY_2
+			,MAP_SEQ
+			,MAP_S_TITLE
+			,DECODE(MAP_S_SYSTEM,
+				'VVM', '가치정보',
+				'THM', '기획테마',
+				'SPC', '문화예술스페셜',
+				'GUD', '관람지원정보',
+				'ARC', '아카이브',
+				'PET', '공연전시'
+			) MAP_S_SYSTEM_NAME
+		FROM
+			CMT_COM_MAP
+		WHERE
+			MAP_M_SYSTEM = 'ARC'
+		AND	MAP_M_TABLE_KEY_1	=	#acm_cls_cd#
+		AND	MAP_M_TABLE_KEY_2	=	#arc_thm_id#
+		ORDER BY
+			MAP_S_SYSTEM,
+			MAP_S_TITLE
+	</select>
+
+	<select id="indexList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_IDX_ID
+			,A.IDX_DTL_SEQ
+			,A.IDX_MAP_SEQ
+			,B.IDX_DTL_TITLE
+			,C.ARC_IDX_TITLE
+		FROM
+			ARC_IDX_MAP A
+			,ARC_IDX_DTL B
+			,ARC_IDX_MST C
+		WHERE
+			A.ARC_IDX_ID	=	B.ARC_IDX_ID
+		AND	A.IDX_DTL_SEQ	=	B.IDX_DTL_SEQ
+		AND	B.ARC_IDX_ID	=	C.ARC_IDX_ID
+		AND	A.ACM_CLS_CD	=	#acm_cls_cd#
+		ORDER BY
+			C.ARC_IDX_DESC
+			,A.IDX_DTL_SEQ
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO ARC_CLS_MST (
+			ACM_CLS_CD
+			,ARC_THM_ID
+			,ARC_TITLE
+			,ARC_GROUP_TITLE
+			,ARC_STAFF
+			,ARC_SOURCE_DESC
+			,ARC_DATA_FORM
+			,ARC_URL
+			,ARC_EMAIL
+			,ARC_COPYRIGHT_FLAG
+			,ARC_MAKE_DATE
+			,ARC_KWD
+			,ARC_CREATE_BY
+			,ARC_UPDATE_BY
+			,ARC_PERIOD_TYPE
+			,ARC_ZONE_TYPE
+			,ARC_EVENT_TYPE
+			,ARC_SOURCE_TYPE
+			,ARC_FILE_NAME
+			,ARC_FILE_SUB_NAME
+			,ARC_PLY_CDE
+			,ARC_DIS_CDE
+			,ARC_STATUS
+			,ARC_SEQ
+			,VIEW_CNT
+			,ARC_CREATE_DATE
+			,ARC_UPDATE_DATE
+		<isNotEmpty property="arc_file">
+			,ARC_FILE
+		</isNotEmpty>
+		<isNotEmpty property="arc_file_sub">
+			,ARC_FILE_SUB
+		</isNotEmpty>
+		) VALUES (
+			#acm_cls_cd#
+			,#arc_thm_id#
+			,#arc_title#
+			,#arc_group_title#
+			,#arc_staff#
+			,#arc_source_desc#
+			,#arc_data_form#
+			,#arc_url#
+			,#arc_email#
+			,#arc_copyright_flag#
+			,#arc_make_date#
+			,#arc_kwd#
+			,#session_admin_id#
+			,#session_admin_id#
+			,#arc_period_type#
+			,#arc_zone_type#
+			,#arc_event_type#
+			,#arc_source_type#
+			,#arc_file_name#
+			,#arc_file_sub_name#
+			,#arc_ply_cde#
+			,#arc_dis_cde#
+			,NVL(#arc_status#, '0')
+			,NVL(#arc_seq#, 0)
+			,NVL(#view_cnt#, 0)
+			,SYSDATE
+			,SYSDATE
+		<isNotEmpty property="arc_file">
+			,#arc_file:BLOB#
+		</isNotEmpty>
+		<isNotEmpty property="arc_file_sub">
+			,#arc_file_sub:BLOB#
+		</isNotEmpty>
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE ARC_CLS_MST
+		SET
+			ARC_THM_ID			=	#arc_thm_id#
+			,ARC_TITLE			=	#arc_title#
+			,ARC_GROUP_TITLE	=	#arc_group_title#
+			,ARC_STAFF			=	#arc_staff#
+			,ARC_SOURCE_DESC	=	#arc_source_desc#
+			,ARC_DATA_FORM		=	#arc_data_form#
+			,ARC_URL			=	#arc_url#
+			,ARC_EMAIL			=	#arc_email#
+			,ARC_COPYRIGHT_FLAG	=	#arc_copyright_flag#
+			,ARC_MAKE_DATE		=	#arc_make_date#
+			,ARC_KWD			=	#arc_kwd#
+			,ARC_UPDATE_BY		=	#session_admin_id#
+			,ARC_PERIOD_TYPE	=	#arc_period_type#
+			,ARC_ZONE_TYPE		=	#arc_zone_type#
+			,ARC_EVENT_TYPE		=	#arc_event_type#
+			,ARC_SOURCE_TYPE	=	#arc_source_type#
+			,ARC_FILE_NAME		=	#arc_file_name#
+			,ARC_FILE_SUB_NAME	=	#arc_file_sub_name#
+			,ARC_PLY_CDE		=	#arc_ply_cde#
+			,ARC_DIS_CDE		=	#arc_dis_cde#
+			,ARC_STATUS			=	#arc_status#
+			,ARC_SEQ			=	#arc_seq#
+			,ARC_UPDATE_DATE	=	SYSDATE
+		<isNotEmpty property="arc_file">
+			,ARC_FILE			=	#arc_file:BLOB#
+		</isNotEmpty>
+		<isNotEmpty property="arc_file_sub">
+			,ARC_FILE_SUB		=	#arc_file_sub:BLOB#
+		</isNotEmpty>
+		WHERE
+			ACM_CLS_CD = #acm_cls_cd#
+	</update>
+
+	<delete id="deleteContents" parameterClass="paramMap">
+		DELETE FROM ARC_CLS_DES 
+		WHERE
+			ACM_CLS_CD = #acm_cls_cd#
+	</delete>
+
+	<insert id="insertContents" parameterClass="paramMap">
+		INSERT INTO ARC_CLS_DES (
+			ACM_CLS_CD
+			,ACD_DES_ID
+			,ACD_CONTENTS
+		) VALUES (
+			#acm_cls_cd#
+			,#acd_des_id#
+			,#acd_contents#
+		)
+	</insert>
+
+
+
+
+<!-- 추가 내용 -->
+	<delete id="deleteByContent" parameterClass="paramMap">
+		DELETE FROM ARC_CLS_CNT
+		WHERE
+			ACM_CLS_CD		=	#acm_cls_cd#
+		AND	ACT_CONTENT_CD	=	#act_content_cd#
+	</delete>
+	<delete id="deleteByContentSub" parameterClass="paramMap">
+		DELETE FROM ARC_CNT_SUB
+		WHERE
+			ACM_CLS_CD		=	#acm_cls_cd#
+		AND	ACT_CONTENT_CD	=	#act_content_cd#  
+	</delete>
+	<insert id="insertByContent" parameterClass="paramMap">
+		<selectKey keyProperty="act_content_cd" resultClass="java.lang.String">
+			SELECT 
+				't' || LPAD(DECODE(COUNT(ACT_CONTENT_CD), 0, 1, MAX(SUBSTR(ACT_CONTENT_CD, 2, 3)) + 1 ), 3, '0')
+			FROM
+				ARC_CLS_CNT
+			WHERE
+				ACM_CLS_CD = #acm_cls_cd#
+		</selectKey>
+
+		INSERT INTO ARC_CLS_CNT (
+			ACM_CLS_CD
+			,ACT_CONTENT_CD
+			,ACT_TITLE
+		) VALUES (
+			#acm_cls_cd#
+			,#act_content_cd#
+			,#act_title#
+		)
+	</insert>	
+	<insert id="insertByContentSub" parameterClass="paramMap">
+		<selectKey keyProperty="acs_sub_id" type="pre" resultClass="int">
+			SELECT
+				NVL(MAX(ACS_SUB_ID), 0) + 1
+			FROM
+				ARC_CNT_SUB
+			WHERE
+				ACM_CLS_CD		=	#acm_cls_cd#
+			AND	ACT_CONTENT_CD	=	#act_content_cd#
+		</selectKey>
+
+		INSERT INTO ARC_CNT_SUB (
+			ACM_CLS_CD
+			,ACT_CONTENT_CD
+			,ACS_SUB_ID
+			,ACS_CONTENTS
+		) VALUES (
+			#acm_cls_cd#
+			,#act_content_cd#
+			,#acs_sub_id#
+			,#acs_contents#
+		)
+	</insert>
+<!-- // 추가 내용 -->
+	
+	
+	
+<!-- 파일 -->
+	<delete id="deleteByFile" parameterClass="paramMap">
+		DELETE FROM ARC_MED_INF
+		WHERE
+			ACM_CLS_CD	=	#acm_cls_cd#
+		AND	AMD_MED_CD	=	#amd_med_cd#
+	</delete>
+	<insert id="insertByFile" parameterClass="paramMap">
+		<selectKey keyProperty="amd_med_cd" resultClass="java.lang.String">
+			SELECT
+				#file_type# || LPAD(DECODE(COUNT(AMD_MED_CD), 0, 1, MAX(SUBSTR(AMD_MED_CD, 2, 3)) + 1), 3, '0')
+			FROM
+				ARC_MED_INF
+			WHERE
+				ACM_CLS_CD = #acm_cls_cd#
+		</selectKey>
+
+		INSERT INTO ARC_MED_INF(
+			ACM_CLS_CD
+			,AMD_MED_CD
+			,AMD_TITLE
+			,AMD_MIME_TYPE
+			,AMD_ADULT_CHK
+		<isNotEmpty property="amd_file">
+			,AMD_FILE
+			,AMD_FILE_NAME
+			,AMD_FILE_SIZE
+		</isNotEmpty>
+		<isNotEmpty property="amd_file_sub">
+			,AMD_FILE_SUB
+			,AMD_FILE_NAME_SUB
+		</isNotEmpty>
+		) VALUES (
+			#acm_cls_cd#
+			,#amd_med_cd#
+			,#amd_title#
+			,#amd_mime_type#
+			,#amd_adult_chk#
+		<isNotEmpty property="amd_file">
+			,#amd_file:BLOB#
+			,#amd_file_name#
+			,#amd_file_size#
+		</isNotEmpty>
+		<isNotEmpty property="amd_file_sub">
+			,#amd_file_sub:BLOB#
+			,#amd_file_name_sub#
+		</isNotEmpty>
+		)
+	</insert>
+<!-- // 파일 -->	
+	
+	
+	
+<!-- 매핑 -->
+	<delete id="deleteByMap" parameterClass="paramMap">
+		DELETE FROM CMT_COM_MAP
+		WHERE
+			MAP_SEQ IN
+		<iterate property="array.map_seqs" open="(" conjunction="," close=")">
+			#array.map_seqs[]#
+		</iterate>
+	</delete>
+	<insert id="insertByMap" parameterClass="paramMap">
+		INSERT INTO CMT_COM_MAP (
+			MAP_SEQ
+			,MAP_M_SYSTEM
+			,MAP_S_SYSTEM
+			,MAP_M_TABLE_KEY_1
+			,MAP_M_TABLE_KEY_2
+			,MAP_S_TABLE_KEY_1
+			,MAP_S_TABLE_KEY_2
+			,MAP_M_TITLE
+			,MAP_S_TITLE
+		) VALUES (
+			(SELECT NVL(MAX(MAP_SEQ), 0) + 1 FROM CMT_COM_MAP)
+			,'ARC'
+			,#stype#
+			,#acm_cls_cd#
+			,#arc_thm_id#
+			,#seq1#
+			,#seq2#
+			,(SELECT ARC_TITLE FROM ARC_CLS_MST WHERE ACM_CLS_CD = #acm_cls_cd# AND ARC_THM_ID = #arc_thm_id#),
+		<isEqual property="stype" compareValue="PET">
+			(SELECT TITLE FROM CMT_CCT_SCD WHERE FRAC = #seq1# AND SEQ = #seq2#)
+		</isEqual>
+		<isEqual property="stype" compareValue="ARC">
+			(SELECT ARC_TITLE FROM arc_cls_mst WHERE acm_cls_cd = #seq1# AND arc_thm_id = #seq1#)
+		</isEqual>
+		<isNotEqual property="stype" compareValue="PET">
+			<isNotEqual property="stype" compareValue="ARC">
+			(SELECT VVM_TITLE FROM VLI_VLI_MST WHERE VVM_SEQ = #seq1#)
+			</isNotEqual>
+		</isNotEqual>
+		)
+	</insert>
+
+	<select id="getMapListForArchiveCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM ARC_CLS_MST A
+		WHERE ARC_STATUS &lt;&gt; '2'
+	<isNotEmpty property="sword" prepend="AND">
+		<isEqual property="skey" compareValue="content">
+		ACM_CLS_CD IN (SELECT ACM_CLS_CD FROM ARC_CNT_SUB WHERE ACS_CONTENTS LIKE '%'||#sword#||'%')
+		</isEqual>
+		<isEqual property="skey" compareValue="title">
+		ARC_TITLE LIKE '%'||#sword#||'%'
+		</isEqual>
+		<isEqual property="skey" compareValue="keyword">
+		ARC_KWD LIKE '%'||#sword#||'%'
+		</isEqual>
+	</isNotEmpty>
+	</select>
+	<select id="getMapListForArchive" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM (
+			SELECT /*+INDEX_DESC(A IDX_ARC_CLS_MST_PK) */
+				ROWNUM NUM, ACM_CLS_CD SEQ1, ARC_THM_ID SEQ2, ARC_TITLE TITLE
+			FROM ARC_CLS_MST A
+			WHERE ARC_STATUS &lt;&gt; '2'
+			AND ROWNUM &lt;= (#page_no# * #list_unit#)
+		<isNotEmpty property="sword" prepend="AND">
+			<isEqual property="skey" compareValue="content">
+			ACM_CLS_CD IN (SELECT ACM_CLS_CD FROM ARC_CNT_SUB WHERE ACS_CONTENTS LIKE '%'||#sword#||'%')
+			</isEqual>
+			<isEqual property="skey" compareValue="title">
+			ARC_TITLE LIKE '%'||#sword#||'%'
+			</isEqual>
+			<isEqual property="skey" compareValue="keyword">
+			ARC_KWD LIKE '%'||#sword#||'%'
+			</isEqual>
+		</isNotEmpty>
+		)
+		WHERE NUM &gt;= ((#page_no# - 1) * #list_unit# + 1)
+	</select>
+	
+	<select id="getMapListForPerformCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM CMT_CCT_SCD
+		WHERE POST_FLAG = 'Y'
+		<isNotEmpty property="sword" prepend="AND">
+			<isEqual property="skey" compareValue="content">
+			CONTENTS1 LIKE '%'||#sword#||'%'
+			</isEqual>
+			<isEqual property="skey" compareValue="title">
+			TITLE LIKE '%'||#sword#||'%'
+			</isEqual>
+			<isEqual property="skey" compareValue="keyword">
+			TITLE LIKE '%'||#sword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	<select id="getMapListForPerform" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM (
+			SELECT /*+INDEX_DESC(A SYS_C0010450) */
+			  ROWNUM NUM, FRAC SEQ1, SEQ SEQ2, TITLE, (SELECT CCM_TITLE FROM CAI_CAI_MST WHERE CCM_CODE = A.CCM_CODE) CCM_NAME
+			FROM CMT_CCT_SCD A
+			WHERE POST_FLAG = 'Y'
+			AND ROWNUM &lt;= (#page_no# * #list_unit#)
+			<isNotEmpty property="sword" prepend="AND">
+				<isEqual property="skey" compareValue="content">
+				CONTENTS1 LIKE '%'||#sword#||'%'
+				</isEqual>
+				<isEqual property="skey" compareValue="title">
+				TITLE LIKE '%'||#sword#||'%'
+				</isEqual>
+				<isEqual property="skey" compareValue="keyword">
+				TITLE LIKE '%'||#sword#||'%'
+				</isEqual>
+			</isNotEmpty>
+		)
+		WHERE NUM &gt;= ((#page_no# - 1) * #list_unit# + 1)
+	</select>
+	
+	<select id="getMapListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM VLI_VLI_MST A
+		WHERE CCM_CODE NOT IN ('D111','D112','D121','D131','D141','D151','D161','D171','D181','D191')
+		AND VVM_STATUS = '0'
+	<isEqual property="sType" compareValue="VVM" prepend="AND">
+		VVM_TYPE = '0'
+	</isEqual>
+	<isEqual property="sType" compareValue="THM" prepend="AND">
+		VVM_TYPE = '6'
+	</isEqual>
+	<isEqual property="sType" compareValue="SPC" prepend="AND">
+		VVM_TYPE = '1'
+	</isEqual>
+	<isEqual property="sType" compareValue="GUD" prepend="AND">
+		VVM_TYPE = '7'
+	</isEqual>
+	<isNotEmpty property="sword" prepend="AND">
+		<isEqual property="skey" compareValue="content">
+		VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sword#||'%')
+		</isEqual>
+		<isEqual property="skey" compareValue="title">
+		VVM_TITLE LIKE '%'||#sword#||'%'
+		</isEqual>
+		<isEqual property="skey" compareValue="keyword">
+		VVM_KWD LIKE '%'||#sword#||'%'
+		</isEqual>
+	</isNotEmpty>
+	</select>
+	<select id="getMapList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * 
+		FROM (
+			SELECT /*+INDEX_DESC(A IDX_VVM_PK)*/
+				ROWNUM NUM, VVM_SEQ SEQ1, VVM_TITLE TITLE, (SELECT CCM_TITLE FROM CAI_CAI_MST WHERE CCM_CODE = A.CCM_CODE) CCM_NAME
+			FROM VLI_VLI_MST A
+			WHERE CCM_CODE NOT IN ('D111','D112','D121','D131','D141','D151','D161','D171','D181','D191')
+			AND VVM_STATUS = '0'
+			AND ROWNUM &lt;= (#page_no# * #list_unit#)
+		<isEqual property="sType" compareValue="VVM" prepend="AND">
+			VVM_TYPE = '0'
+		</isEqual>
+		<isEqual property="sType" compareValue="THM" prepend="AND">
+			VVM_TYPE = '6'
+		</isEqual>
+		<isEqual property="sType" compareValue="SPC" prepend="AND">
+			VVM_TYPE = '1'
+		</isEqual>
+		<isEqual property="sType" compareValue="GUD" prepend="AND">
+			VVM_TYPE = '7'
+		</isEqual>
+		<isNotEmpty property="sword" prepend="AND">
+			<isEqual property="skey" compareValue="content">
+			VVM_SEQ IN (SELECT VVM_SEQ FROM VLI_ADD_CNT WHERE VAC_CONTENTS LIKE '%'||#sword#||'%')
+			</isEqual>
+			<isEqual property="skey" compareValue="title">
+			VVM_TITLE LIKE '%'||#sword#||'%'
+			</isEqual>
+			<isEqual property="skey" compareValue="keyword">
+			VVM_KWD LIKE '%'||#sword#||'%'
+			</isEqual>
+		</isNotEmpty>
+		)
+		WHERE NUM &gt;= ((#page_no# - 1) * #list_unit# + 1)
+	</select>
+<!-- // 매핑 -->
+
+
+
+<!-- 색인 -->
+	<delete id="deleteByIndex" parameterClass="paramMap">
+		DELETE FROM ARC_IDX_MAP
+		WHERE
+			ACM_CLS_CD	=	#acm_cls_cd#
+		AND	IDX_MAP_SEQ	=	#idx_map_seq#
+	</delete>
+	<insert id="insertByIndex" parameterClass="paramMap">
+		<selectKey keyProperty="idx_map_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(IDX_MAP_SEQ), 0) + 1 FROM ARC_IDX_MAP WHERE ACM_CLS_CD = #acm_cls_cd#
+		</selectKey>
+		INSERT INTO ARC_IDX_MAP (
+			ACM_CLS_CD
+			,ARC_IDX_ID
+			,IDX_DTL_SEQ
+			,IDX_MAP_SEQ
+		) VALUES (
+			#acm_cls_cd#
+			,#arc_idx_id#
+			,#idx_dtl_seq#
+			,#idx_map_seq#
+		)
+	</insert>
+	<select id="getArchiveIdxPopSelectList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT ARC_IDX_ID, ARC_IDX_TITLE
+		FROM ARC_IDX_MST
+		ORDER BY ARC_IDX_ID
+	</select>
+	<select id="getArchiveIdxPopListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM ARC_IDX_MST A, ARC_IDX_DTL B
+		WHERE A.ARC_IDX_ID  =  B.ARC_IDX_ID
+		AND A.ARC_IDX_ID = #arc_idx_id#
+		ORDER BY A.ARC_IDX_DESC, B.IDX_DTL_TITLE
+	</select>
+	<select id="getArchiveIdxPopList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM (
+			SELECT ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+					A.ARC_IDX_ID, A.ARC_IDX_TITLE, B.IDX_DTL_SEQ, B.IDX_DTL_TITLE
+				FROM ARC_IDX_MST A, ARC_IDX_DTL B
+				WHERE A.ARC_IDX_ID  =  B.ARC_IDX_ID
+				AND A.ARC_IDX_ID = #arc_idx_id#
+				ORDER BY A.ARC_IDX_DESC, B.IDX_DTL_TITLE
+			) A
+			WHERE ROWNUM &lt;= (#page_no# * #list_unit#)
+		)
+		WHERE NUM &gt;= ((#page_no# - 1) * #list_unit# + 1)
+	</select>
+<!-- // 색인 -->
+
+</sqlMap>

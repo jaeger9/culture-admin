@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="portalEvent">
+
+	<select id="eventEntryCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* portalEvent.eventEntryCnt */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_ENTRY
+		WHERE 1=1
+		<isNotEmpty property="event_name">
+				AND EVENT = #event_name#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="title">
+				AND TITLE LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword2">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword2#||'%' OR HP LIKE '%'||#search_keyword2#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword2#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP LIKE '%'||#search_keyword2#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	
+	
+	<select id="eventEntryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* portalEvent.eventEntryList */
+				   EVENT
+				 , SEQ
+			     , USER_NM
+			     , HP
+			     , EMAIL
+			     , TITLE
+			     , REG_DATE
+			     , POLL_NUM
+			     , BIRTHDAY
+			     , DESCRIPTION
+			     , PAGE
+		  FROM (SELECT EVENT, SEQ, USER_NM, HP, EMAIL, TITLE, REG_DATE, POLL_NUM, BIRTHDAY, DESCRIPTION,
+					 FLOOR ((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			          FROM CULTURE_EVENT_ENTRY
+					 WHERE 1=1
+			<isNotEmpty property="event_name">
+					AND EVENT = #event_name# 
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="title">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword2">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword2#||'%' OR HP LIKE '%'||#search_keyword2#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword2#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP LIKE '%'||#search_keyword2#||'%'
+				</isEqual>
+			</isNotEmpty>
+		)
+		WHERE PAGE = #page_no#
+	</select>
+		
+	<select id="eventEntryView" parameterClass="paramMap" resultClass="commonMap">
+		 SELECT /* portalEvent.eventEntryView */
+		 	SEQ, EVENT, USER_NM, PASSWORD, HP, EMAIL, TITLE, DESCRIPTION, REG_DATE, REG_IP, UPD_DATE, UPD_IP
+		 FROM CULTURE_EVENT_ENTRY
+		 WHERE SEQ = #seq#
+	</select>
+	
+	<select id="eventEntryExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* portalEvent.eventEntryExcelList */
+			ROWNUM "num", "user_nm", "email", "hp", "title", "description", "reg_date"
+		FROM(
+			SELECT
+				USER_NM "user_nm", NVL(EMAIL, '-') "email", NVL(HP, '-') "hp", NVL(TITLE,'-') "title", NVL(DESCRIPTION,'-') "description", REG_DATE "reg_date"
+			 FROM CULTURE_EVENT_ENTRY
+			WHERE EVENT = #event#
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="title">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+			ORDER BY REG_DATE
+		)
+	</select>
+	
+	
+	<select id="shareEventCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* portalEvent.shareEventCnt */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_SHARE
+		WHERE GUBUN = #gubun#
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			AND SUMMARY LIKE '%'||#search_keyword#||'%'
+		</isNotEmpty>
+	</select>
+	
+	
+	<select id="shareEventList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* portalEvent.shareEventList */
+			SEQ, USER_NM, HP_NO, URL, REG_DATE, REG_IP, SUMMARY, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, HP_NO, URL, REG_DATE, REG_IP, SUMMARY, 
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_SHARE
+			WHERE GUBUN = #gubun#
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				AND SUMMARY LIKE '%'||#search_keyword#||'%'
+			</isNotEmpty>	
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<delete id="shareEventDelete" parameterClass="paramMap">
+		DELETE FROM CULTURE_EVENT_SHARE
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+	
+	
+	<select id="pollState" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* portalEvent.pollState */
+			POLL_NUM, COUNT(*) CNT
+		FROM CULTURE_EVENT_ENTRY
+		WHERE EVENT = #event#
+		GROUP BY POLL_NUM
+		ORDER BY POLL_NUM
+	</select>
+	
+	<select id="voterExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* portalEvent.voterExcelList */
+			ROWNUM "num", "user_nm", "birthday", "hp", "poll_num", "reg_date"
+		FROM(
+			SELECT
+				USER_NM "user_nm", NVL(BIRTHDAY, '-') "birthday", NVL(HP, '-') "hp"
+                , CASE
+                	WHEN POLL_NUM = 1 THEN '골목매표소'
+                	WHEN POLL_NUM = 2 THEN '문화N티켓'
+                    WHEN POLL_NUM = 3 THEN '문화상회(文化商會)'
+                    WHEN POLL_NUM = 4 THEN '소중한 티켓'
+                    WHEN POLL_NUM = 5 THEN '문화누리마루'
+                	END "poll_num"
+                , REG_DATE "reg_date"
+			 FROM CULTURE_EVENT_ENTRY
+			WHERE EVENT = #event#
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword2">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword2#||'%' OR HP LIKE '%'||#search_keyword2#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword2#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP LIKE '%'||#search_keyword2#||'%'
+				</isEqual>
+			</isNotEmpty>	
+			ORDER BY REG_DATE
+		)
+	</select>
+	
+	
+	<select id="eventEntryExcelList_GoldenWeek" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* portalEvent.eventEntryExcelList */
+			ROWNUM "num", "user_nm", "description", "birthday", "hp", "reg_date"
+		FROM(
+			SELECT
+				USER_NM "user_nm", DESCRIPTION "description", NVL(BIRTHDAY, '-') "birthday", NVL(HP, '-') "hp", REG_DATE "reg_date"
+			 FROM CULTURE_EVENT_ENTRY
+			WHERE 1=1
+			<isNotEmpty property="event_name">
+				AND EVENT = #event_name#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="title">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+			ORDER BY REG_DATE
+		)
+	</select>
+	
+	<select id="eventStateList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			ROWNUM NUM, REG_DATE, CNT
+		FROM(
+		  SELECT
+		      TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE, COUNT(*) CNT
+		  FROM CULTURE_EVENT_ENTRY
+		WHERE 1=1
+			<isNotEmpty property="event_name">
+				AND EVENT = #event_name#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+				REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			]]></isNotEmpty>
+			<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+				REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			]]></isNotEmpty>
+		  GROUP BY TO_CHAR(REG_DATE,'YYYY-MM-DD')
+		)ORDER BY REG_DATE DESC
+	</select>
+	
+	<select id="eventTotal" parameterClass="paramMap" resultClass="commonMap">
+		SELECT COUNT(*) DAY_CNT
+		         , SUM(CNT) ALL_CNT
+		  FROM ( SELECT TO_CHAR(REG_DATE,'YYYY-MM-DD')
+		                     , COUNT(*) CNT
+		   			   FROM CULTURE_EVENT_ENTRY
+	    WHERE 1=1
+			<isNotEmpty property="event_name">
+		    	AND EVENT = #event_name#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+				REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			]]></isNotEmpty>
+			<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+				REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			]]></isNotEmpty>
+		  GROUP BY TO_CHAR(REG_DATE,'YYYY-MM-DD')
+		)
+	</select>
+	
+</sqlMap>

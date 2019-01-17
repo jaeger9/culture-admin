@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configs encCheck="true" encCheckGap="5">
+	<Skin url="/player/configs/skin.xml"/>
+	<CF url="/player/configs/cf.xml?mode=service"/>
+	<Movie url="http://enc.culture.go.kr:8080/interfaces/movieinfo.asp?method=getMovieInfo"/>
+</Configs>

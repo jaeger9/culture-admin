@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="adminRole">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+			(
+				LOWER(A.ROLE_ID)			LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.NAME)				LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.DESCRIPTION)		LIKE LOWER('%' || #search_word# || '%')
+			)
+			</isEqual>
+			<isEqual property="search_type" compareValue="role_id" prepend="AND">
+				LOWER(A.ROLE_ID)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+				LOWER(A.NAME)				LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.DESCRIPTION)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="create_date_start" prepend="AND"><![CDATA[
+			A.CREATE_DATE >= TO_DATE(#create_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="create_date_end" prepend="AND"><![CDATA[
+			A.CREATE_DATE <= TO_DATE(#create_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_start" prepend="AND"><![CDATA[
+			NVL(A.MODIFY_DATE, A.CREATE_DATE) >= TO_DATE(#modify_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_end" prepend="AND"><![CDATA[
+			NVL(A.MODIFY_DATE, A.CREATE_DATE) <= TO_DATE(#modify_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			ADMIN_ROLE A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ROLE_ID
+			,A.NAME
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE
+			,TO_CHAR(A.MODIFY_DATE, 'YYYY-MM-DD') MODIFY_DATE
+		FROM
+			ADMIN_ROLE A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.MODIFY_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ROLE_ID
+			,A.NAME
+			,A.DESCRIPTION
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD') CREATE_DATE
+			,TO_CHAR(A.MODIFY_DATE, 'YYYY-MM-DD') MODIFY_DATE
+		FROM
+			ADMIN_ROLE A
+		WHERE
+			A.ROLE_ID = #role_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO ADMIN_ROLE (
+			ROLE_ID
+			,NAME
+			,DESCRIPTION
+			,CREATE_DATE
+			,MODIFY_DATE
+		) VALUES ( 
+			#role_id#
+			,#name#
+			,#description#
+			,sysdate
+			,sysdate
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE ADMIN_ROLE
+		SET
+			NAME			=	#name#
+			,DESCRIPTION	=	#description#
+			,MODIFY_DATE	=	SYSDATE
+		WHERE
+			ROLE_ID = #role_id#
+	</update>
+
+	<!--
+		ADMIN_ROLE
+		[FK] ADMIN_USER_ROLE : adminMemberRole.deleteByRoleId
+		[FK] ADMIN_URL_ROLE	: adminUrlRole.deleteByRoleId
+
+		으로 역순으로 지움
+	-->
+	<delete id="deleteByRoleId" parameterClass="paramMap">
+		DELETE FROM ADMIN_ROLE
+		WHERE
+			ROLE_ID IN
+		<iterate property="array.role_ids" open="(" conjunction="," close=")">
+			#array.role_ids[]#
+		</iterate>
+	</delete>
+
+	<!-- admin user 등록 시 id 중복 체크 -->
+	<select id="countByRoleId" parameterClass="string" resultClass="int">
+		SELECT COUNT(1) FROM ADMIN_ROLE WHERE ROLE_ID = #value#
+	</select>
+
+</sqlMap>

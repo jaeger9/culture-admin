@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="column">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM
+		(
+			SELECT
+				 
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY I.REG_DATE DESC nulls last )-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY I.REG_DATE DESC nulls last )-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY I.VIEW_CNT DESC nulls last )-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, I.UCI
+				, I.TITLE
+				, I.PUBLISHER
+				, (SELECT NAME FROM UCI_ORG WHERE ORG_CODE = I.PUBLISHER) SOURCE
+				, TO_CHAR(I.REG_DATE , 'YYYY-MM-DD') REG_DATE
+				, I.VIEW_CNT 
+				, CASE WHEN I.APPROVAL = 'N' THEN 'N' WHEN I.APPROVAL = 'Y' THEN 'Y' ELSE 'Y' END APPROVAL
+			FROM 
+		  		MV_RDF_METADATA_INFO I 
+			WHERE
+		  		TYPE = '48'
+				<isNotEmpty property="keyword">
+					<isEqual property="searchGubun" compareValue="" prepend="AND">
+						(TITLE LIKE '%' || #keyword# || '%' OR DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE LIKE '%' || #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="description" prepend="AND">
+						DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					APPROVAL = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+		)  R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)  
+		FROM 
+	  		MV_RDF_METADATA_INFO I 
+		WHERE
+	  		TYPE = '48'
+			<isNotEmpty property="keyword">
+				<isEqual property="searchGubun" compareValue="" prepend="AND">
+					(TITLE LIKE '%' || #keyword# || '%' OR DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="description" prepend="AND">
+					DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+		  	I.TITLE
+		  	, I.ALTERNATIVE_TITLE
+		  	, I.CREATOR
+		  	, TO_CHAR(I.REG_DATE , 'YYYY-MM-DD') REG_DATE
+		  	, I.PUBLISHER 
+		  	, (SELECT NAME FROM UCI_ORG WHERE ORG_CODE = I.PUBLISHER) SOURCE
+		  	, I.COLLECTION_DB 
+		  	, I.UCI
+		  	, I.URL
+		  	, I.DESCRIPTION
+		  	, I.VIEW_CNT 
+		  	, CASE WHEN I.APPROVAL = 'N' THEN 'N' WHEN I.APPROVAL = 'Y' THEN 'Y' ELSE 'Y' END APPROVAL
+		  	, DESCRIPTION
+		FROM 
+		  	MV_RDF_METADATA_INFO I 
+		WHERE
+			UCI = #uci#
+	</select>
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			MV_RDF_METADATA_INFO 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.uci" prepend="UCI IN " open="(" conjunction="," close=")" >
+ 			#array.uci[]#
+		</iterate>
+	</update>
+</sqlMap>

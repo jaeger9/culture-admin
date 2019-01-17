@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="archiveIndex">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<!-- 예술자료전시관 > 아카이브색인관리 -->
+	<select id="listByCategory" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_IDX_ID
+			,A.ARC_IDX_TITLE
+		FROM
+			ARC_IDX_MST A
+		ORDER BY
+			A.ARC_IDX_ID
+	</select>
+	
+	<sql id="sqlList-1">
+		WHERE
+			A.ARC_IDX_ID	=	B.ARC_IDX_ID
+		<isNotEmpty property="arc_idx_id" prepend="AND">
+			A.ARC_IDX_ID	=	#arc_idx_id#
+		</isNotEmpty>
+	</sql>
+	
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			ARC_IDX_MST A
+			,ARC_IDX_DTL B
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.ARC_IDX_DESC
+			,B.IDX_DTL_TITLE
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ARC_IDX_ID
+			,A.ARC_IDX_TITLE
+			,B.IDX_DTL_SEQ
+			,B.IDX_DTL_TITLE
+		FROM
+			ARC_IDX_MST A
+			,ARC_IDX_DTL B
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.ARC_IDX_DESC
+			,B.IDX_DTL_TITLE
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.* 
+		FROM
+			ARC_IDX_DTL A
+		WHERE
+			A.IDX_DTL_SEQ	=	#idx_dtl_seq#
+		AND	A.ARC_IDX_ID	=	#arc_idx_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="idx_dtl_seq" type="pre" resultClass="int">
+			SELECT
+				NVL(MAX(IDX_DTL_SEQ), 0) + 1
+			FROM
+				ARC_IDX_DTL
+			WHERE
+				ARC_IDX_ID = #arc_idx_id#
+		</selectKey>
+
+		INSERT INTO ARC_IDX_DTL (
+			ARC_IDX_ID
+			,IDX_DTL_SEQ
+			,IDX_DTL_TITLE
+			,IDX_DTL_DESC
+		) VALUES (
+			#arc_idx_id#
+			,#idx_dtl_seq#
+			,#idx_dtl_title#
+			,#idx_dtl_desc#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE ARC_IDX_DTL
+		SET
+			IDX_DTL_TITLE	=	#idx_dtl_title#
+			,IDX_DTL_DESC	=	#idx_dtl_desc#
+		WHERE
+			ARC_IDX_ID	=	#arc_idx_id#
+		AND IDX_DTL_SEQ	=	#idx_dtl_seq#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM ARC_IDX_DTL
+		WHERE
+			IDX_DTL_SEQ	=	#idx_dtl_seq#
+		AND	ARC_IDX_ID	=	#arc_idx_id#
+	</delete>
+
+</sqlMap>

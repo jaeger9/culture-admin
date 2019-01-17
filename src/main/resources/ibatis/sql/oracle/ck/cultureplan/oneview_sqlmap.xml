@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="oneview">
+	<select id="list" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$ + 1) AS PAGE
+			  	, SEQ 
+			  	, TITLE 
+			  	, MENU_CD 
+			  	, DECODE(CONT_TYPE , 1 , '보도자료' , 2 , '언론보도' , 3 , '관련영상' , 4 , '인포그래픽' , '기타') AS CONT_TYPE
+			  	, URL
+			  	, ORIGIN
+			  	, THUMB_URL
+			  	, REG_DATE
+			  	, USER_ID
+			  	, DECODE(APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			  	, NVL2( HIT , HIT , 0 ) AS HIT
+			FROM 
+			  	PORTAL_LINK_NEWS
+			WHERE
+				MENU_CD = 1
+			    <isNotEmpty property="title" prepend="AND">
+					TITLE LIKE '%'|| #title# ||'%'
+				</isNotEmpty>
+				<isNotEmpty property="approval" prepend="AND">
+					APPROVAL = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="cont_type" prepend="AND">
+					CONT_TYPE = #cont_type#
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	
+	
+			
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+			COUNT(1)
+		FROM 
+		  	PORTAL_LINK_NEWS
+		WHERE
+			MENU_CD = 1
+		    <isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'|| #title# ||'%'
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="cont_type" prepend="AND">
+				CONT_TYPE = #cont_type#
+			</isNotEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+		  	, TITLE
+		  	, CONT_TYPE
+		  	, URL
+		  	, ORIGIN
+		  	, THUMB_URL
+		  	, APPROVAL
+		FROM
+			PORTAL_LINK_NEWS
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_LINK_NEWS
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(seq), 0) + 1 FROM PORTAL_LINK_NEWS
+		</selectKey>
+		INSERT INTO PORTAL_LINK_NEWS
+		(
+			SEQ
+			, TITLE
+			, MENU_CD
+			, CONT_TYPE
+			, URL
+			, ORIGIN
+			, THUMB_URL
+			, REG_DATE
+			, USER_ID
+			, APPROVAL
+			, HIT
+		) VALUES(
+			#seq#
+			, #title#
+			, '1'
+			, #cont_type#
+			, #url#
+			, #origin#
+			, #thumb_url#
+			, SYSDATE
+			, #session_admin_id#
+			, #approval#
+			, 0
+		)
+	
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PORTAL_LINK_NEWS
+		SET
+			TITLE					=#title#
+		  	, CONT_TYPE				=#cont_type#
+		  	, URL					=#url#
+		  	, ORIGIN				=#origin#
+		  	, THUMB_URL				=#thumb_url#
+		  	, APPROVAL				=#approval#
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_LINK_NEWS 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="webzine.popup">
+	<select id="culturecolumnList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM
+		(
+			SELECT
+				A.SEQ
+				, A.TITLE
+				, A.IMG_URL
+				, A.INUMBER
+				, A.THUMB_URL
+        		, (SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE = TO_CHAR(B.TYPE) AND TYPE = 'WRITER_CD') SOURCE_NAME
+        		, CONTENT
+				, FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+			FROM 
+				PCN_RECOM_CULTURE A,
+				PORTAL_STORY_AUTHOR B
+			WHERE
+				A.AUTHOR_SEQ = B.SEQ(+)
+				AND A.CONT_TYPE = 'C'
+				AND	A.APPROVAL = 'Y'
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(A.TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						A.TITLE LIKE '%' || #searchKeyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content">
+						A.CONTENT LIKE '%' || #searchKeyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="editor_org" prepend="AND">
+					A.EDITOR_ORG = #editor_org#
+				</isNotEmpty>
+				<isNotEmpty property="editor_name" prepend="AND">
+					A.EDITOR_NAME = #editor_name#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(A.TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						A.TITLE LIKE '%' || #searchKeyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content">
+						A.CONTENT LIKE '%' || #searchKeyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="search_type" prepend="AND">
+					B.TYPE = #search_type#
+				</isNotEmpty>
+			) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="culturecolumnListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_RECOM_CULTURE A,
+			PORTAL_STORY_AUTHOR B
+		WHERE
+			A.AUTHOR_SEQ = B.SEQ(+)
+			AND A.CONT_TYPE = 'C'
+			AND	A.APPROVAL = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(A.TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					A.TITLE LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content">
+					A.CONTENT LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="editor_org" prepend="AND">
+				A.EDITOR_ORG = #editor_org#
+			</isNotEmpty>
+			<isNotEmpty property="editor_name" prepend="AND">
+				A.EDITOR_NAME = #editor_name#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(A.TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENT LIKE '%' || #searchKeyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					A.TITLE LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content">
+					A.CONTENT LIKE '%' || #searchKeyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_type" prepend="AND">
+				B.TYPE = #search_type#
+			</isNotEmpty>
+	</select>
+	<select id="eventBannerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM (
+			SELECT /*+INDEX_DESC(A PCN_MAIN_BANNER_PK)*/
+				FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$ + 1) AS PAGE
+				,TITLE
+				,URL
+				,'/upload/banner/' || IMAGE_NAME AS IMAGE
+				,START_DATE AS START_DT
+				,END_DATE AS END_DT
+				,REG_DATE
+			FROM
+				PCN_MAIN_BANNER A
+			WHERE
+				MENU_TYPE	=	'205'
+				AND STATUS = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%'||#searchKeyword#||'%'
+			</isNotEmpty>
+		) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="eventBannerListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PCN_MAIN_BANNER A
+		WHERE
+			MENU_TYPE	=	'205'
+			AND STATUS = 'Y'
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+	</select>
+	<select id="infoList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			URL, TITLE, TYPE ,UCI, REG_DATE CONT_DATE, CREATOR RIGHTS
+		FROM (
+			SELECT ROWNUM NUM, A.*
+			FROM (
+				SELECT *
+				FROM (
+					SELECT /*+INDEX_DESC(A IDX_RDF_METADATA_04)*/
+						URL, TITLE, TYPE, REG_DATE, UCI, CREATOR
+					FROM MV_RDF_METADATA_INFO A
+					WHERE REG_DATE IS NOT NULL AND REG_DATE &lt; SYSDATE
+					AND
+					<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+						#type[]#
+					</iterate>
+					AND NVL(APPROVAL, 'Y') = 'Y'
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						( 	
+							TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+							CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+							DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+						)	
+					</isNotEmpty>
+						UNION ALL
+					SELECT /*+INDEX_DESC(A PCN_INFO_BOARD_IDX01)*/
+						URL, TITLE, TYPE, REG_DATE, UCI, CREATOR
+					FROM PCN_INFO_BOARD A
+					WHERE REG_DATE IS NOT NULL 
+					AND
+					<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+						#type[]#
+					</iterate>
+					AND NVL(APPROVAL, 'Y') = 'Y'
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						( 	
+							TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+							CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+							DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+						)	
+					</isNotEmpty>
+				) A
+				ORDER BY REG_DATE DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="infoListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT SUM(CNT) 
+		FROM (
+			SELECT COUNT(1) CNT
+			FROM MV_RDF_METADATA_INFO  
+			WHERE 
+			<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+				#type[]#
+			</iterate>
+			AND REG_DATE IS NOT NULL AND REG_DATE &lt; SYSDATE
+			AND NVL(APPROVAL, 'Y') = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( 	
+					TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+					CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+					DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+				)	
+			</isNotEmpty>
+				UNION ALL
+			SELECT COUNT(1) CNT 
+			FROM PCN_INFO_BOARD
+			WHERE 
+			<iterate property="type" open="(TYPE LIKE '%'||" close="||'%')" conjunction="||'%' OR TYPE LIKE '%'||">
+				#type[]#
+			</iterate>
+			AND NVL(APPROVAL, 'Y') = 'Y'
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				( 	
+					TITLE 		LIKE '%'||#searchKeyword#||'%' OR
+					CREATOR 	LIKE '%'||#searchKeyword#||'%' OR
+					DBMS_LOB.INSTR(DESCRIPTION,#searchKeyword#) > 0
+				)	
+			</isNotEmpty>
+		)A
+	</select>
+</sqlMap>

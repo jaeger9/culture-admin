@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="contest">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.NAME)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.SERVICEINFO)	LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+				LOWER(A.NAME)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.SERVICEINFO)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="reg_dt_start" prepend="AND"><![CDATA[
+			A.REG_DT >= TO_DATE(#reg_dt_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_dt_end" prepend="AND"><![CDATA[
+			A.REG_DT <= TO_DATE(#reg_dt_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PCN_CONTEST_REGEDIT A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ 
+			,A.RECEIPT
+			,A.NAME
+			,A.TITLE
+			,A.CATEGORY
+			,TO_CHAR(A.REG_DT, 'YYYY-MM-DD') REG_DT
+			,A.FILE_SYSNAME
+			,A.FILE_ORGNAME
+		FROM
+			PCN_CONTEST_REGEDIT A
+		<include refid="sqlList-1" />
+		ORDER BY
+			SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			TO_CHAR(A.REG_DT, 'YYYY-MM-DD') REG_DT
+			,A.NAME
+			,A.PWD
+			,A.EMAIL
+			,A.TEL
+			,A.HP
+			,A.ZIPCODE
+			,A.ADDR
+			,A.ATTACH
+			,A.USER_ID
+			,A.TITLE
+			,A.CATEGORY
+			,A.FILE_SYSNAME
+			,A.FILE_ORGNAME
+			,A.SERVICESEQ
+			,A.SERVICEINFO
+			,A.SEQ
+			,A.ADDR_DETAIL
+			,A.RECEIPT
+			,A.ETC_AGENT
+			,A.ETC_SERVICE
+			,A.TEAM
+			,A.CATEGORY2
+		FROM
+			PCN_CONTEST_REGEDIT A
+		WHERE
+			A.SEQ = #seq#
+		AND	ROWNUM = 1
+	</select>
+
+	<select id="listByExcel" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			TO_CHAR(A.REG_DT, 'YYYY-MM-DD') REG_DT
+			,A.NAME
+			,A.PWD
+			,A.EMAIL
+			,A.TEL
+			,A.HP
+			,A.ZIPCODE
+			,A.ADDR
+			,A.ATTACH
+			,A.USER_ID
+			,A.TITLE
+			,A.CATEGORY
+			,A.FILE_SYSNAME
+			,A.FILE_ORGNAME
+			,A.SERVICESEQ
+			,A.SERVICEINFO
+			,A.SEQ
+			,A.ADDR_DETAIL
+			,A.RECEIPT
+			,A.ETC_AGENT
+			,A.ETC_SERVICE
+			,A.TEAM
+			,A.CATEGORY2
+		FROM
+			PCN_CONTEST_REGEDIT A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.SEQ DESC
+	</select>
+
+	<select id="listByAgent" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.CATEGORY
+			,A.AGENT
+			,A.SERVICE
+		FROM
+			PCN_CONTEST_AGENT A
+	</select>
+	
+	<update id="updatePassword" parameterClass="paramMap">
+		UPDATE PCN_CONTEST_REGEDIT
+		SET
+			PWD = #pwd#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+</sqlMap>

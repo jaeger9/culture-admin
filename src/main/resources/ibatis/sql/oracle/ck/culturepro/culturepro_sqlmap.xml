@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culturepro">
+
+	<sql id="sqlFacilityNm">
+		SELECT FACILITY_NAME
+		FROM CULTURE_PRO_SETUP_MAPPPING
+		WHERE G_SEQ = #g_seq#
+	</sql>
+	
+	<sql id="sqlFacilityList">
+		SELECT	/* 문화가 있는날 > 참여시설 */
+            801 TYPE_CODE
+            , TRIM(A.AGENT_NAME) FACILITY_NAME
+            , GPS_LAT
+            , GPS_LNG
+            , '' TITLE
+            , '' START_DATE
+            , '' END_DATE
+            , A.DISCOUNT
+        FROM PCN_WDAY_PLACE A
+        WHERE A.APPROVAL = 'N'
+            AND A.DISPLAY_END_DATE >= SYSDATE
+        UNION ALL
+        SELECT /* 문화가 있는날 > 문화소식 */
+            802 TYPE_CODE
+            , TRIM(LOCATION)
+            , GPS_LAT
+            , GPS_LNG
+            , TITLE
+            , TO_CHAR(BEGIN_DATE, 'yyyy-mm-dd')
+			, TO_CHAR(END_DATE, 'yyyy-mm-dd')
+            , SUMMARY
+        FROM WD_NEWS
+        WHERE DELETE_YN = 'N'
+            AND DISPLAY_YN = 'Y'
+            AND DISPLAY_END_DATE >= SYSDATE
+        UNION ALL
+        SELECT /* 문화포털 > 릴레이티켓 */
+            803 TYPE_CODE
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+            , A.TITLE
+            , TO_CHAR(TO_DATE(A.START_DATE,'yyyy-mm-dd'),'yyyy-mm-dd')
+			, TO_CHAR(TO_DATE(A.END_DATE,'yyyy-mm-dd'),'yyyy-mm-dd')
+            , A.DISCOUNT || '% 할인'
+        FROM EVENT_RELAYTICKET_DISCOUNT A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND TO_DATE(A.END_DATE, 'YYYY-MM-DD') >= SYSDATE
+        UNION ALL
+        SELECT /* 문화포털 > 할인이벤트 */
+            804
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+            , A.TITLE
+            , TO_CHAR(START_DT, 'yyyy-mm-dd')
+			, TO_CHAR(END_DT, 'yyyy-mm-dd')
+            , DISCOUNT
+        FROM PCN_PREFORM_TICKET A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND A.END_DT > SYSDATE
+        UNION ALL
+        SELECT /* 문화포털 > 초대이벤트 */
+            805
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+            , A.TITLE
+            , TO_CHAR(A.START_DT, 'yyyy-mm-dd')
+			, TO_CHAR(A.END_DT, 'yyyy-mm-dd')
+            , A.INVITATION
+        FROM PCN_PERFORM_INVITATION A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND A.END_DT >= SYSDATE
+	</sql>
+	
+	<sql id="sqlFacilityListSearch">
+		SELECT	/* 문화가 있는날 > 참여시설 */
+            801 TYPE_CODE
+            , TRIM(A.AGENT_NAME) FACILITY_NAME
+            , MAX(GPS_LAT) GPS_LAT
+            , MAX(GPS_LNG) GPS_LNG
+        FROM PCN_WDAY_PLACE A
+        WHERE A.APPROVAL = 'N'
+            AND A.DISPLAY_END_DATE >= SYSDATE
+            <isNotEmpty property="g_seq" prepend="AND">
+				A.AGENT_NAME NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				A.AGENT_NAME LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+        GROUP BY TRIM(A.AGENT_NAME)
+        UNION ALL
+        SELECT /* 문화가 있는날 > 문화소식 */
+            802 TYPE_CODE
+            , TRIM(LOCATION)
+            , MAX(GPS_LAT) GPS_LAT
+            , MAX(GPS_LNG) GPS_LNG
+        FROM WD_NEWS
+        WHERE DELETE_YN = 'N'
+            AND DISPLAY_YN = 'Y'
+            AND DISPLAY_END_DATE >= SYSDATE
+            <isNotEmpty property="g_seq" prepend="AND">
+				LOCATION NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				LOCATION LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+        GROUP BY TRIM(LOCATION)
+        UNION ALL
+        SELECT /* 문화포털 > 릴레이티켓 */
+            803 TYPE_CODE
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+        FROM EVENT_RELAYTICKET_DISCOUNT A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND TO_DATE(A.END_DATE, 'YYYY-MM-DD') >= SYSDATE
+            <isNotEmpty property="g_seq" prepend="AND">
+				M.VENUE NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				M.VENUE LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+        GROUP BY M.VENUE
+        UNION ALL
+        SELECT /* 문화포털 > 할인이벤트 */
+            804
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+        FROM PCN_PREFORM_TICKET A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND A.END_DT >= SYSDATE
+            <isNotEmpty property="g_seq" prepend="AND">
+				M.VENUE NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				M.VENUE LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+        GROUP BY M.VENUE
+        UNION ALL
+        SELECT /* 문화포털 > 초대이벤트 */
+            805
+            , M.VENUE
+            ,(SELECT CUL_GPS_Y FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_Y
+            ,(SELECT CUL_GPS_X FROM VLI_VLI_CUL WHERE CUL_NAME = M.VENUE AND POST_FLAG = 'Y' AND ROWNUM = 1) CUL_GPS_X
+        FROM PCN_PERFORM_INVITATION A
+            , PCN_RDF_METADATA M
+        WHERE A.UCI = M.UCI
+            AND A.APPROVAL = 'Y'
+            AND A.END_DT >= SYSDATE
+            <isNotEmpty property="g_seq" prepend="AND">
+				M.VENUE NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				M.VENUE LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+        GROUP BY M.VENUE
+	</sql>
+	
+	<!-- 문화융성앱 게시시설관리  목록 -->
+	<select id="noMappingList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturepro.NoMappingList */ 
+			R.*
+		FROM (
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.seq DESC)-1)/$list_unit$+1) AS PAGE
+				, R.*
+			FROM (
+				SELECT 
+				  cul_seq seq
+				, cul_name facility_name
+				, nvl(b.approval_yn,'N')
+				, DECODE(nvl(b.approval_yn,'N'), 'Y', '승인', 'N', '미승인', '대기') APPROVAL_NM
+				FROM vli_vli_cul a 
+				LEFT OUTER JOIN FACILITY_APPROVAL_INFO b
+				on a.cul_seq = b.seq
+				WHERE NOT EXISTS(
+				  SELECT 1
+				  FROM facility_common_mapping xa
+				  WHERE xa.seq = cul_seq
+				  AND mapping_yn = 'Y'
+				)
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(cul_name LIKE '%' || #keyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						cul_name LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  목록 카운트 -->
+	<select id="NoMappingListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culturepro.NoMappingListCnt */
+			COUNT(1)
+		FROM (
+			SELECT 
+			  1
+			FROM vli_vli_cul a 
+			WHERE NOT EXISTS(
+			  SELECT 1
+			  FROM facility_common_mapping xa
+			  WHERE xa.seq = cul_seq
+			  AND mapping_yn = 'Y'
+			)
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(cul_name LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					cul_name LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		) M
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap" remapResults="true">
+		SELECT /* culturepro.list */ 
+			R.*
+		FROM (
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				, R.*
+			FROM (
+				SELECT 
+				  cul_seq seq
+				, cul_name facility_name
+				, nvl(b.approval_yn,'N') approval_yn
+				, DECODE(b.APPROVAL_YN, 'Y', '승인', 'N', '미승인', '대기') APPROVAL_NM
+				FROM vli_vli_cul a
+		        LEFT OUTER JOIN FACILITY_APPROVAL_INFO b
+				on a.cul_seq = b.seq
+				where 1=1
+				<isNotEmpty property="mapping_yn" prepend="AND">
+					<isEqual property="mapping_yn" compareValue="Y">
+						EXISTS(
+						  SELECT 1
+						  FROM facility_common_mapping xa
+						  WHERE xa.seq = a.cul_seq
+						  AND mapping_yn = 'Y'
+						)
+					</isEqual>
+					<isEqual property="mapping_yn" compareValue="N">
+						NOT EXISTS(
+						  SELECT 1
+						  FROM facility_common_mapping xa
+						  WHERE xa.seq = a.cul_seq
+						  AND mapping_yn = 'Y'
+						) 	
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="approval_yn" prepend="AND">
+					b.APPROVAL_YN = #approval_yn#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(cul_name LIKE '%' || #keyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						cul_name LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int" remapResults="true">
+		SELECT /* culturepro.listCnt */
+			COUNT(1)
+		FROM (
+			SELECT 
+				1
+			FROM vli_vli_cul a
+			LEFT OUTER JOIN FACILITY_APPROVAL_INFO b
+				on a.cul_seq = b.seq
+			WHERE 1=1
+			<isNotEmpty property="approval_yn" prepend="AND">
+				b.APPROVAL_YN = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="mapping_yn" prepend="AND">
+				<isEqual property="mapping_yn" compareValue="Y">
+					EXISTS(
+					  SELECT 1
+					  FROM facility_common_mapping xa
+					  WHERE xa.seq = a.cul_seq
+					  AND mapping_yn = 'Y'
+					)
+				</isEqual>
+				<isEqual property="mapping_yn" compareValue="N">
+					NOT EXISTS(
+					  SELECT 1
+					  FROM facility_common_mapping xa
+					  WHERE xa.seq = a.cul_seq
+					  AND mapping_yn = 'Y'
+					) 	
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(cul_name LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					cul_name LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		) M
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		/* culturepro.view */
+		SELECT
+		    seq
+		    , approval_yn
+		  FROM FACILITY_APPROVAL_INFO a
+		  WHERE seq = #g_seq#
+		  and rownum = 1
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  상세 리스트 -->
+	<select id="viewlist" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    seq
+		    , g_seq
+		    , facility_name
+		    , CASE 
+		      WHEN type_code  = '801' then '참여시설'
+		      WHEN type_code  = '802' then '문화소식'
+		      WHEN type_code  = '803' then '릴레이티켓'
+		      WHEN type_code  = '804' then '할인이벤트'
+		    ELSE '' END type_code_nm
+		    , CASE 
+		      when type_code  = '801' then (select agent_name||'@@@---'||discount||'@@@---'||to_char(display_begin_date,'yyyymmdd')||'-'||to_char(display_end_date,'yyyymmdd')  from PCN_WDAY_PLACE xa where xa.seq = a.g_seq)
+		      when type_code  = '802' then (select title||'@@@---'||summary||'@@@---'||to_char(begin_date,'yyyymmdd')||'-'||to_char(end_date,'yyyymmdd') from wd_news xa where xa.seq = a.g_seq)
+		      when type_code  = '803' then (select title||'@@@---'||discount||'%할인'||'@@@---'||start_date||'-'||end_date from EVENT_RELAYTICKET_DISCOUNT xa where xa.seq = a.g_seq)
+		      when type_code  = '804' then (select title||'@@@---'||terms||','||discount||'@@@---'||to_char(start_dt,'yyyymmdd')||'-'||to_char(end_dt,'yyyymmdd') from PCN_PREFORM_TICKET xa where xa.seq = a.g_seq)
+		    ELSE '' END type_info
+		    , gps_lat
+		    , gps_lng
+		  FROM FACILITY_COMMON_MAPPING a
+		  WHERE seq = #g_seq#
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  연결설정 -->
+	<select id="form" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturepro.form */ 
+		    M.SEQ M_SEQ
+		    , M.G_SEQ
+		    , C.NAME FACILITY_TYPE
+		    , C.VALUE FACILITY_TYPE2
+		    , M.FACILITY_NAME
+		    , M.GPS_LAT
+		    , M.GPS_LNG
+		    , M.REG_ID
+			, TO_CHAR(M.REG_DATE, 'YYYY-MM-DD') REG_DATE
+		FROM CULTURE_PRO_SETUP_MAPPPING M
+		    , PCN_COMMON_CODE C
+		WHERE G_SEQ = #g_seq#
+			AND C.TYPE = 'CUL_FACILITY_TYPE'
+		    AND M.TYPE_CODE = C.CODE
+		ORDER BY C.SORT ASC, M.FACILITY_NAME ASC
+	</select>
+	
+	<!-- 문화융성앱  구분 코드 목록  -->
+	<select id="gubunList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			CODE, PCODE, NAME, SORT, VALUE
+		FROM PCN_COMMON_CODE
+		WHERE TYPE = 'CUL_FACILITY_TYPE'
+			AND PCODE > 0
+		ORDER BY SORT ASC
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리 시설정보 목록  -->
+	<select id="facilitylist" parameterClass="paramMap" resultClass="commonMap">
+		/* culturepro.facilitylist */
+<!-- 		SELECT	   -->
+<!-- 			R.* -->
+<!-- 		FROM ( -->
+<!-- 			SELECT -->
+<!-- 				FLOOR((ROW_NUMBER()OVER(ORDER BY FACILITY_NAME ASC, SORT ASC)-1)/$list_unit$+1) AS PAGE -->
+<!-- 				, R.* -->
+<!-- 			FROM ( -->
+<!-- 				SELECT -->
+<!--             		T.TYPE_CODE -->
+<!-- 				    , C.NAME FACILITY_TYPE -->
+<!-- 				    , C.VALUE FACILITY_TYPE2 -->
+<!-- 				    , T.FACILITY_NAME -->
+<!-- 				    , T.GPS_LAT -->
+<!-- 				    , T.GPS_LNG -->
+<!-- 				    , C.SORT -->
+<!-- 				FROM ( -->
+<!-- 				        select * from facility_common_info A -->
+<!-- 				        where 1=1 -->
+<!-- 				        <isNotEmpty property="g_seq" prepend="AND"> -->
+<!-- 							A.FACILITY_NAME NOT IN ( -->
+<!-- 								<include refid="sqlFacilityNm" /> -->
+<!-- 							) -->
+<!-- 						</isNotEmpty> -->
+<!-- 			            <isNotEmpty property="keyword" prepend="AND"> -->
+<!-- 							A.FACILITY_NAME LIKE '%' || #keyword# || '%' -->
+<!-- 						</isNotEmpty> -->
+<!-- 				    ) T -->
+<!-- 				    , PCN_COMMON_CODE C -->
+<!-- 				WHERE C.TYPE = 'CUL_FACILITY_TYPE' -->
+<!-- 					AND T.TYPE_CODE = C.CODE -->
+<!-- 		            <isNotEmpty property="searchType" prepend="AND"> -->
+<!-- 						T.TYPE_CODE = #searchType# -->
+<!-- 					</isNotEmpty> -->
+<!-- 		            <isNotEmpty property="g_seq" prepend="AND"> -->
+<!-- 						T.FACILITY_NAME NOT IN ( -->
+<!-- 							SELECT FACILITY_NAME -->
+<!-- 							FROM CULTURE_PRO_SETUP_MAPPPING M -->
+<!-- 								, ( SELECT G_SEQ -->
+<!-- 							        FROM CULTURE_PRO_SETUP_MAPPPING -->
+<!-- 							        GROUP BY G_SEQ -->
+<!-- 							        HAVING COUNT(*) > 1 -->
+<!-- 							    ) M_SUB -->
+<!-- 							WHERE M.G_SEQ = M_SUB.G_SEQ  -->
+<!-- 						) -->
+<!-- 					</isNotEmpty> -->
+<!-- 					AND T.FACILITY_NAME IS NOT NULL -->
+<!-- 			) R -->
+<!-- 		) R -->
+<!-- 		WHERE PAGE = #page_no# -->
+		SELECT 
+			R.*
+		FROM (
+			SELECT
+				FLOOR((ROW_NUMBER()OVER(ORDER BY FACILITY_NAME ASC)-1)/$list_unit$+1) AS PAGE
+				, R.*
+			FROM (
+				select 
+				  seq
+				  	, g_seq
+				  	, type_code
+				  	, CASE 
+					    WHEN type_code  = '801' then '참여시설'
+					    WHEN type_code  = '802' then '문화소식'
+					    WHEN type_code  = '803' then '릴레이티켓'
+						WHEN type_code  = '804' then '할인이벤트'
+				    ELSE '' END type_code_nm
+				  	, facility_name
+				  	, gps_lat
+		    		, gps_lng
+				from FACILITY_COMMON_MAPPING a
+				where seq = 0
+				and mapping_yn = 'N'
+				<isNotEmpty property="keyword" prepend="AND">
+					A.FACILITY_NAME LIKE '%' || #keyword# || '%'
+				</isNotEmpty>
+			) R
+		) R
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리 시설정보 목록 카운트  -->
+	<select id="facilitylistCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culturepro.facilitylistCnt */
+			COUNT(1)
+		FROM (
+	       select 
+			  1
+			from FACILITY_COMMON_MAPPING a
+			where seq = 0
+			and mapping_yn = 'N'
+	        <isNotEmpty property="g_seq" prepend="AND">
+				A.FACILITY_NAME NOT IN (
+					<include refid="sqlFacilityNm" />
+				)
+			</isNotEmpty>
+            <isNotEmpty property="keyword" prepend="AND">
+				A.FACILITY_NAME LIKE '%' || #keyword# || '%'
+			</isNotEmpty>
+	    ) T
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		UPDATE /* culturepro.delete */
+		CULTURE_PRO_SETUP SET DEL_YN = 'Y'
+		WHERE SEQ = #g_seq#
+	</update>
+	
+	<!-- 문화융성앱 게시시설관리 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT SEQ_CULTURE_PRO_SETUP.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT /* culturepro.insert */ 
+		INTO CULTURE_PRO_SETUP (
+			SEQ, APPROVAL_YN, DEL_YN, REG_ID, REG_DATE
+		) VALUES(
+			#seq#, 'Y', 'N', #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 문화융성앱 게시시설관리 연결  등록 -->
+	<insert id="mappingInsert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT SEQ_CULTURE_PRO_SETUP_MAPPING.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT /* culturepro.mappingInsert */ 
+		INTO CULTURE_PRO_SETUP_MAPPPING (
+			G_SEQ, SEQ, TYPE_CODE, FACILITY_NAME, GPS_LAT, GPS_LNG, REG_ID, REG_DATE
+		) VALUES(
+			#g_seq#, #seq#, #type_code#, #facility_name#, #gps_lat#, #gps_lng#, #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	
+	<insert id="mappingUpdate" parameterClass="paramMap">
+		/* culturepro.mappingUpdate */
+		update FACILITY_COMMON_MAPPING
+		set
+			mapping_yn = 'Y'
+			, seq = #g_seq#
+		where seq = 0 and g_seq = #g_seq2#
+		and type_code = #type_code#
+	</insert>
+	
+	<!-- 문화융성앱 게시시설관리 연결  해제 -->
+	<update id="mappingRelease" parameterClass="java.util.HashMap">
+		UPDATE /* culturepro.mappingDelete */
+		CULTURE_PRO_SETUP_MAPPPING SET
+			G_SEQ =  #new_g_seq#
+			, REG_ID = #reg_id#
+			, REG_DATE = SYSDATE
+		WHERE SEQ = #m_seq#
+			AND G_SEQ = #g_seq#
+	</update>
+	
+	<!-- 문화융성앱 게시시설관리  상태 변경 -->
+	<update id="statusUpdate" parameterClass="paramMap">
+		/* culturepro.statusUpdate */
+		merge into FACILITY_APPROVAL_INFO
+			using dual
+			on (seq = #key#)
+			when matched then
+				update 
+					SET APPROVAL_YN = #updateStatus#	
+			when not matched then
+				insert (seq, approval_yn)
+					values(#key#, #updateStatus#)
+	</update>
+	
+	<!-- 문화융성앱 게시시설관리  정보 업데이트 (초기화)-->
+	<update id="syncInit" parameterClass="paramMap">
+		DELETE /* culturepro.syncInit */
+	    FROM CULTURE_PRO_SETUP
+	    WHERE SEQ IN (
+	        SELECT 
+	        	G_SEQ
+	        FROM CULTURE_PRO_SETUP_MAPPPING
+	        WHERE FACILITY_NAME IN (
+	        	SELECT 
+	                M1.FACILITY_NAME
+	            FROM CULTURE_PRO_SETUP_MAPPPING M1
+	                , (
+	                    SELECT G_SEQ
+	                    FROM CULTURE_PRO_SETUP_MAPPPING
+	                    GROUP BY G_SEQ
+	                    HAVING COUNT(*) > 1
+	                ) M2
+	            WHERE M1.G_SEQ = M2.G_SEQ
+	        	)
+	        GROUP BY G_SEQ
+	        HAVING COUNT(*) = 1
+	        UNION ALL
+	        SELECT 
+				MIN(G_SEQ) G_SEQ
+			FROM CULTURE_PRO_SETUP_MAPPPING 
+			WHERE G_SEQ IN (
+			        SELECT 
+			            G_SEQ
+			        FROM CULTURE_PRO_SETUP_MAPPPING
+			        GROUP BY G_SEQ
+			        HAVING COUNT(*) = 1
+			    )
+			GROUP BY FACILITY_NAME
+			HAVING COUNT(*) > 1
+	        UNION ALL
+	        SELECT 
+	        	G_SEQ 
+	        FROM CULTURE_PRO_SETUP_MAPPPING
+	        WHERE G_SEQ = 0
+	    )
+	</update>
+	
+	<!-- 문화융성앱 게시시설관리  정보 업데이트 (Mapping 초기화)-->
+	<update id="syncMappingInit" parameterClass="paramMap">
+		DELETE /* culturepro.syncMappingInit */
+	    FROM CULTURE_PRO_SETUP_MAPPPING
+	    WHERE G_SEQ IN (
+	        SELECT 
+	        	G_SEQ
+	        FROM CULTURE_PRO_SETUP_MAPPPING
+	        WHERE FACILITY_NAME IN (
+	        	SELECT 
+	                M1.FACILITY_NAME
+	            FROM CULTURE_PRO_SETUP_MAPPPING M1
+	                , (
+	                    SELECT G_SEQ
+	                    FROM CULTURE_PRO_SETUP_MAPPPING
+	                    GROUP BY G_SEQ
+	                    HAVING COUNT(*) > 1
+	                ) M2
+	            WHERE M1.G_SEQ = M2.G_SEQ
+	        	)
+	        GROUP BY G_SEQ
+	        HAVING COUNT(*) = 1
+	        UNION ALL
+	        SELECT 
+				MIN(G_SEQ) G_SEQ
+			FROM CULTURE_PRO_SETUP_MAPPPING 
+			WHERE G_SEQ IN (
+			        SELECT 
+			            G_SEQ
+			        FROM CULTURE_PRO_SETUP_MAPPPING
+			        GROUP BY G_SEQ
+			        HAVING COUNT(*) = 1
+			    )
+			GROUP BY FACILITY_NAME
+			HAVING COUNT(*) > 1
+	        UNION ALL
+	        SELECT 
+	        	G_SEQ 
+	        FROM CULTURE_PRO_SETUP_MAPPPING
+	        WHERE G_SEQ = 0
+	    )
+	</update>
+	
+	<!-- 문화융성앱 게시시설관리  정보 업데이트 목록 -->
+	<select id="syncMappingList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturepro.syncMappingList */
+		    TYPE_CODE
+		    , FACILITY_NAME
+		    , NVL(GPS_LAT, 0) GPS_LAT
+		    , NVL(GPS_LNG, 0) GPS_LNG
+		FROM (
+		        select * from facility_common_info
+		    ) T
+		WHERE FACILITY_NAME NOT IN (
+				SELECT M.FACILITY_NAME
+		        FROM CULTURE_PRO_SETUP S
+		        	, CULTURE_PRO_SETUP_MAPPPING M
+		        WHERE S.SEQ = M.G_SEQ
+		        	AND S.DEL_YN = 'N'
+			)
+			AND FACILITY_NAME IS NOT NULL
+		ORDER BY FACILITY_NAME, TYPE_CODE    
+	</select>
+	
+	<!-- 문화융성앱 게시시설관리  정보 업데이트 (GPS 정보)-->
+	<update id="syncMappingGps" parameterClass="paramMap">		
+		MERGE INTO /* culturepro.syncMappingInit */
+			CULTURE_PRO_SETUP_MAPPPING M
+		USING (
+		        select * from facility_common_info A
+		        where 1=1
+		        <isNotEmpty property="g_seq" prepend="AND">
+					A.FACILITY_NAME NOT IN (
+						<include refid="sqlFacilityNm" />
+					)
+				</isNotEmpty>
+	            <isNotEmpty property="keyword" prepend="AND">
+					A.FACILITY_NAME LIKE '%' || #keyword# || '%'
+				</isNotEmpty>
+		    ) T
+		ON (
+		        M.TYPE_CODE = T.TYPE_CODE
+		        AND M.FACILITY_NAME = T.FACILITY_NAME
+		)
+		WHEN MATCHED THEN
+		    UPDATE SET M.GPS_LAT = T.GPS_LAT, M.GPS_LNG = T.GPS_LNG
+		WHEN NOT MATCHED THEN
+			INSERT (SEQ, G_SEQ, TYPE_CODE, REG_ID, REG_DATE) VALUES (0, 0, 0, #reg_id#, SYSDATE)
+	</update>
+	
+	<procedure id="syncInit2" >
+        {call create_facility_info_table()}
+	</procedure>
+	
+</sqlMap>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="webzine">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.*
+		FROM
+		(
+			SELECT
+			  	<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$ + 1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$ + 1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY HIT DESC)-1)/$list_unit$ + 1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+			  	, SEQ
+			  	, NUMBERS
+			  	, TITLE
+			  	, DECODE(APPROVAL_YN , 'Y' , '승인' , 'N' , '미승인' , '대기') APPROVAL_YN
+			  	, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+			  	, HIT
+			FROM 
+				PCN_CUSTOMER_NEWS_MAIN_CTL
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+		  	COUNT(1)
+		FROM 
+			PCN_CUSTOMER_NEWS_MAIN_CTL
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ
+  			, NUMBERS
+			, TITLE
+			, TO_CHAR(REG_DATE,'YYYY-MM-DD') || ' ' ||DECODE(TO_CHAR(REG_DATE,'D'),'1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '토') || '요일' AS REG_DATE
+		FROM 
+			PCN_CUSTOMER_NEWS_MAIN_CTL
+		WHERE 
+			SEQ = #seq#
+	</select>
+	<!-- 회차 , 발송일 때문에 하는듯... -->
+	<select id="emptyView" resultClass="commonMap">
+		SELECT 
+			(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_CUSTOMER_NEWS_MAIN_CTL) NUMBERS, 
+			TO_CHAR(SYSDATE,'YYYY-MM-DD')||' '||DECODE(TO_CHAR(SYSDATE,'D'),'1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '토')||'요일' REG_DATE
+		FROM 
+			DUAL
+	</select>
+	
+	<select id="subList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			B.CODE,
+			B.NAME,
+			B.VALUE,
+			A.*
+		FROM
+			(SELECT * FROM PCN_CUSTOMER_NEWS_SUB_CTL WHERE P_SEQ = #seq#) A,
+			PCN_COMMON_CODE B
+		WHERE 
+			B.CODE = A.TYPE(+)
+			AND B.TYPE   = 'WEBZINE'
+			<![CDATA[
+				AND B.PCODE <> 0
+			]]> 
+		ORDER BY B.SORT
+	</select>
+	<select id="textView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ,
+			PARENT_SEQ,
+			TITLE,
+			CONTENT,
+			URL,
+			VIEW_CNT
+		FROM 
+			PCN_RECOM_CULTURE_TEXT
+		WHERE 
+			PARENT_SEQ = #oid#
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey resultClass="int" keyProperty="seq">
+   			SELECT NVL(MAX(SEQ), 0)+1 FROM PCN_CUSTOMER_NEWS_MAIN_CTL
+   		</selectKey>
+		INSERT
+		  INTO PCN_CUSTOMER_NEWS_MAIN_CTL
+		  (
+		    	SEQ
+		    	, NUMBERS
+		   	 	, TITLE
+		    	<!-- , TEMPLATE_TYPE -->
+		    	, SEND_DATE
+		    	, APPROVAL_YN
+		    	, REG_DATE
+		  )
+		  VALUES
+		  (
+		    	#seq#
+		    	, #numbers#
+		    	, #title#
+		    	<!-- , #template_type# -->
+		    	, ''
+		    	, 'N'
+		    	, SYSDATE
+		  )
+	</insert>
+	<insert id="insertSub" parameterClass="java.util.HashMap">
+		<selectKey resultClass="int" keyProperty="seq">
+   			SELECT NVL(MAX(SEQ), 0)+1 FROM PCN_CUSTOMER_NEWS_SUB_CTL
+   		</selectKey>
+		INSERT
+		  	INTO PCN_CUSTOMER_NEWS_SUB_CTL
+		  	(
+		    	SEQ
+		    	, P_SEQ
+		    	, URL
+		    	, TITLE
+		    	, CONTENT
+		    	, FILE_NAME
+		    	, TYPE
+		    	, REG_DATE
+		  	) VALUES (
+			    #seq#
+			    , #p_seq#
+			    , #url#
+			    , #title#
+			    , #content#
+			    , #file_name#
+			    , #type#
+			    , SYSDATE
+		  	)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_CUSTOMER_NEWS_MAIN_CTL
+   		SET 
+   			NUMBERS = #numbers#, 
+   			TITLE = #title#, 
+   			TEMPLATE_TYPE = #template_type#, 
+   			SEND_DATE = #send_date#,
+   			UPD_DATE = SYSDATE
+   		WHERE 
+   			SEQ = #seq#
+	</update>
+	<update id="updateSub" parameterClass="java.util.HashMap">
+		UPDATE 
+			PCN_CUSTOMER_NEWS_SUB_CTL
+   		SET 
+   			URL = #url#, 
+   			TITLE = #title#, 
+   			CONTENT = #content#,
+   			<isNotEmpty property="file_name">
+   				FILE_NAME = #file_name#,
+   			</isNotEmpty>
+   				UPD_DATE = SYSDATE
+   			WHERE 
+   				SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PCN_CUSTOMER_NEWS_MAIN_CTL 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL_YN	= #updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE 
+			PCN_CUSTOMER_NEWS_MAIN_CTL 
+		WHERE 
+		<iterate property="array.seq" prepend=" SEQ IN " open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</delete>
+	<delete id="deleteSub" parameterClass="paramMap">
+		DELETE
+			PCN_CUSTOMER_NEWS_SUB_CTL 
+		WHERE
+		<iterate property="array.seq" prepend=" P_SEQ IN " open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+</sqlMap>

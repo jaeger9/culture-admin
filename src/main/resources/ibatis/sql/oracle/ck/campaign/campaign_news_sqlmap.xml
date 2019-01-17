@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="campaign.news">
+
+	<!-- 문화선물캠페인 소식 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* campaign.news.listCount */
+			COUNT(1)
+		FROM CAMPAIGN_NEWS
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="del_yn" prepend="AND">
+				DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="search_event" prepend="AND">
+				EVENT_SEQ = #search_event#
+			</isNotEmpty>
+			<isNotEmpty property="search_category" prepend="AND">
+				CATEGORY = #search_category#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="title">
+					TITLE LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="all">
+					(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>	
+	</select>
+
+	<!-- 문화선물캠페인 소식 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.news.list */
+			SEQ, EVENT_SEQ,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM, TITLE,
+			CATEGORY, DECODE(CATEGORY, '1','일반공지', '2','캠페인소식', '3','당첨자발표') CATEGORY_NM,
+			APPROVAL, DECODE(APPROVAL, 'W','대기', 'Y','승인', 'N',' 미승인') APPROVAL_NM,
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, VIEW_CNT
+		FROM (
+			SELECT
+				SEQ, EVENT_SEQ, CATEGORY, TITLE, APPROVAL, REG_DATE, VIEW_CNT,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE
+			FROM CAMPAIGN_NEWS
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="del_yn" prepend="AND">
+					DEL_YN = #del_yn#
+				</isNotEmpty>
+				<isNotEmpty property="search_event" prepend="AND">
+					EVENT_SEQ = #search_event#
+				</isNotEmpty>
+				<isNotEmpty property="search_category" prepend="AND">
+					CATEGORY = #search_category#
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="search_keyword" prepend="AND">
+					<isEmpty property="search_field">
+						(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+					</isEmpty>
+					<isEqual property="search_field" compareValue="title">
+						TITLE LIKE '%' || #search_keyword# || '%'
+					</isEqual>
+					<isEqual property="search_field" compareValue="all">
+						(TITLE LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+					</isEqual>
+				</isNotEmpty>
+			</dynamic>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화선물캠페인 소식 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT /* campaign.news.insert */
+		INTO CAMPAIGN_NEWS (
+			SEQ, EVENT_SEQ, CATEGORY, TITLE, URL, CONTENTS, APPROVAL, REG_ID, REG_DATE
+		) VALUES (
+			SEQ_CAMPAIGN_NEWS.NEXTVAL, #event_seq#, #category#, #title#, #url#, #contents:CLOB#, #approval#, #reg_id#, SYSDATE
+		)
+	</insert>
+	
+	<!-- 문화선물캠페인 소식 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.news.view */
+			SEQ, EVENT_SEQ, CATEGORY, APPROVAL, TITLE, URL, CONTENTS, REG_ID, UPD_ID,
+		    TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') REG_DATE, TO_CHAR(UPD_DATE, 'YYYY-MM-DD HH24:MI') UPD_DATE
+		FROM CAMPAIGN_NEWS
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화선물캠페인 소식 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* campaign.news.update */
+		CAMPAIGN_NEWS SET
+			EVENT_SEQ = #event_seq#,
+			CATEGORY = #category#,
+			APPROVAL = #approval#,
+			TITLE = #title#,
+			URL = #url#,
+			CONTENTS = #contents:CLOB#,
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화선물캠페인 소식 삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		UPDATE /* campaign.news.delete */
+		CAMPAIGN_NEWS SET
+			DEL_YN = 'Y',
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+</sqlMap>

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="spring2016.user">
+
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* spring2016.user.listCount */
+			COUNT(1) CNT
+		FROM PCN_MEMBER A
+		INNER JOIN (
+			SELECT
+				USER_ID, COUNT(1) CNT
+			FROM SPRING2016_ENTRY_WIN
+			WHERE 1=1
+			AND ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND ENTRY_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			GROUP BY USER_ID
+		) B ON (B.USER_ID = A.USER_ID)
+		WHERE 1=1
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (A.NAME LIKE '%'||#search_keyword#||'%' OR A.EMAIL LIKE '%'||#search_keyword#||'%' OR A.HP LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND A.NAME LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				AND A.EMAIL LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND A.HP LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* spring2016.user.list */
+			USER_ID, NAME, EMAIL, HP, ENTRY_CNT, ENTRY_DATE
+		FROM (
+			SELECT
+				A.USER_ID, A.NAME, A.EMAIL, A.HP, B.ENTRY_CNT, B.ENTRY_DATE, 
+				FLOOR((ROW_NUMBER() OVER(ORDER BY B.ENTRY_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM PCN_MEMBER A
+			INNER JOIN (
+				SELECT
+					USER_ID, COUNT(1) ENTRY_CNT, MAX(ENTRY_DATE) ENTRY_DATE
+				FROM SPRING2016_ENTRY_WIN
+				WHERE 1=1
+				AND ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end">
+						AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+					</isEmpty>
+					<isNotEmpty property="reg_end">
+						AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND ENTRY_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+					</isNotEmpty>
+				</isNotEmpty>
+				GROUP BY USER_ID
+			) B ON (B.USER_ID = A.USER_ID)
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (A.NAME LIKE '%'||#search_keyword#||'%' OR A.EMAIL LIKE '%'||#search_keyword#||'%' OR A.HP LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND A.NAME LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="email">
+					AND A.EMAIL LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND A.HP LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+		) 
+		WHERE PAGE = #page_no#
+		ORDER BY ENTRY_DATE DESC
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* spring2016.user.view */ 
+			A.USER_ID, A.NAME, A.EMAIL, A.HP, B.ENTRY_CNT, 
+			A.ZIP_CODE, A.ADDR, A.ADDR_DETAIL, B.ENTRY_DATE 
+		FROM PCN_MEMBER A
+		INNER JOIN (
+			SELECT
+				USER_ID, COUNT(1) ENTRY_CNT, MAX(ENTRY_DATE) ENTRY_DATE
+			FROM SPRING2016_ENTRY_WIN
+			WHERE USER_ID = #user_id#
+			AND ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+			GROUP BY USER_ID
+		) B ON (B.USER_ID = A.USER_ID)
+	</select>
+	
+	<select id="entryDateList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* spring2016.user.entryDateList */ 
+			ENTRY_DATE
+		FROM SPRING2016_ENTRY_WIN
+		WHERE USER_ID = #user_id#
+		AND ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+	</select>
+
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* spring2016.user.excelList */
+			A.NAME "name", A.USER_ID "user_id", A.EMAIL "email", A.HP "hp",
+			(SELECT COUNT(1) FROM SPRING2016_ENTRY_WIN S WHERE S.USER_ID = A.USER_ID) "entry_cnt", 
+			TO_CHAR(B.ENTRY_DATE, 'YYYY-MM-DD') "entry_date"
+		FROM PCN_MEMBER A
+		INNER JOIN (
+			SELECT
+				USER_ID, ENTRY_DATE, ENTRY_IP
+			FROM SPRING2016_ENTRY_WIN
+			WHERE 1=1
+			AND ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND ENTRY_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND ENTRY_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+		) B ON (B.USER_ID = A.USER_ID)
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (A.NAME LIKE '%'||#search_keyword#||'%' OR A.EMAIL LIKE '%'||#search_keyword#||'%' OR A.HP LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND A.NAME LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				AND A.EMAIL LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND A.HP LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY B.ENTRY_DATE DESC
+	</select>
+	
+	<select id="entryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.USER_ID, B.NAME USER_NM, B.EMAIL USER_EMAIL, B.HP HP_NO 
+		FROM SPRING2016_ENTRY_WIN A
+		INNER JOIN PCN_MEMBER B ON (B.USER_ID = A.USER_ID)
+		WHERE 1=1
+		AND NOT EXISTS (
+			SELECT S.USER_ID
+		    FROM EVENT_WINNER S
+		    WHERE S.USER_ID = A.USER_ID
+		    AND EVENT_CD = #event_cd#
+		)
+	</select>
+	
+	<select id="attEntryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.USER_ID, B.NAME USER_NM, B.EMAIL USER_EMAIL, B.HP HP_NO 
+		FROM (
+			SELECT USER_ID FROM SPRING2016_ENTRY_WIN GROUP BY USER_ID HAVING COUNT(1) >= 10
+		) A
+		INNER JOIN PCN_MEMBER B ON (B.USER_ID = A.USER_ID)
+		WHERE 1=1
+		AND NOT EXISTS (
+			SELECT S.USER_ID
+		    FROM EVENT_WINNER S
+		    WHERE S.USER_ID = A.USER_ID
+		    AND (EVENT_CD = #event_cd# OR EVENT_CD = #att_event_cd#)
+		)
+	</select>
+	
+	<select id="contentsListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* spring2016.user.contentsListCnt */
+			COUNT(1)
+		FROM
+			SPRING2016_CONTENTS
+		WHERE 
+			1=1
+		    <isNotEmpty property="contentsGroup">
+		    AND CONTENTS_GROUP = #contentsGroup#
+		    </isNotEmpty>
+	</select>
+	
+	<select id="contentsList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* spring2016.user.contentsList */
+			DECODE(CONTENTS_GROUP,'01','방콕형','02','먹방형','03','방방곡곡형') AS CONTENTS_GROUP_NM
+			,CONTENTS_GROUP
+			,CONTENTS_CODE
+			,CONTENTS_TITLE
+			,CONTENTS_URL
+			,LIKE_CNT
+		FROM (
+			SELECT 
+				TB1.*, NVL(TB2.LIKE_CNT,0) LIKE_CNT,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY NVL(TB2.LIKE_CNT,0) $order$)-1)/$list_unit$+1) PAGE
+			FROM
+				SPRING2016_CONTENTS TB1 LEFT OUTER JOIN 
+				(SELECT
+			    	CONTENTS_GROUP
+			        ,CONTENTS_CODE
+			        ,COUNT(1) LIKE_CNT
+			    FROM
+			    	SPRING2016_ENTRY_HISTORY
+			    WHERE ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+			    GROUP BY CONTENTS_GROUP, CONTENTS_CODE) TB2
+			    ON TB1.CONTENTS_GROUP = TB2.CONTENTS_GROUP 
+			    AND TB1.CONTENTS_CODE = TB2.CONTENTS_CODE
+			WHERE 1=1
+			<isNotEmpty property="contentsGroup">
+				AND TB1.CONTENTS_GROUP = #contentsGroup#
+			</isNotEmpty>
+		)
+		WHERE PAGE = #page_no#
+		ORDER BY LIKE_CNT $order$
+	</select>
+	
+	<select id="contentsExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* spring2016.user.contentsExcelList */
+			DECODE(TB1.CONTENTS_GROUP,'01','방콕형','02','먹방형','03','방방곡곡형') AS CONTENTS_GROUP_NM
+			,TB1.CONTENTS_TITLE
+			,TB1.CONTENTS_URL
+			,NVL(TB2.LIKE_CNT,0) LIKE_CNT			
+		FROM
+			SPRING2016_CONTENTS TB1 LEFT OUTER JOIN 
+			(SELECT
+		    	CONTENTS_GROUP
+		        ,CONTENTS_CODE
+		        ,COUNT(1) LIKE_CNT
+		    FROM
+		    	SPRING2016_ENTRY_HISTORY
+		    WHERE ENTRY_DATE <![CDATA[<]]> TO_DATE('20160509', 'YYYYMMDD')
+		    GROUP BY CONTENTS_GROUP, CONTENTS_CODE) TB2
+		    ON TB1.CONTENTS_GROUP = TB2.CONTENTS_GROUP 
+		    AND TB1.CONTENTS_CODE = TB2.CONTENTS_CODE
+		WHERE 1=1
+		<isNotEmpty property="contentsGroup">
+			AND TB1.CONTENTS_GROUP = #contentsGroup#
+		</isNotEmpty>
+		ORDER BY LIKE_CNT $order$
+	</select>
+	
+</sqlMap>

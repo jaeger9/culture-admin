@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="ticket">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+	   		R.*				
+		FROM 
+		(
+			SELECT
+				
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY A.VIEW_CNT DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, A.SEQ				 
+				, A.TITLE				 
+				, A.DISCOUNT			 
+				, A.USER_ID			 
+				, TO_CHAR(A.REG_DATE,'YYYY-MM-DD') REG_DATE	 
+				, TO_CHAR(A.START_DT,'YYYY-MM-DD') START_DT	 
+				, TO_CHAR(A.END_DT,'YYYY-MM-DD')	END_DT			 
+				, A.DOWLOAD_CNT
+				, DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL	
+				, A.VIEW_CNT			
+				, TRUNC(A.END_DT- SYSDATE) + 1 STATUS 
+	      	FROM 
+	      		PCN_PREFORM_TICKET A 
+			<dynamic prepend="WHERE">
+      			<isNotEmpty property="approval" prepend="AND">
+      				APPROVAL = #approval#
+      			</isNotEmpty>
+      			<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+					( 
+						title like '%'|| #keyword# || '%' or
+						DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+					)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content" prepend="AND">
+						CONTENT like '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+				<isEqual property="regType" compareValue="1">
+	    			<isNotEmpty property="start_dt">
+	     				<isNotEmpty property="end_dt" prepend="AND">
+							(
+								START_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+								END_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+							)
+						</isNotEmpty>
+	     			</isNotEmpty>
+	     		</isEqual>
+	     		<isEqual property="regType" compareValue="2">
+	    			<isNotEmpty property="start_dt">
+	    				<isEmpty property="end_dt">
+	    					REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+	    				</isEmpty>
+	     				<isNotEmpty property="end_dt" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+	     			</isNotEmpty>
+	     		</isEqual>
+	     	</dynamic>
+	       ) R
+	       WHERE 
+				R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+				count(1)
+	    FROM 
+	    	PCN_PREFORM_TICKET A 
+	    <dynamic prepend="WHERE">
+		    <isNotEmpty property="APPROVAL" prepend="AND">
+		     	APPROVAL = #APPROVAL#
+		    </isNotEmpty>
+		    <isNotEmpty property="keyword" >
+				<isEqual property="searchGubun" compareValue="all" prepend="AND">
+					( 
+						title like '%'|| #keyword# || '%' or
+						DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+					)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					TITLE like '%'|| #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content" prepend="AND">
+					CONTENT like '%'||#keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			<isEqual property="regType" compareValue="1">
+       			<isNotEmpty property="start_dt">
+	       			<isNotEmpty property="end_dt" prepend="AND">
+					(
+						START_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+						END_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					)
+					</isNotEmpty>
+	       		</isNotEmpty>
+	       	</isEqual>
+	       	<isEqual property="regType" compareValue="2">
+       			<isNotEmpty property="start_dt">
+       				<isEmpty property="end_dt">
+       					REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+       				</isEmpty>
+	       			<isNotEmpty property="end_dt" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+	       		</isNotEmpty>
+	       	</isEqual>
+		</dynamic>
+	</select>
+	<select id="performList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (
+			SELECT 
+				TITLE,
+			    SUBSTR(PERIOD, INSTR(','||PERIOD,',',1,1), INSTR(PERIOD||',',',',1,1)-INSTR(','||PERIOD,',',1,1)) REG_START, 
+				SUBSTR(PERIOD, INSTR(','||PERIOD,',',1,2), INSTR(PERIOD||',',',',1,2)-INSTR(','||PERIOD,',',1,2)) REG_END,
+			    TIME			,
+			    VENUE			,
+			    EXTENT			,
+			    GRADE			,
+			    RIGHTS			,
+			    REFERENCE		,
+			    (SELECT NAME FROM PCN_COMMON_CODE WHERE PCODE = 127 AND VALUE =  A.GENRE) GENRE	,
+			    UCI				,
+			    NOTE1			,
+			    REFERENCE_IDENTIFIER	,
+			    REFERENCE_IDENTIFIER_ORG,
+			    FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/10+1) AS cPage	
+			FROM 
+				PCN_RDF_METADATA A
+			WHERE 
+				TYPE LIKE '%04%' OR TYPE LIKE '%06%'
+				<isNotEmpty property="title" prepend="AND">
+					TITLE LIKE '%'||#title#||'%'
+				</isNotEmpty>
+			AND APPROVAL = 'Y'
+		 )A 
+		 WHERE 
+		 	cPage = #cPage#
+	</select>
+	<select id="performListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			count(TITLE)		    
+		FROM PCN_RDF_METADATA 
+		WHERE 
+			TYPE LIKE '%04%' OR TYPE LIKE '%06%'
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'||#title#||'%'
+			</isNotEmpty>
+			AND APPROVAL = 'Y'
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ			,
+			TITLE		,
+	      	UCI			,
+			USER_ID		,
+			REG_DATE	,
+			DOWLOAD_CNT	,
+			VIEW_CNT	,
+			START_DT	,
+			END_DT		,
+			LOCATION	,
+			REFERENCE	,
+			TERMS		,
+			ADMISSION	,
+			DISCOUNT	,
+			DISCOUNT_YN	,
+			CONTENT		,
+			APPROVAL
+		FROM 
+			PCN_PREFORM_TICKET
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_PREFORM_TICKET(
+			SEQ			,
+			TITLE		,
+	      	UCI			,
+			USER_ID		,
+			REG_DATE	,
+			DOWLOAD_CNT	,
+			VIEW_CNT	,
+			START_DT	,
+			END_DT		,
+			LOCATION	,
+			REFERENCE	,
+			TERMS		,
+			ADMISSION	,
+			DISCOUNT	,
+			DISCOUNT_YN	,
+			CONTENT		,
+			APPROVAL
+		)VALUES(
+			(SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_PREFORM_TICKET) ,
+			<!-- sequence 만들어 -->
+			#title#			,
+	      	#uci#			,
+			#session_admin_id#		,
+			SYSDATE			,
+			0				,
+			0				,
+			TO_DATE(#start_dt#,'YYYY-MM-DD')	,
+			TO_DATE(#end_dt#,'YYYY-MM-DD')		,
+			#location#		,
+			#reference#		,
+			#terms#			,
+			#admission#		,
+			#discount#		,
+			#discount_yn#	,
+			#content#		,
+			#approval#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_PREFORM_TICKET 
+		SET			
+			TITLE 		= #title#			,
+	      	UCI 		= #uci#				,
+			START_DT 	= TO_DATE(#start_dt#,'YYYY-MM-DD')	,
+			END_DT 		= TO_DATE(#end_dt#,'YYYY-MM-DD')	,
+			LOCATION 	= #location#		,
+			REFERENCE 	= #reference#		,
+			TERMS 		= #terms#			,
+			ADMISSION 	= #admission#		,
+			DISCOUNT 	= #discount#		,
+			DISCOUNT_YN = #discount_yn#		,
+			CONTENT 	= #content#			,
+			APPROVAL 	= #approval#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  PCN_PREFORM_TICKET SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<update id="performTicketUpdate" parameterClass="paramMap">
+		UPDATE PCN_RDF_METADATA SET TICKET_SEQ = #seq#
+		WHERE UCI = #UCI#
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_PREFORM_TICKET 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT
+	   		RNUM "번호"								,TITLE "제목"		
+	   		, START_DT||'-'||END_DT "할인기간"		, DOWNLOAD_CNT "다운수"	
+		FROM 
+		(
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY A.SEQ DESC) RNUM
+				, A.TITLE				 
+				, A.DISCOUNT			 
+				, TO_CHAR(A.START_DT,'YYYY-MM-DD') START_DT	 
+				, TO_CHAR(A.END_DT,'YYYY-MM-DD')	END_DT			 
+				, A.DOWLOAD_CNT DOWNLOAD_CNT
+	      	FROM 
+	      		PCN_PREFORM_TICKET A 
+			<dynamic prepend="WHERE">
+      			<isNotEmpty property="approval" prepend="AND">
+      				APPROVAL = #approval#
+      			</isNotEmpty>
+      			<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+					( 
+						title like '%'|| #keyword# || '%' or
+						DBMS_LOB.INSTR(CONTENT,#keyword#) > 0
+					)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="content" prepend="AND">
+						CONTENT like '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+				<isEqual property="regType" compareValue="1">
+	    			<isNotEmpty property="start_dt">
+	     				<isNotEmpty property="end_dt" prepend="AND">
+							(
+								START_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')  OR
+								END_DT BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE('$end_dt$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+							)
+						</isNotEmpty>
+	     			</isNotEmpty>
+	     		</isEqual>
+	     		<isEqual property="regType" compareValue="2">
+	    			<isNotEmpty property="start_dt">
+	    				<isEmpty property="end_dt">
+	    					REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#start_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+	    				</isEmpty>
+	     				<isNotEmpty property="end_dt" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#start_dt#,'yyyy-mm-dd')   AND TO_DATE(#end_dt# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+	     			</isNotEmpty>
+	     		</isEqual>
+	     	</dynamic>
+	      )
+	</select>
+</sqlMap>

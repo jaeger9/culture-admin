@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_cal">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		/* culture_cal.list */
+		SELECT  
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, R.*
+			FROM (
+				SELECT SEQ
+					 , TITLE					 									 
+					 , CONTENTS
+					 , APPROVAL_YN
+					 , VIEW_CNT					  					 
+					 , REG_ID
+					 , TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+					 , TO_CHAR(STRT_DT, 'YYYY-MM-DD') STRT_DT
+					 , TO_CHAR(END_DT, 'YYYY-MM-DD') END_DT				
+					 , CONTENTS_YN
+					 , OUTLINK
+					 , OUTLINK_KIND	 
+				  FROM CULTURE_CAL
+				<dynamic prepend="WHERE">		
+					<isNotEmpty property="approval_yn" prepend="AND">
+						approval_yn = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENTS LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+				
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_start" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') >= #reg_start#]]>
+						</isNotEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="strt_dt" prepend="AND">
+							<![CDATA[TO_CHAR(STRT_DT, 'YYYY-MM-DD') >= #strt_dt#]]>
+						</isNotEmpty>
+						<isNotEmpty property="end_dt" prepend="AND">
+							<![CDATA[TO_CHAR(END_DT, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		/* culture_cal.listCnt */
+				SELECT COUNT(*)
+				  FROM culture_cal
+				<dynamic prepend="WHERE">		
+					<isNotEmpty property="approval_yn" prepend="AND">
+						approval_yn = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENTS LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+				
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_start" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') >= #reg_start#]]>
+						</isNotEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="strt_dt" prepend="AND">
+							<![CDATA[TO_CHAR(STRT_DT, 'YYYY-MM-DD') >= #strt_dt#]]>
+						</isNotEmpty>
+						<isNotEmpty property="end_dt" prepend="AND">
+							<![CDATA[TO_CHAR(END_DT, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+	    /* culture_qna.view */
+		SELECT A.SEQ,
+		       A.TITLE,
+		       A.CONTENTS,
+		       A.CONTENTS_YN,
+		       A.APPROVAL_YN,
+		       A.VIEW_CNT,
+		       A.REG_ID,
+		       TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') AS REG_DATE,
+		       A.UPD_ID,
+		       A.UPD_DATE,
+		       TO_CHAR(A.STRT_DT, 'YYYY-MM-DD') AS STRT_DT,
+		       TO_CHAR(A.END_DT, 'YYYY-MM-DD') AS END_DT,
+		       A.GPS_X01,
+		       A.GPS_Y01,
+		       A.GPS_X02,
+		       A.GPS_Y02,
+		       A.GPS_X03,
+		       A.GPS_Y03,
+		       A.OUTLINK,
+		       A.OUTLINK_KIND
+		  FROM culture_cal A
+         WHERE A.SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">	    
+		/* culture_cal.insert */
+		INSERT INTO culture_cal
+		     ( 
+		        SEQ
+		      , TITLE
+		      , CONTENTS
+		      , CONTENTS_YN
+		      , APPROVAL_YN		     
+		      , REG_ID
+		      , REG_DATE
+		      , STRT_DT
+		      , END_DT 	
+		      , GPS_X01
+		      , GPS_Y01
+		      , GPS_X02
+		      , GPS_Y02
+		      , GPS_X03
+		      , GPS_Y03
+		      , VIEW_CNT
+		      , notice_yn
+		      , OUTLINK
+		      , OUTLINK_KIND
+		      
+		     )
+       VALUES
+             ( 
+               SEQ_culture_cal.NEXTVAL
+             , #title#
+             , #contents#
+             , #contents_yn#
+             , #approval_yn#             
+             , #reg_id#
+             , TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+             , #strt_dt#
+             , #end_dt#
+             , #gps_x01#
+             , #gps_y01#
+             , #gps_x02#
+             , #gps_y02#
+             , #gps_x03#
+             , #gps_y03#
+             , 0
+             , #notice_yn#
+             , #outlink#
+             , #outlink_kind#
+             )
+	</insert>
+	
+	<update id="viewCnt" parameterClass="paramMap">
+		/* culture_cal.view */
+		UPDATE culture_cal
+		   SET VIEW_CNT = NVL(VIEW_CNT,0)+1
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<update id="update" parameterClass="paramMap">
+		/* culture_cal.update */
+		UPDATE culture_cal
+		   SET TITLE = #title#
+		     , CONTENTS = #contents#
+		     , CONTENTS_YN = #contents_yn#
+		     , STRT_DT = #strt_dt#
+		     , END_DT = #end_dt#
+		     , APPROVAL_YN = #approval_yn#
+		     , UPD_DATE = SYSDATE
+		     , GPS_X01 = #gps_x01#
+		     , GPS_Y01 = #gps_y01#
+		     , GPS_X02 = #gps_x02#
+		     , GPS_Y02 = #gps_y02#
+		     , GPS_X03 = #gps_x03#
+		     , GPS_Y03 = #gps_y03#
+		     , notice_yn = #notice_yn#
+		     , OUTLINK = #outlink#
+		     , OUTLINK_KIND = #outlink_kind#
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">	
+		/* culture_cal.statusUpdate */	
+		UPDATE culture_cal 
+		    SET APPROVAL_YN = #updateStatus#	
+			  , UPD_ID = #upd_id#
+			  , UPD_DATE = SYSDATE
+		  WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM CULTURE_CAL 
+  		 WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

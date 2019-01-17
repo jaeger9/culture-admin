@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<!-- 상대 or 절대경로 입력 -->
+<PlayerSkin borderThickess="1" componentGap="1" minWidth="200" minHeight="200">
+	<ScreenLayer
+		isActive="true"
+		bgImgURL="./images/playerBG.png">
+		<VideoArea
+			isActive="true"
+			initScreenJoint="true"
+			borderThickess="0" borderColor="0x66CC00"
+			bufferPrintSwfURL=""
+			bufferPrintSwfWidth="450" bufferPrintSwfHeight="150"
+			cfPrdImgWidthDefaultRslt="640" cfPrdImgHeightDefaultRslt="480"
+			cfPrdPointerImgURL="./images/cfPrdPointer.png"
+			cfPrdPointerImgWidth="18" cfPrdPointerImgHeight="18"
+			cfSpeechBubbleWidth="259" cfSpeechBubbleHeight="110"
+			cfSpeechBubbleCompGap="16" cfSpeechBubbleArcRadius="5" cfSpeechBubbleallowGap="13" cfSpeechBubbleBorderThickness="2"
+			cfSpeechBubbleBorderColor="0xc5757b" cfSpeechBubbleFillColor="0xFFFFFF"
+		/>
+		<ThumbnailViewer
+			isActive="true"
+			width="470" height="75" imageGap="5"
+			imageCount="5" effectColor="0x13a3d7"
+		/>
+		<VideoStatus
+			isActive="true"
+			layerColor="#FFFFFF" layerAlpha="0"
+			encImgURL="./images/encoding.png"
+			encImgWidth="157" encImgHeight="37"
+			encErrorImgURL="./images/encodingError.png"
+			encErrorImgWidth="217" encErrorImgHeight="37"
+			playImgURL="./images/playState.png"
+			playImgWidth="93" playImgHeight="93"
+			reloadImgURL="./images/reloadState.png"
+			reloadImgWidth="93" reloadImgHeight="93"
+			pauseImgURL="./images/pauseState.png"
+			pauseImgWidth="93" pauseImgHeight="93"
+		/>
+		<CopyLayer
+			isActive="true"
+			layerImgURL="./images/copyBG.png"
+			layerWidth="540" layerHeight="330" layerCompGap="20" eachCompGap="5"
+			titleImgURL="./images/copyTitle.png"
+			titleWidth="510" titleHeight="45"
+			closeBtnImgURL="./images/copyClose.png"
+			closeBtnImgWidth="12" closeBtnImgHeight="12"
+			tagTitleImgURL="./images/copyTabTitle.png"
+			tagTitleWidth="85" tagTitleHeight="20"
+			urlTitleImgURL="./images/copyURLTitle.png"
+			urlTitleWidth="87" urlTitleHeight="20"
+			orgCopyBtnImgURL="./images/originCopyBtn.png"
+			orgCopyBtnWidth="57" orgCopyBtnHeight="20"
+			srcCopyBtnImgURL="./images/sourceCopyBtn.png"
+			srcCopyBtnWidth="57" srcCopyBtnHeight="20"
+			copyConfirmBtnImgURL="./images/copyConfirmBtn.png"
+			copyConfirmBtnWidth="57" copyConfirmBtnHeight="20"
+			defaultColor="#c3c3c3" activeColor="#d65222" formColor="#000000" strikeColor="#004282"
+		/>
+		<ScoreLayer
+			isActive="false"
+			layerImgURL="./images/scoreLayer.png"
+			layerWidth="205" layerHeight="85"
+			likeBtnImgURL="./images/scoreLikeBtn.png"
+			likeBtnImgWidth="88" likeBtnImgHeight="25"
+			hateBtnImgURL="./images/scoreHateBtn.png"
+			hateBtnImgWidth="88" hateBtnImgHeight="25"
+			bottomGap="20"
+		/>
+	</ScreenLayer>
+	<IntroduceLayer
+		isActive="true"
+		bgi="./images/mg.png"
+		bgm="./images/mg.swf">
+	</IntroduceLayer>
+	<ControllLayer
+		isActive="true"
+		bgImgURL="./images/controlBarBG.png"
+		isHide="false"
+		barHeight="34">
+		<FullScreenButton
+			isActive="true"
+			btnImgWidth="28" btnImgHeight="28"
+			btnImgURL="./images/fullScreen.png"
+			btnOverImgURL="./images/fullScreen_over.png"
+		/>
+		<SNSButton
+			isActive="false"
+			btnImgWidth="32" btnImgHeight="18"
+			btnImgURL="./images/snsBtn.png"
+			btnOverImgURL="./images/snsBtn_over.png"
+			menuBGImgURL="./images/snsMenuBG.png"
+			menuBGImgWidth="80" menuBGImgHeight="85"
+			menuEachWidth="74" menuEachHeight="20">
+			<menu name="facebook" image="./images/facebook.png" link="http://www.facebook.com/sharer.php?u=" target="_blank" />
+			<menu name="twitter" image="./images/twitter.png" link="http://twitter.com/home?status=" target="_blank" />
+			<menu name="clog" image="./images/clog.png" link="http://csp.cyworld.com/bi/bi_recommend_pop.php?url=" target="_blank" />
+			<menu name="me2day" image="./images/me2day.png" link="http://me2day.net/posts/new?new_post[body]=" target="_blank" />
+		</SNSButton>
+		<CopyButton
+			isActive="true"
+			btnImgWidth="28" btnImgHeight="28"
+			btnImgURL="./images/linkCopy.png"
+			btnOverImgURL="./images/linkCopy_over.png"
+		/>
+		<ScoreButton
+			isActive="false"
+			btnImgWidth="32" btnImgHeight="18"
+			btnImgURL="./images/scoreBtn.png"
+			btnOverImgURL="./images/scoreBtn_over.png"
+		/>
+		<StreamButton
+			isActive="false"
+			btnImgWidth="18" btnImgHeight="18"
+			btnImgURL="./images/streamBtn.png"
+			btnOverImgURL="./images/streamBtn_over.png"
+			menuBGImgURL="./images/streamMenuBG.png"
+			menuBorderShow="true" menuBorderGap="3" menuBorderThickess="2" menuBorderColor="0xdeddd9"
+			menuEachWidth="60" menuEachHeight="18" menuDefaultColor="#999999" menuActiveColor="#e51839"
+		/>
+		<SoundButton
+			isActive="true"
+			btnWidth="28" btnHeight="28"
+			pointerWidth="10" pointerHeight="10"
+			layerWidth="21" layerHeight="100"
+			barWidth="3" barHeight="5"
+			onSoundImgURL="./images/onSound.png"
+			onSoundOverImgURL="./images/onSound_over.png"
+			noSoundImgURL="./images/noSound.png"
+			noSoundOverImgURL="./images/noSound_over.png"
+			volumeLayerImgURL="./images/volumeLayer.png"
+			volumeImgURL="./images/volume.png"
+			volumeDefaultImgURL="./images/volumeDefault.png"
+			volumePointerImgURL="./images/volumePointer.png"
+		/>
+		<PlayNPauseButton
+			isActive="true"
+			btnImgWidth="37" btnImgHeight="28"
+			playImgURL="./images/play.png"
+			playOverImgURL="./images/play_over.png"
+			pauseImgURL="./images/pause.png"
+			pauseOverImgURL="./images/pause_over.png"
+		/>
+		<StopButton
+			isActive="false"
+			imgWidth="31" imgHeight="28"
+			btnImgURL="./images/stop.png"
+			btnOverImgURL="./images/stop_over.png"
+		/>
+		<PlayTime
+			isActive="true"
+			defaultColor="#808080" activeColor="#ffffff"
+			bufferBarWidth="0" bufferBarHeight="0"
+			timeDepth="MS"
+		/>
+		<VideoSlider
+			isActive="true"
+			totalBarHeight="2" innerGap="0" barImgHeight="2" sliderThickess="0"
+			bgImgURL="./images/videoBGBar.png" 
+			defaultImgURL="./images/videoDefaultBar.png"
+			downloadImgURL="./images/videoDownloadBar.png"
+			foregroundImgURL="./images/videoForegroundBar.png"
+			pointerWidth="0" pointerHeight="0" guidePointerWidth="16" guidePointerHeight="16"
+			pointerImgURL="./images/videoPointer.png"
+		/>
+		
+	</ControllLayer>
+</PlayerSkin>

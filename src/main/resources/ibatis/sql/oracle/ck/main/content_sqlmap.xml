@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="content">
+
+	<select id="tabList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		  CODE , NAME
+		FROM 
+		  PORTAL_MAIN_CODE
+		WHERE
+		  TYPE = #main_code_type#
+		  AND PCODE = 1
+	</select>
+	<select id="emptySubList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		  CODE , NAME
+		FROM 
+		  PORTAL_MAIN_CODE
+		WHERE
+		  TYPE = #main_code_type#
+		  <![CDATA[
+			  AND PCODE <> 1
+		  ]]>
+		  AND PCODE = #menu_type#
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.*
+		FROM (
+			SELECT 
+				/*+INDEX_DESC(A PORTAL_MAIN_CONTENT_PK)*/
+				FLOOR((ROW_NUMBER()OVER( ORDER BY  A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				, A.SEQ
+				, A.TITLE
+				, DECODE( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+				, TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+				, WRITER
+				, MAIN_TITLE
+				, (SELECT MAX(URL) FROM PORTAL_MAIN_CONTENT_SUB B WHERE B.PSEQ = A.SEQ) AS URL
+			FROM 
+				PORTAL_MAIN_CONTENT A
+			WHERE 
+				CODE = #menu_type#
+				<isNotEmpty property="searchApproval" prepend="AND">
+					APPROVAL = #searchApproval#
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+		<!-- 화면에 검색 조건없다 필요하면 넣던가 -->			
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			PORTAL_MAIN_CONTENT A
+		WHERE 
+			CODE = #menu_type#
+	</select>
+	<select id="subList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			B.CODE, B.PCODE, B.NAME, 
+			DECODE(ROWNUM, 1, B.VALUE, DECODE(#menu_type#, '209', '', B.VALUE)) VALUE, 
+			A.*
+		FROM 
+		(
+			SELECT B.*
+            FROM PORTAL_MAIN_CONTENT A,  PORTAL_MAIN_CONTENT_SUB B
+			WHERE A.SEQ = B.PSEQ
+			AND PSEQ = #seq#
+		<!-- seq 로 조회하는데 왜 이걸... -->
+		<!-- <isNotEmpty property="approval">
+			<isEqual property="approval" compareValue="Y" prepend="AND">
+				A.APPROVAL = #approval#
+			</isEqual>
+			<isEqual property="approval" compareValue="N" prepend="AND">
+				PSEQ = (SELECT /*+INDEX_DESC(A PORTAL_MAIN_CONTENT_PK)*/ SEQ FROM PORTAL_MAIN_CONTENT A WHERE CODE = #menu_type# AND ROWNUM = 1)
+			</isEqual>
+		</isNotEmpty> -->
+		)A,
+		<!-- 애초에 code 값 가져와서 넣는건데 왜 비교 하는지 암튼 내비둠.... -->
+		(        
+			SELECT *
+			FROM PORTAL_MAIN_CODE
+			WHERE TYPE = 'MAIN_CONTENT'
+			AND PCODE > 0
+			START WITH PCODE = #menu_type#
+			CONNECT BY PRIOR CODE = PCODE
+			ORDER SIBLINGS BY SORT
+		) B
+		WHERE A.CODE(+) = B.CODE
+		
+		<!-- 위랑 중복 -->
+		<!-- <isNotEqual property="menu_type" compareValue="209">
+			WHERE A.CODE(+) = B.CODE
+		</isNotEqual> -->
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ
+			, TITLE
+			, CODE
+			, APPROVAL
+			, WRITER
+			, MAIN_TITLE
+		FROM 
+			PORTAL_MAIN_CONTENT
+		WHERE 
+			SEQ = #seq#
+	</select>
+	<select id="subView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			*
+		FROM 
+			PORTAL_MAIN_CONTENT_SUB
+		WHERE 
+			CODE = #category#
+		<isNotEmpty property="seq" prepend="AND">
+			SEQ = #seq#
+		</isNotEmpty>
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ),0)+1 FROM PORTAL_MAIN_CONTENT
+		</selectKey>
+		INSERT 
+			INTO PORTAL_MAIN_CONTENT
+			(
+				SEQ
+				, CODE
+				, TITLE
+				, APPROVAL
+				, REG_DATE
+				<isNotEmpty property="mainWriter">
+				, WRITER
+				</isNotEmpty>
+				<isNotEmpty property="mainMainTitle">
+				, MAIN_TITLE
+				</isNotEmpty>
+			) VALUES (
+				#seq#
+				, #menu_type#
+				, #mainTitle#
+				, #approval#
+				, SYSDATE
+				<isNotEmpty property="mainWriter">
+				, #mainWriter#
+				</isNotEmpty>
+				<isNotEmpty property="mainMainTitle">
+				, #mainMainTitle#
+				</isNotEmpty>
+			)
+	</insert>
+	<insert id="insertContentSub" parameterClass="java.util.Map">
+		INSERT
+			INTO PORTAL_MAIN_CONTENT_SUB
+			(
+				SEQ
+			    , PSEQ
+			    , TITLE
+			    , URL
+			    , IMAGE_NAME
+			    , CODE
+			    , IMAGE_NAME2
+			    , PERIOD
+			    , PLACE
+			    , DISCOUNT
+			    , SUMMARY
+			    , CONT_DATE
+			    , RIGHTS
+			    , UCI
+			    , TOP_TITLE
+				, GROUP_TYPE
+				, GROUP_NUM
+				, GROUP_TEXT
+				<isNotEmpty property="new_win_yn">
+				, NEW_WIN_YN
+				</isNotEmpty>
+				<isNotEmpty property="type">
+				, TYPE
+				</isNotEmpty>
+			) VALUES (
+		   		(SELECT NVL(MAX(SEQ),0)+1 FROM PORTAL_MAIN_CONTENT_SUB)
+		    	, #pseq#
+		    	, #title#
+			    , #url#
+			    , #image_name#
+			    , #category#
+			    , #image_name2#
+			    , #period#
+			    , #place#
+			    , #discount#
+			    , #summary#
+			    , #cont_date#
+			    , #rights#
+			    , #uci#
+			    , #title_top#
+			    , #group_type#
+			    , #group_num#
+			    , #main_text#
+				<isNotEmpty property="new_win_yn">
+				, #new_win_yn#
+				</isNotEmpty>
+				<isNotEmpty property="type">
+				, #type#
+				</isNotEmpty>
+			)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PORTAL_MAIN_CONTENT
+		SET 
+			UPD_DATE = SYSDATE
+			<isNotEmpty property="approval" prepend=",">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			, TITLE = #mainTitle#
+			, WRITER = #mainWriter#
+			<isNotEmpty property="mainMainTitle">
+			, MAIN_TITLE = #mainMainTitle#
+			</isNotEmpty>
+		WHERE 
+			SEQ = #pseq#
+	</update>
+	<update id="updateContentSub" parameterClass="java.util.Map">
+		UPDATE 
+			PORTAL_MAIN_CONTENT_SUB
+		SET 
+			TITLE = #title#,
+			URL = #url#,
+			IMAGE_NAME = #image_name#,
+			CODE = #category#,
+			IMAGE_NAME2 = #image_name2#, 
+			PERIOD = #period#, 
+			PLACE = #place#,
+			DISCOUNT = #discount#,
+			SUMMARY = #summary#,
+			CONT_DATE = #cont_date#,
+			RIGHTS = #rights#,
+			UCI = #uci#
+			<isNotEmpty property="new_win_yn">
+			, NEW_WIN_YN = #new_win_yn#
+			</isNotEmpty>
+			<isNotEmpty property="type">
+			, TYPE = #type#
+			</isNotEmpty>
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE 
+			PORTAL_MAIN_CONTENT
+		SET 
+			APPROVAL = #updateStatus#
+		WHERE
+	 		<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+				#array.seq[]#
+			</iterate>	
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE
+			PORTAL_MAIN_CONTENT
+		WHERE
+			<isEmpty property="pseq">
+				<iterate property="array.seq" prepend="SEQ IN " open="(" close=")" conjunction=",">
+					#array.seq[]#
+				</iterate>
+			</isEmpty>	
+			<isNotEmpty property="pseq">
+				seq = #pseq#
+			</isNotEmpty>
+	</delete>
+	<delete id="deleteContentSub" parameterClass="paramMap">
+		DELETE
+			PORTAL_MAIN_CONTENT_SUB
+		WHERE
+			<isEmpty property="pseq">
+				<iterate property="array.seq" prepend="PSEQ IN " open="(" close=")" conjunction=",">
+					#array.seq[]#
+				</iterate>
+			</isEmpty>
+			<isNotEmpty property="pseq">
+				pseq = #pseq#
+			</isNotEmpty>	
+	</delete>
+	
+	<select id="subGrpList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.GROUP_TYPE, A.GROUP_NUM, MAX(A.TOP_TITLE) top_title, count(1) cnt
+		FROM
+			PORTAL_MAIN_CONTENT_SUB A
+		WHERE
+			PSEQ = #seq#
+	        AND A.GROUP_TYPE IS NOT NULL
+	        AND A.GROUP_NUM IS NOT NULL
+		GROUP BY
+			A.GROUP_NUM, A.GROUP_TYPE
+		ORDER BY
+			A.GROUP_NUM
+	</select>
+	
+	<select id="subList2" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM
+			PORTAL_MAIN_CONTENT_SUB
+		WHERE
+			PSEQ = #seq#
+		ORDER BY
+			<!-- GROUP_NUM, CODE -->
+			GROUP_TYPE, CODE
+	</select>
+</sqlMap>

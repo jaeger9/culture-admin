@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="recom">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM
+		(
+			SELECT
+				SEQ
+				, TITLE
+				, INUMBER
+				, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE
+				, VIEW_CNT
+				, APPROVAL
+				, EDITOR_NAME
+				, EDITOR_ORG
+			    , (SELECT COUNT(SEQ) FROM PCN_RECOM_CULTUREREPLY WHERE PSEQ = A.SEQ) reply_cnt
+				, FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) AS PAGE
+			FROM 
+				PCN_RECOM_CULTURE A
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="editor_org" prepend="AND">
+					EDITOR_ORG = #editor_org#
+				</isNotEmpty>
+				<isNotEmpty property="editor_name" prepend="AND">
+					EDITOR_NAME = #editor_name#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="gubun2" compareValue="">
+						(TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+					</isEqual>
+					<isEqual property="gubun2" compareValue="TITLE">
+						TITLE LIKE '%' || #keyword# || '%'
+					</isEqual>
+					<isEqual property="gubun2" compareValue="CONTENT">
+						CONTENT LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="gubun" prepend="AND">
+					APPROVAL = #gubun#
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+			</dynamic>
+			) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			SEQ
+			, TITLE
+			, INUMBER
+			, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE
+			, VIEW_CNT
+			, APPROVAL
+			, EDITOR_NAME
+			, EDITOR_ORG
+		    , (SELECT COUNT(SEQ) FROM PCN_RECOM_CULTUREREPLY WHERE PSEQ = A.SEQ) reply_cnt
+		FROM 
+			PCN_RECOM_CULTURE A
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="editor_org" prepend="AND">
+				EDITOR_ORG = #editor_org#
+			</isNotEmpty>
+			<isNotEmpty property="editor_name" prepend="AND">
+				EDITOR_NAME = #editor_name#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="gubun2" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="gubun2" compareValue="TITLE">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="gubun2" compareValue="CONTENT">
+					CONTENT LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="gubun" prepend="AND">
+				APPROVAL = #gubun#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="topList" parameterClass="java.util.Map"  resultClass="java.util.HashMap">
+		SELECT A.* FROM(
+			SELECT
+				A.SEQ
+				,A.TITLE
+				,A.INUMBER
+				,TO_CHAR(A.REG_DATE, 'yyyy-mm-dd') REG_DATE
+				,A.VIEW_CNT
+				,A.APPROVAL
+				,(SELECT COUNT(SEQ) FROM PCN_RECOM_CULTUREREPLY WHERE PSEQ = A.SEQ) REPLY_CNT
+				,B.NAME AUTHOR_NAME
+        		,(SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE = TO_CHAR(B.TYPE) AND TYPE = 'WRITER_CD') SOURCE_NAME
+				,FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC)-1)/#ROWNUM#+1) AS cPage
+			FROM
+				PCN_RECOM_CULTURE A,
+				PORTAL_STORY_AUTHOR B
+			WHERE
+				A.AUTHOR_SEQ = B.SEQ(+)
+			AND
+				TOP_YN = 'Y'
+		) A WHERE cPage = #cPage#
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ					,
+			INUMBER				,
+			TITLE				,
+			CONTENT				,
+			IMG_URL				,
+			THUMB_URL			,
+			TYPE				,
+			REG_ID				,
+			REG_DATE			,
+			APPROVAL			,
+			TOP_YN				,
+			VIEW_CNT			,
+			RECOM_IMG_SEQ		,
+			RECOM_TEXT_SEQ		,
+			RECOM_CONTENT		,
+			EDITOR_NAME			,
+			EDITOR_ORG
+		FROM 
+			PCN_RECOM_CULTURE
+		WHERE 
+			SEQ = #oid#
+	</select>
+	<select id="textView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ,
+			PARENT_SEQ,
+			TITLE,
+			CONTENT,
+			URL,
+			VIEW_CNT
+		FROM 
+			PCN_RECOM_CULTURE_TEXT
+		WHERE 
+			PARENT_SEQ = #oid#
+	</select>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_RECOM_CULTURE SET			
+			INUMBER			= #INUMBER#		,
+			TITLE			= #TITLE#		,
+			CONTENT			= #CONTENT:CLOB#,
+			IMG_URL			= #IMG_URL#		,
+			THUMB_URL		= #THUMB_URL#	,
+			TYPE			= #TYPE#		,
+			REG_ID			= #REG_ID#		,
+			REG_DATE		= #REG_DATE#	,
+			APPROVAL		= #APPROVAL#	,
+			TOP_YN			= #TOP_YN#		,
+			EDITOR_NAME     = #EDITOR_NAME# ,
+			EDITOR_ORG		= #EDITOR_ORG#  ,					
+			RECOM_CONTENT	= #RECOM_CONTENT:CLOB#
+		WHERE SEQ = #OID#
+	</update>
+	
+	<delete id="deleteCulture" parameterClass="paramMap">DELETE FROM PCN_RECOM_CULTURE WHERE SEQ = #OID#</delete>
+	<delete id="deleteCultureImg" parameterClass="paramMap">DELETE FROM PCN_RECOM_CULTURE_IMG WHERE PARENT_SEQ = #OID#</delete>
+	<delete id="deleteCultureText" parameterClass="paramMap">DELETE FROM PCN_RECOM_CULTURE_TEXT WHERE PARENT_SEQ = #OID#</delete>
+	<delete id="deleteCultures" parameterClass="paramMap">
+		DELETE FROM PCN_RECOM_CULTURE 
+		WHERE SEQ IN
+		<iterate property="OID" open="(" conjunction="," close=")">
+			#OID[]#
+		</iterate>
+	</delete>
+	
+</sqlMap>

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="education.apply">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+				A.SEQ       
+				, A.P_SEQ    
+				, A.REG_DATE 
+				, A.USER_ID  
+				, A.TEL      
+				, A.EMAIL    
+				, A.PERSON   
+				, DECODE(A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '접수') AS APPROVAL 
+				, A.ORGANIZE 
+				, A.DELETE_YN
+				, E.TITLE
+				, FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC nulls last)-1)/$list_unit$+1) AS PAGE
+			FROM 
+				PORTAL_EDU_APPLY A , 
+				PORTAL_EDUCATION E
+			WHERE
+				A.P_SEQ = E.SEQ
+				AND E.SEQ = #seq#
+				<isNotEmpty property="approval" prepend="AND">
+					A.APPROVAL = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="title" prepend="AND">
+					E.TITLE = #title#
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isNotEmpty property="reg_end" prepend="AND">
+						A.REG_DATE BETWEEN TO_DATE ( #reg_start# , 'YYYY-MM-DD') AND TO_DATE ( #reg_end# , 'YYYY-MM-DD')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="user_id">
+					A.USER_ID = #user_id#
+				</isNotEmpty>
+				<isNotEmpty property="keyword">
+					<isEqual property="searchGubun" compareValue="" prepend="AND">
+						( A.USER_ID LIKE '%' || #keyword# || '%' OR A.TEL LIKE '%' || #keyword# || '%' )
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="user_id" prepend="AND">
+						 A.USER_ID LIKE '%' || #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="tel" prepend="AND">
+						 A.TEL LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				
+		) R
+		WHERE
+		  	R.PAGE = #page_no#	
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+			COUNT(1)
+		FROM 
+			PORTAL_EDU_APPLY A , 
+			PORTAL_EDUCATION E
+		WHERE
+			A.P_SEQ = E.SEQ
+			AND E.SEQ = #seq#
+			<isNotEmpty property="approval" prepend="AND">
+					A.APPROVAL = #approval#
+				</isNotEmpty>
+			<isNotEmpty property="title" prepend="AND">
+					E.TITLE = #title#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isNotEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN TO_DATE ( #reg_start# , 'YYYY-MM-DD') AND TO_DATE ( #reg_end# , 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="user_id">
+				A.USER_ID = #user_id#
+			</isNotEmpty>
+			<isNotEmpty property="keyword">
+				<isEqual property="searchGubun" compareValue="" prepend="AND">
+					( E.TITLE LIKE '%' || #keyword# || '%' OR E.RIGHTS LIKE '%' || #keyword# || '%' )
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					 E.TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="rights" prepend="AND">
+					 E.RIGHTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			A.SEQ       
+			, A.P_SEQ    
+			, A.REG_DATE 
+			, A.USER_ID  
+			, A.TEL      
+			, A.EMAIL
+			, SUBSTR(A.EMAIL, 1, INSTR(A.EMAIL, '@', 1, 1) - 1) EMAIL1 
+  			, SUBSTR(A.EMAIL, INSTR(A.EMAIL, '@', 1, 1) + 1) EMAIL2          
+			, A.PERSON   
+			, A.APPROVAL 
+			, A.ORGANIZE 
+			, A.DELETE_YN
+			, E.TITLE
+			, M.NAME USER_NAME
+		FROM 
+			PORTAL_EDU_APPLY A , 
+			PORTAL_EDUCATION E ,
+			PCN_MEMBER M 
+		WHERE
+		  	A.P_SEQ = E.SEQ
+		  	AND A.USER_ID = M.USER_ID
+		  	AND A.SEQ = #applySeq#
+	</select>
+	<select id="memberList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT 
+			  	USER_ID 
+			  	, NAME
+			  	, FLOOR((ROW_NUMBER()OVER(ORDER BY NAME DESC nulls last)-1)/$list_unit$+1) AS PAGE
+			FROM 
+			  	PCN_MEMBER
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="name">
+					NAME = #name#
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE
+			R.PAGE = #page_no#	 
+	</select>
+	<select id="mailInfo" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		 	'문화포털 교육 예약 알림' AS GUBUN
+		  	, A.EMAIL
+		  	, M.NAME
+		  	, (E.TITLE || ' ' || PERIOD ) AS SUBJECT
+		  	, DECODE(#updateStatus# , 'Y' , '승인' , 'N' , '미승인') APPROVAL
+		FROM
+		  	PORTAL_EDU_APPLY A , 
+		  	PORTAL_EDUCATION E ,
+		  	PCN_MEMBER M
+		WHERE
+		  	A.P_SEQ = E.SEQ
+		  	AND M.USER_ID = A.USER_ID
+		  	<iterate property="array.applySeq" open=" A.SEQ IN(" conjunction="," close=")" prepend="AND">
+				#array.applySeq[]#
+			</iterate>
+	</select>
+	<select id="memberListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) 
+		FROM 
+		  	PCN_MEMBER
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="name">
+				NAME = #name#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PORTAL_EDU_APPLY 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.applySeq" open="SEQ IN(" conjunction="," close=")">
+			#array.applySeq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_EDU_APPLY 
+		WHERE 
+		<iterate property="array.applySeq" open="SEQ IN(" conjunction="," close=")">
+			#array.applySeq[]#
+		</iterate>
+	</delete>
+	<delete id="deletePseq" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_EDU_APPLY 
+		WHERE 
+			<iterate property="array.applySeq" open="P_SEQ IN(" conjunction="," close=")">
+				#array.applySeq[]#
+			</iterate>
+	</delete>
+	<delete id="deletePseqOne" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_EDU_APPLY 
+		WHERE 
+			P_SEQ = #seq#
+	</delete>
+</sqlMap>

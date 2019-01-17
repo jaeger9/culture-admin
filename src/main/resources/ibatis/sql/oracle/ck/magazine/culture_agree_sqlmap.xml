@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture.agree">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* culture.agree.list */
+			R.*
+		FROM
+		(
+			SELECT
+				 <isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.REPLY_CNT DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, R.* 
+			FROM
+			(
+				SELECT
+					 A.SEQ
+					, A.TITLE
+					, A.INUMBER
+					, TO_CHAR(A.REG_DATE, 'yyyy-mm-dd') REG_DATE
+					, A.VIEW_CNT
+					, DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' ,'C','완료' , '대기') AS APPROVAL 
+					, A.THUMB_URL
+					, A.IMG_URL
+					, (SELECT COUNT(SEQ) FROM PORTAL_COMMENT WHERE MENU_CD = '8' AND MENU_SEQ = A.SEQ) REPLY_CNT
+				    , B.NAME AUTHOR_NAME
+	        		, (SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE = TO_CHAR(B.TYPE) AND TYPE = 'WRITER_CD') SOURCE_NAME
+	        		, TO_CHAR(TO_DATE(A.OPEN_DATE,'YYYYMMDD'), 'yyyy-mm-dd') OPEN_DATE
+				FROM 
+					PCN_RECOM_CULTURE A,
+					PORTAL_STORY_AUTHOR B
+				WHERE
+					A.AUTHOR_SEQ = B.SEQ(+)
+					<isNotEmpty property="cont_type" prepend="AND">
+						A.CONT_TYPE = #cont_type#
+					</isNotEmpty>
+					<isNotEmpty property="editor_org" prepend="AND">
+						A.EDITOR_ORG = #editor_org#
+					</isNotEmpty>
+					<isNotEmpty property="editor_name" prepend="AND">
+						A.EDITOR_NAME = #editor_name#
+					</isNotEmpty>
+					<isNotEmpty property="keyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(A.TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							A.TITLE LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							A.CONTENT LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="name">
+							B.NAME LIKE '%' || #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="approval" prepend="AND">
+						A.APPROVAL = #approval#
+					</isNotEmpty>
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_end" prepend="AND">
+							A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="search_type" prepend="AND">
+						B.TYPE = #search_type#
+					</isNotEmpty>
+					<isNotEmpty property="gbn_type" prepend="AND">
+						A.GBN_TYPE = #gbn_type#
+					</isNotEmpty>
+				) R
+		) R
+		WHERE
+		  R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture.agree.listCnt */
+			COUNT(1)
+		FROM 
+			PCN_RECOM_CULTURE A,
+			PORTAL_STORY_AUTHOR B
+		WHERE
+			A.AUTHOR_SEQ = B.SEQ(+)
+			<isNotEmpty property="cont_type" prepend="AND">
+					A.CONT_TYPE = #cont_type#
+				</isNotEmpty>
+			<isNotEmpty property="editor_org" prepend="AND">
+				A.EDITOR_ORG = #editor_org#
+			</isNotEmpty>
+			<isNotEmpty property="editor_name" prepend="AND">
+				A.EDITOR_NAME = #editor_name#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(A.TITLE LIKE '%' || #keyword# || '%' OR CONTENT LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					A.TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content">
+					A.CONTENT LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="name">
+					B.NAME LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				A.APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					A.REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_type" prepend="AND">
+				B.TYPE = #search_type#
+			</isNotEmpty>
+			<isNotEmpty property="gbn_type" prepend="AND">
+				A.GBN_TYPE = #gbn_type#
+			</isNotEmpty>
+	</select>
+	<select id="topList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.TITLE
+			,A.INUMBER
+			,TO_CHAR(A.REG_DATE, 'yyyy-mm-dd') REG_DATE
+			,A.VIEW_CNT
+			,DECODE ( A.APPROVAL , 'Y' , '승인' , 'N' , '미승인','C','완료' , '대기') AS APPROVAL 
+			,A.THUMB_URL
+			,(SELECT COUNT(SEQ) FROM PORTAL_COMMENT WHERE MENU_CD = '8' AND MENU_SEQ = A.SEQ) REPLY_CNT
+			,B.NAME AUTHOR_NAME
+       		,(SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE = TO_CHAR(B.TYPE) AND TYPE = 'WRITER_CD') SOURCE_NAME
+       		, TO_CHAR(TO_DATE(A.OPEN_DATE,'YYYYMMDD'), 'yyyy-mm-dd') OPEN_DATE
+		FROM
+			PCN_RECOM_CULTURE A,
+			PORTAL_STORY_AUTHOR B
+		WHERE
+			A.AUTHOR_SEQ = B.SEQ(+)
+			<isNotEmpty property="cont_type" prepend="AND">
+				A.CONT_TYPE = #cont_type#
+			</isNotEmpty>
+			AND TOP_YN = 'Y'
+		ORDER BY A.SEQ DESC
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.INUMBER
+			,A.TITLE
+			,A.CONTENT
+			,A.IMG_URL
+			,A.THUMB_URL
+			,A.TYPE
+			,A.REG_ID
+			,A.REG_DATE
+			,A.APPROVAL
+			,A.TOP_YN
+			,A.VIEW_CNT
+			,A.RECOM_IMG_SEQ
+			,A.RECOM_TEXT_SEQ
+			,A.RECOM_CONTENT
+			,A.EDITOR_NAME
+			,A.EDITOR_ORG
+			,A.AUTHOR_SEQ
+			,A.TAGS
+			,B.AUTHOR_ID		AS AUTHOR_ID
+			,B.NAME				AS AUTHOR_NAME
+			,(
+				SELECT
+					T1.NAME
+				FROM
+					PCN_COMMON_CODE T1
+				WHERE
+					T1.TYPE = 'WRITER_CD'
+				AND	T1.PCODE &lt;&gt; 0
+				AND	T1.VALUE = TO_CHAR(B.TYPE)
+				AND ROWNUM = 1
+			) AS AUTHOR_TYPE
+			,A.OPEN_DATE
+			,A.GBN_TYPE
+		FROM
+			PCN_RECOM_CULTURE A
+			,PORTAL_STORY_AUTHOR B
+		WHERE
+			A.SEQ			=	#seq#
+		AND A.AUTHOR_SEQ	=	B.SEQ(+)
+		AND ROWNUM			=	1
+	</select>
+	<select id="imgView" parameterClass="paramMap"  resultClass="commonMap">
+		SELECT
+			SEQ,
+       		PARENT_SEQ,
+			TITLE,
+			CONTENT,
+			URL,
+			IMG_FILE,
+			VIEW_CNT
+		FROM 
+			PCN_RECOM_CULTURE_IMG
+		WHERE 
+			PARENT_SEQ = #seq#
+		ORDER BY SEQ
+	</select>
+	<select id="textView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ,
+			PARENT_SEQ,
+			TITLE,
+			CONTENT,
+			URL,
+			VIEW_CNT
+		FROM 
+			PCN_RECOM_CULTURE_TEXT
+		WHERE 
+			PARENT_SEQ = #seq#
+		ORDER BY SEQ
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) +1 FROM PCN_RECOM_CULTURE
+		</selectKey>
+		INSERT /* culture.agree.insert */ INTO PCN_RECOM_CULTURE(
+			SEQ			,
+			INUMBER		,
+			TITLE		,
+			CONTENT		,
+			IMG_URL		,
+			THUMB_URL	,
+			TYPE		,
+			REG_ID		,
+			REG_DATE	,
+			APPROVAL	,
+			TOP_YN		,
+			VIEW_CNT	,
+			RECOM_CONTENT,
+			EDITOR_NAME ,
+			AUTHOR_SEQ	,
+			TAGS		,
+			CONT_TYPE	,
+			OPEN_DATE	,
+			GBN_TYPE
+		) VALUES(
+			#seq#		,
+			#inumber#	,
+			#title#		,
+			#content:CLOB#	,
+			#img_url#	,
+			#thumb_url#	,
+			#type#		,
+			#reg_id#	,
+			SYSDATE		,
+			#approval#	,
+			#top_yn#	,
+			0			,
+			#recom_content:clob#,
+			#editor_name# ,
+			#author_seq#,
+			#tags#		,
+			#cont_type#	,
+			#open_date# ,
+			#gbn_type#
+		)
+	</insert>
+	<insert id="imgInsert" parameterClass="java.util.HashMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) +1 FROM PCN_RECOM_CULTURE_IMG
+		</selectKey>
+		INSERT INTO PCN_RECOM_CULTURE_IMG(
+			SEQ			,	
+       		PARENT_SEQ	,
+       		TITLE		,
+       		CONTENT		,
+       		URL			
+       		<isNotEmpty property="img_file" prepend=",">
+       		IMG_FILE	
+       		</isNotEmpty>
+       		
+		)VALUES(
+			#seq#			,	
+			#parent_seq#	,
+       		#img_title#		,
+       		#img_content#	,
+       		#img_url#		
+       		<isNotEmpty property="img_file" prepend=",">
+       		#img_file#	
+       		</isNotEmpty>
+		)
+	</insert>
+	
+	<insert id="textInsert" parameterClass="java.util.HashMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) +1 FROM PCN_RECOM_CULTURE_TEXT
+		</selectKey>
+		INSERT INTO PCN_RECOM_CULTURE_TEXT(
+			SEQ			,
+			PARENT_SEQ	,
+			TITLE		,
+			CONTENT		,
+			URL			
+		)VALUES(
+			#seq#			,
+			#parent_seq#	,
+			#text_title#	,
+			#text_content#	,
+			#text_url#					
+		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_RECOM_CULTURE SET			
+			INUMBER			= #inumber#		,
+			TITLE			= #title#		,
+			CONTENT			= #content:CLOB#,
+			<isNotEmpty  property="img_url">
+				IMG_URL			= #img_url#		,
+			</isNotEmpty>
+			<isNotEmpty  property="thumb_url">
+				THUMB_URL		= #thumb_url#	,
+			</isNotEmpty>
+			TYPE			= #type#		,
+			APPROVAL		= #approval#	,
+			TOP_YN			= #top_yn#		,
+			AUTHOR_SEQ	    = #author_seq#  ,
+			EDITOR_NAME     = #editor_name# ,
+			EDITOR_ORG		= #editor_org#  ,					
+			RECOM_CONTENT	= #recom_content:CLOB#	,
+			OPEN_DATE		= #open_date#,
+			GBN_TYPE		= #gbn_type#
+		WHERE SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PCN_RECOM_CULTURE 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+			<!-- <isNotEmpty property="top_yn">
+				TOP_YN		=#top_yn#
+			</isNotEmpty> -->
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_RECOM_CULTURE 
+		WHERE 
+		<iterate property="array.seq" prepend="SEQ IN " open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</delete>
+	<delete id="deleteCultureImg" parameterClass="paramMap">DELETE FROM PCN_RECOM_CULTURE_IMG WHERE PARENT_SEQ = #seq#</delete>
+	<delete id="deleteCultureText" parameterClass="paramMap">DELETE FROM PCN_RECOM_CULTURE_TEXT WHERE PARENT_SEQ = #seq#</delete>
+	
+</sqlMap>

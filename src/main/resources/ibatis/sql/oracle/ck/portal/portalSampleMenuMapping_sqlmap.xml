@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalSampleMenuMapping">
+
+	<!-- 메뉴가 삭제되는 경우 -->
+	<delete id="deleteByMenuIdTree" parameterClass="paramMap">
+		DELETE FROM PORTAL_MENU_MAPPING MM
+		WHERE
+			MM.MENU_ID IN (
+				SELECT
+				    B.MENU_ID
+				FROM
+				    PORTAL_MENU B
+				START WITH
+				    B.MENU_ID = #menu_id#
+				CONNECT BY PRIOR
+				    B.MENU_ID = B.MENU_PID
+			)
+	</delete>
+
+	<!-- 메뉴는 존재하고 매핑 정보만 삭제 -->
+	<delete id="deleteByMenuId" parameterClass="paramMap">
+		DELETE FROM PORTAL_MENU_MAPPING MM
+		WHERE
+			MM.MENU_ID = #menu_id#
+	</delete>
+
+	<delete id="deleteByUrlId" parameterClass="paramMap">
+		DELETE FROM PORTAL_MENU_MAPPING
+		WHERE
+			URL_ID IN
+		<iterate property="array.url_ids" open="(" conjunction="," close=")">
+			#array.url_ids[]#
+		</iterate>
+	</delete>
+
+	<select id="listByMenuId" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.URL_ID
+			,A.URL_STRING
+			,A.URL_DESC
+			,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			,DECODE(B.URL_ID, NULL, 'N', 'Y') CHECKED_URL_ID
+			,DECODE(B.LINK_YN, 'Y', 'Y', 'N') CHECKED_URL_LINK
+		FROM
+			PORTAL_URL_REPOSITORY A,
+			(
+				SELECT
+					A.URL_ID
+					,A.LINK_YN
+				FROM
+					PORTAL_MENU_MAPPING A
+				WHERE
+					A.MENU_ID = #menu_id#
+			) B
+		WHERE
+			A.URL_ID = B.URL_ID(+)
+		ORDER BY
+			A.URL_STRING
+			,A.URL_DESC
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PORTAL_MENU_MAPPING (
+			MENU_ID
+			,URL_ID
+			,USER_ID
+			,REG_DATE
+			,UPT_DATE
+			,LINK_YN
+		) VALUES (
+			#menu_id#
+			,#url_id#
+			,#user_id#
+			,SYSDATE
+			,SYSDATE
+			,#link_yn#
+		)
+	</insert>
+
+</sqlMap>

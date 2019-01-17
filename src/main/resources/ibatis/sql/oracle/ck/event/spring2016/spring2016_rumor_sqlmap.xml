@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="spring2016.rumor">
+
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* spring2016.rumor.listCount */
+			COUNT(1) CNT
+		FROM SPRING2016_RUMOR_EVENT
+		WHERE DEL_YN = 'N'
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* spring2016.rumor.list */
+			USER_NM, COMMENT_CONTENTS, URL, HP_NO, REG_DATE
+		FROM (
+			SELECT
+				USER_NM, COMMENT_CONTENTS, URL, HP_NO, REG_DATE, 
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM SPRING2016_RUMOR_EVENT
+			WHERE DEL_YN = 'N'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>			
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* spring2016.rumor.excelList */
+			USER_NM "user_nm", NVL(URL, '') "url", NVL(HP_NO, '') "hp_no", REG_DATE "reg_date"
+		FROM SPRING2016_RUMOR_EVENT
+		WHERE USER_NM IS NOT NULL 
+		AND DEL_YN = 'N'
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY REG_DATE DESC		
+	</select>
+
+	<insert id="winnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* event.winner */ 
+		INTO SPRING2016_RUMOR_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_SPRING2016_RUMOR_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+
+	<select id="winnerList" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT /* event.winner.list */
+			A.SEQ "seq", A.EVENT_SEQ "event_seq", B.USER_NM "user_nm", B.HP_NO "hp_no", B.URL "url", B.REG_DATE "reg_date"
+		FROM SPRING2016_RUMOR_WINNER A
+			INNER JOIN SPRING2016_RUMOR_EVENT B ON A.EVENT_SEQ = B.SEQ
+		WHERE 1 = 1
+			AND B.DEL_YN = 'N'
+		ORDER BY B.USER_NM ASC
+	</select>
+
+	<delete id="winnerDelete" parameterClass="paramMap">
+		DELETE 
+		FROM SPRING2016_RUMOR_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<select id="entryList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			MAX(A.SEQ) EVENT_SEQ, A.USER_NM, A.HP_NO, MAX(A.URL) URL, MAX(A.REG_DATE) REG_DATE
+		FROM SPRING2016_RUMOR_EVENT A
+		WHERE 1 = 1
+			AND A.DEL_YN = 'N'
+		  AND NOT EXISTS (
+	      	SELECT 
+	        	*
+	        FROM SPRING2016_RUMOR_WINNER S1
+	        	, SPRING2016_RUMOR_EVENT S2
+	        WHERE S1.EVENT_SEQ = S2.SEQ
+	        	AND S2.USER_NM = A.USER_NM
+	          AND S2.HP_NO = A.HP_NO
+		  )
+    	GROUP BY A.USER_NM, A.HP_NO
+	</select>
+
+</sqlMap>

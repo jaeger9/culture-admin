@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="reply">
+	
+	<select id="rdfView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			TITLE
+		FROM 
+			PCN_RDF_METADATA
+		WHERE
+			SEQ = #seq#
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (
+			SELECT
+				A.SEQ,
+				A.MENU_CD,
+				A.MENU_SEQ,
+				A.CONTENT,
+				A.USER_ID,
+				A.REG_DATE,
+				A.UPT_DATE,
+				A.SNS_TYPE_CD,
+				A.SNS_USER_ID,
+				A.SNS_USER_NAME,
+				A.SNS_POST_ID,
+				A.SNS_ACCESS_TOKEN,
+				A.SNS_SIGNED_REQUEST,
+				A.APPROVAL,
+				A.PSEQ,
+				B.SCORE,
+				FLOOR((ROW_NUMBER()OVER(ORDER BY A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE 
+			FROM
+				PORTAL_COMMENT A,
+				PORTAL_SCORE B
+			WHERE
+				A.SEQ = B.SEQ_CM(+)
+			AND
+				A.MENU_SEQ = #seq#
+			<isNotEmpty property="menu_cd" prepend="AND">
+				A.MENU_CD = #menu_cd#
+			</isNotEmpty>
+		) WHERE
+			PAGE = #page_no#
+	</select>
+
+	<select id="listCnt" parameterClass="java.util.HashMap" resultClass="int">	
+		SELECT
+			COUNT(0)
+		FROM
+			PORTAL_COMMENT A,
+			PORTAL_SCORE B
+		WHERE
+			A.SEQ = B.SEQ_CM(+)
+		AND
+			A.MENU_SEQ = #seq#
+		<isNotEmpty property="menu_cd" prepend="AND">
+			A.MENU_CD = #menu_cd#
+		</isNotEmpty>
+	</select>
+
+</sqlMap>

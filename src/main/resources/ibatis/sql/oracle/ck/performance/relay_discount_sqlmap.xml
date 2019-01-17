@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="relay_discount">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM(
+			SELECT
+				ROWNUM NUM, 
+				SEQ, 
+				TITLE, 
+				IMG_URL , 
+				UCI ,
+				PLACE, 
+				TO_CHAR(TO_DATE(START_DATE), 'yyyy-mm-dd') ||' ~ '|| TO_CHAR(TO_DATE(END_DATE),'yyyy-mm-dd') PERIOD,
+				REG_DATE REG_DATE2, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE ,
+		        DISCOUNT ,
+		        DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
+		        TO_DATE(START_DATE, 'YYYY-MM-DD'),
+		        TO_DATE(END_DATE , 'YYYY-MM-DD'),
+		       	FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC) -1)/$list_unit$+1) AS PAGE
+			FROM 
+				EVENT_RELAYTICKET_DISCOUNT A
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="discount" prepend="AND">
+					DISCOUNT = #discount#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE like '%'|| #searchKeyword# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="search_word" prepend="AND">
+					TITLE like '%'|| #search_word# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="search_date" prepend="AND">
+					START_DATE   BETWEEN TO_CHAR(ADD_MONTHS(#search_date# ,-2),'YYYYMMDD')  AND TO_CHAR(ADD_MONTHS(#search_date#,2),'YYYYMMDD')  
+				</isNotEmpty>
+				<isEqual property="regType" compareValue="1">
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_end" prepend="AND">
+							(
+							TO_DATE(START_DATE,'yyyy-mm-dd') BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss') OR
+							TO_DATE(END_DATE,'yyyy-mm-dd') BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE('$reg_end$
+							23:59:59','yyyy-mm-dd hh24:mi:ss')
+							)
+						</isNotEmpty>
+					</isNotEmpty>
+				</isEqual>
+				<isEqual property="regType" compareValue="2">
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+				</isEqual>
+		</dynamic>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+		
+		
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			EVENT_RELAYTICKET_DISCOUNT A
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="discount" prepend="AND">
+				DISCOUNT = #discount#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE like '%'|| #searchKeyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="search_word" prepend="AND">
+					TITLE like '%'|| #search_word# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="search_date" prepend="AND">
+				START_DATE   BETWEEN TO_CHAR(ADD_MONTHS(#search_date# ,-2),'YYYYMMDD')  AND TO_CHAR(ADD_MONTHS(#search_date#,2),'YYYYMMDD')  
+			</isNotEmpty>
+			<isEqual property="regType" compareValue="1">
+				<isNotEmpty property="reg_start">
+					<isNotEmpty property="reg_end" prepend="AND">
+						(
+						TO_DATE(START_DATE,'yyyy-mm-dd') BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss') OR
+						TO_DATE(END_DATE,'yyyy-mm-dd') BETWEEN TO_DATE(#reg_start#,'yyyy-mm-dd') AND TO_DATE('$reg_end$
+						23:59:59','yyyy-mm-dd hh24:mi:ss')
+						)
+					</isNotEmpty>
+				</isNotEmpty>
+			</isEqual>
+			<isEqual property="regType" compareValue="2">
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+			</isEqual>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ ,
+			A.COMPANY_SEQ,
+			A.TITLE ,
+			A.URL ,
+			A.PLACE ,
+			A.START_DATE,
+			A.END_DATE ,
+			A.IMG_YN ,
+			A.IMG_FILE ,
+			A.IMG_URL ,
+			A.APPROVAL ,
+			A.DISCOUNT ,
+			A.UCI,
+			B.NAME
+		FROM 
+			EVENT_RELAYTICKET_DISCOUNT A,
+			EVENT_RELAYTICKET_COMPANY B
+		WHERE 
+			A.COMPANY_SEQ = B.SEQ
+			AND A.SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO EVENT_RELAYTICKET_DISCOUNT (
+			SEQ,
+			COMPANY_SEQ,
+			TITLE,
+			URL,
+			CATEGORY,
+			PLACE,
+			START_DATE,
+			END_DATE,
+			REG_DATE,
+			IMG_YN ,
+			IMG_FILE,
+			IMG_URL,
+			DISCOUNT,
+			APPROVAL,
+			UCI
+		)VALUES (
+			(SELECT NVL(MAX(SEQ),0)+1 FROM EVENT_RELAYTICKET_DISCOUNT),
+			#company_seq#,
+			#title#,
+			#url#,
+			#category#,
+			#place#,
+			#start_date#,
+			#end_date#,
+			SYSDATE,
+			#img_yn#,
+			#img_file# ,
+			#img_url# ,
+			#discount# ,
+			#approval#,
+			#uci#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			EVENT_RELAYTICKET_DISCOUNT
+		SET 
+			COMPANY_SEQ = #company_seq#,
+			TITLE = #title#,
+			URL = #url#,
+			UCI = #uci#,
+			CATEGORY = #category#,
+			PLACE = #place#,
+			START_DATE = #start_date#,
+			END_DATE = #end_date# ,
+			IMG_YN = #img_yn# ,
+			<isNotEmpty property="img_file">
+				IMG_FILE = #img_file# ,
+			</isNotEmpty>
+			<isNotEmpty property="img_url">
+				IMG_URL = #img_url# ,
+			</isNotEmpty>
+			DISCOUNT = #discount# ,
+			APPROVAL = #approval#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  EVENT_RELAYTICKET_DISCOUNT SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			EVENT_RELAYTICKET_DISCOUNT 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

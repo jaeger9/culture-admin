@@ -1,0 +1,982 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="pollEvent">
+	<!-- 이벤트내용 관리 -->
+	<select id="pollListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* pollEvent.pollListCount */
+			COUNT(1) CNT
+		FROM (
+			SELECT
+				EVENT_SEQ, EVENT_NUMBER, POLL_START_DATE, POLL_END_DATE, POLL1_TITLE, POLL2_TITLE, APPROVAL, PAGE
+			FROM (
+					SELECT
+					     I.EVENT_SEQ, I.EVENT_NUMBER,
+					     TO_CHAR(I.POLL_START_DATE,'YYYY-MM-DD') POLL_START_DATE,
+					     TO_CHAR(I.POLL_END_DATE,'YYYY-MM-DD') POLL_END_DATE,
+					     (SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL1_SEQ) POLL1_TITLE,
+					     (SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL2_SEQ) POLL2_TITLE,
+					     I.APPROVAL,
+					     FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+					 FROM CULTURE_EVENT_POLL_INFO I
+				 )
+			WHERE 1=1
+			<isNotEmpty property="search_field1">
+				<isEqual property="search_field1" compareValue="S">
+					AND APPROVAL = 'S'
+				</isEqual>
+				<isEqual property="search_field1" compareValue="Y">
+					AND APPROVAL = 'Y'
+				</isEqual>
+				<isEqual property="search_field1" compareValue="N">
+					AND APPROVAL = 'N'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field2">
+					AND (POLL1_TITLE LIKE '%'||#search_keyword#||'%' OR POLL2_TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field2" compareValue="title">
+					AND (POLL1_TITLE LIKE '%'||#search_keyword#||'%' OR POLL2_TITLE LIKE '%'||#search_keyword#||'%')
+				</isEqual>
+			</isNotEmpty>
+		)
+		
+	</select>
+
+	<select id="pollList" parameterClass="paramMap" resultClass="commonMap">
+			SELECT /* pollEvent.pollList */
+				EVENT_SEQ, EVENT_NUMBER, POLL_START_DATE, POLL_END_DATE, POLL1_TITLE, POLL2_TITLE, APPROVAL, PAGE
+			FROM (
+					SELECT
+					     I.EVENT_SEQ, I.EVENT_NUMBER,
+					     TO_CHAR(I.POLL_START_DATE,'YYYY-MM-DD') POLL_START_DATE,
+					     TO_CHAR(I.POLL_END_DATE,'YYYY-MM-DD') POLL_END_DATE,
+					     (SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL1_SEQ) POLL1_TITLE,
+					     (SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL2_SEQ) POLL2_TITLE,
+					     I.APPROVAL,
+					     FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+					 FROM CULTURE_EVENT_POLL_INFO I
+				 )
+			WHERE 1=1
+			<isNotEmpty property="search_field1">
+				<isEqual property="search_field1" compareValue="S">
+					AND APPROVAL = 'S'
+				</isEqual>
+				<isEqual property="search_field1" compareValue="Y">
+					AND APPROVAL = 'Y'
+				</isEqual>
+				<isEqual property="search_field1" compareValue="N">
+					AND APPROVAL = 'N'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field2">
+					AND (POLL1_TITLE LIKE '%'||#search_keyword#||'%' OR POLL2_TITLE LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field2" compareValue="title">
+					AND (POLL1_TITLE LIKE '%'||#search_keyword#||'%' OR POLL2_TITLE LIKE '%'||#search_keyword#||'%')
+				</isEqual>
+			</isNotEmpty>		
+					AND PAGE = #page_no#
+	</select>
+	
+	<select id="getPoll" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    I.EVENT_SEQ, I.EVENT_NUMBER
+		    ,TO_CHAR(I.POLL_START_DATE,'YYYY-MM-DD') POLL_START_DATE
+		    ,TO_CHAR(I.POLL_END_DATE,'YYYY-MM-DD') POLL_END_DATE
+		    ,TO_CHAR(I.POLL_WINNER_DATE,'YYYY-MM-DD') POLL_WINNER_DATE
+		    ,I.POLL1_SEQ , I.POLL2_SEQ
+		    ,(SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL1_SEQ) POLL1_TITLE
+		    ,(SELECT POLL_TITLE FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL2_SEQ) POLL2_TITLE
+		    ,(SELECT WORK1_SEQ FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL1_SEQ) WORK1_SEQ
+		    ,(SELECT WORK2_SEQ FROM CULTURE_EVENT_POLL P WHERE P.POLL_SEQ = I.POLL2_SEQ) WORK2_SEQ
+		    ,I.APPROVAL
+		FROM CULTURE_EVENT_POLL_INFO I
+		WHERE I.EVENT_SEQ = #event_seq#
+	</select>
+	
+	<select id="getPollWork" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			W.WORK_SEQ, W.FILE_NAME, W.URL, W.TITLE, W.GIFT
+		    , W.KEYWORD1, W.KEYWORD1_URL, W.KEYWORD2, W.KEYWORD2_URL, W.KEYWORD3, W.KEYWORD3_URL
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W 
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		AND I.EVENT_SEQ = #event_seq#
+		ORDER BY W.WORK_SEQ
+	</select>
+	
+	<insert id="insertPollEvent" parameterClass="paramMap">
+		INSERT INTO CULTURE_EVENT_POLL_INFO (
+		   EVENT_SEQ
+		  ,EVENT_NUMBER
+		  ,POLL_START_DATE
+		  ,POLL_END_DATE
+		  ,POLL_WINNER_DATE
+		  ,POLL1_SEQ
+		  ,POLL2_SEQ
+		  ,APPROVAL
+		  ,REG_DATE
+		) VALUES (
+		    SEQ_CULTURE_EVENT_POLL_INFO.NEXTVAL
+		    ,#event_number#
+		    ,TO_DATE(#poll_start_date#, 'YYYY-MM-DD')
+		    ,TO_DATE(#poll_end_date#, 'YYYY-MM-DD')
+		    ,TO_DATE(#poll_winner_date#, 'YYYY-MM-DD')    
+		    ,#poll1_seq#
+		    ,#poll2_seq#
+		    ,#approval#
+		    ,SYSDATE
+		)
+	</insert>
+	
+	<insert id="insertPoll" parameterClass="paramMap">
+		INSERT INTO CULTURE_EVENT_POLL (
+		   	POLL_SEQ
+			,POLL_TITLE
+			,WORK1_SEQ
+			,WORK2_SEQ
+		) VALUES (
+		    SEQ_CULTURE_EVENT_POLL.NEXTVAL
+		    ,#poll_title#
+		    ,#work1_seq#
+		    ,#work2_seq#
+		)
+		<selectKey keyProperty="poll_seq" resultClass="Integer">
+			SELECT SEQ_CULTURE_EVENT_POLL.CURRVAL FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<insert id="insertPollWork" parameterClass="paramMap">
+		INSERT INTO CULTURE_EVENT_POLL_WORK (
+		   WORK_SEQ
+		  ,FILE_NAME
+		  ,URL
+		  ,TITLE
+		  ,GIFT
+		  ,KEYWORD1
+		  ,KEYWORD1_URL
+		  ,KEYWORD2
+		  ,KEYWORD2_URL
+		  ,KEYWORD3
+		  ,KEYWORD3_URL
+		) VALUES (
+		    SEQ_CULTURE_EVENT_POLL_WORK.NEXTVAL
+		    ,#file_name#
+		    ,#url#
+		    ,#title#
+		    ,#gift#
+		    ,#keyword1#
+		    ,#keyword1_url#
+		    ,#keyword2#
+		    ,#keyword2_url#
+		    ,#keyword3#
+		    ,#keyword3_url#
+		)
+		<selectKey keyProperty="work_seq" resultClass="Integer">
+			SELECT SEQ_CULTURE_EVENT_POLL_WORK.CURRVAL FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<update id="updatePollEvent" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_POLL_INFO SET
+		  EVENT_NUMBER = #event_number#
+		  ,POLL_START_DATE = #poll_start_date#
+		  ,POLL_END_DATE = #poll_end_date#
+		  ,POLL_WINNER_DATE = #poll_winner_date#
+		  ,APPROVAL = #approval#
+		WHERE EVENT_SEQ = #event_seq#
+	</update>
+	
+	<update id="updatePoll" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_POLL SET
+		  POLL_TITLE = #poll_title#
+		WHERE POLL_SEQ = #poll_seq#
+	</update>
+	
+	<update id="updatePollWork" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_POLL_WORK SET
+		  FILE_NAME = #file_name#
+		  ,URL = #url#
+		  ,TITLE = #title#
+		  ,GIFT = #gift#
+		  ,KEYWORD1 = #keyword1#
+		  ,KEYWORD1_URL = #keyword1_url#
+		  ,KEYWORD2 = #keyword2#
+		  ,KEYWORD2_URL = #keyword2_url#
+		  ,KEYWORD3 = #keyword3#
+		  ,KEYWORD3_URL = #keyword3_url#
+		WHERE WORK_SEQ = #work_seq#
+	</update>
+	
+	<select id="pollPeriodDuplCount" resultClass="Integer">
+		SELECT COUNT(*) FROM CULTURE_EVENT_POLL_INFO
+		WHERE 1=1
+		<isNotEmpty property="event_seq">
+		AND EVENT_SEQ != #event_seq#
+		</isNotEmpty>
+		<![CDATA[
+		AND TO_CHAR(POLL_END_DATE,'YYYY-MM-DD') >= #poll_start_date# AND TO_CHAR(POLL_START_DATE,'YYYY-MM-DD') <= #poll_end_date#
+		]]>
+	</select>
+	
+	<select id="pollNumberDuplCount" resultClass="Integer">
+		SELECT COUNT(*) FROM CULTURE_EVENT_POLL_INFO
+		WHERE 1=1
+		<isNotEmpty property="event_seq">
+		AND EVENT_SEQ != #event_seq#
+		</isNotEmpty>
+		AND EVENT_NUMBER = #event_number#
+	</select>
+	
+	<select id="getVoterCount" resultClass="Integer">
+		SELECT
+			COUNT(*)
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		AND V.WORK_SEQ = W.WORK_SEQ
+		AND I.EVENT_SEQ IN
+			<iterate property="array.seqs" open="(" conjunction="," close=")">
+				#array.seqs[]#
+			</iterate>
+	</select>
+	
+	<delete id="pollEventDelete" parameterClass="paramMap">
+		DELETE FROM CULTURE_EVENT_POLL_INFO
+		WHERE
+			EVENT_SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+	
+	<delete id="pollWorkDelete" parameterClass="paramMap">
+		DELETE FROM CULTURE_EVENT_POLL_WORK WHERE WORK_SEQ = #work_seq#
+	</delete>
+	
+	<select id="getWorkFileName" parameterClass="paramMap" resultClass="String">
+		SELECT FILE_NAME FROM CULTURE_EVENT_POLL_WORK WHERE WORK_SEQ = #work_seq#
+	</select>
+	
+	<select id="getDeleteWorkList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		     W.WORK_SEQ, W.FILE_NAME
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		AND I.EVENT_SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</select>
+		
+	<delete id="pollDelete" parameterClass="paramMap">
+		DELETE FROM CULTURE_EVENT_POLL WHERE POLL_SEQ = #poll_seq#
+	</delete>
+	
+	<select id="getDeletePollList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		     P.POLL_SEQ
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND I.EVENT_SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</select>
+	
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_POLL_INFO
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			EVENT_SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+	
+	
+	<!-- 투표자 조회 -->
+	<select id="voterListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* pollEvent.voterListCount */
+		    COUNT(1) CNT
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		AND V.WORK_SEQ = W.WORK_SEQ
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND V.POLL_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_event_number">
+			AND I.EVENT_NUMBER = #search_event_number#
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (V.NAME LIKE '%'||#search_keyword#||'%' OR V.HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND V.NAME LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND V.HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="voterList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.voterList */
+			 EVENT_NUMBER, VOTER_SEQ, NAME, HP_NO, POLL_TITLE, TITLE, POLL_DATE, PAGE
+		FROM (
+			SELECT
+			    I.EVENT_NUMBER, V.VOTER_SEQ, V.NAME, SUBSTR(REPLACE(V.HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),8,4) HP_NO
+    			, P.POLL_TITLE, W.TITLE, TO_CHAR(V.POLL_DATE,'YYYY-MM-DD') POLL_DATE
+			    ,FLOOR((ROW_NUMBER() OVER(ORDER BY V.POLL_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V
+			WHERE 1=1
+			AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+			AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+			AND V.WORK_SEQ = W.WORK_SEQ
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND V.POLL_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_event_number">
+				AND I.EVENT_NUMBER = #search_event_number#
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (V.NAME LIKE '%'||#search_keyword#||'%' OR V.HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND V.NAME LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND V.HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="voterExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* pollEvent.voterExcelList */
+			ROWNUM "num", "event_number", "name", "hp_no", "poll_title", "title", "poll_date"
+		FROM(
+	        SELECT
+	            I.EVENT_NUMBER "event_number" , NVL(V.NAME, '-') "name"
+	            , SUBSTR(REPLACE(V.HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),8,4) "hp_no"
+    			, P.POLL_TITLE "poll_title", W.TITLE "title", TO_CHAR(V.POLL_DATE,'YYYY-MM-DD') "poll_date"
+	        FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V
+			WHERE 1=1
+			AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+			AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+			AND V.WORK_SEQ = W.WORK_SEQ   
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND V.POLL_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND V.POLL_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_event_number">
+				AND I.EVENT_NUMBER = #search_event_number#
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (V.NAME LIKE '%'||#search_keyword#||'%' OR V.HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND V.NAME LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND V.HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			  ORDER BY I.EVENT_NUMBER, V.POLL_DATE
+		)
+	</select>
+	
+	<select id="eventNumberList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.eventNumberList */
+		    DISTINCT I.EVENT_NUMBER 
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W
+		WHERE 1=1
+			AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+			AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		ORDER BY I.EVENT_NUMBER
+	</select>
+	
+	<select id="pollTitleList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.pollTitleList */
+			DISTINCT P.POLL_SEQ, P.POLL_TITLE
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W
+		WHERE 1=1
+			AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+			AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+			AND I.EVENT_NUMBER = #event_number#
+		ORDER BY P.POLL_SEQ
+	</select>
+	
+	<select id="workTitleList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.workTitleList */
+		    W.WORK_SEQ, W.TITLE
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W
+		WHERE 1=1
+		AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		AND I.EVENT_NUMBER = #event_number#
+		AND P.POLL_SEQ = #poll_seq#
+		ORDER BY W.WORK_SEQ
+	</select>
+	
+	<select id="pollWinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* pollEvent.pollWinnerList */
+		    R.WINNER_SEQ, I.EVENT_NUMBER, P.POLL_SEQ, W.WORK_SEQ, V.VOTER_SEQ, V.NAME, 
+		   	SUBSTR(REPLACE(V.HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),8,4) HP_NO, 
+		    TO_CHAR(V.POLL_DATE,'YYYY-MM-DD') POLL_DATE
+		FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V, CULTURE_EVENT_POLL_WINNER R
+		WHERE 1=1
+			AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+			AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+			AND V.WORK_SEQ = W.WORK_SEQ
+			AND V.VOTER_SEQ = R.VOTER_SEQ
+			<isNotEmpty property="event_number">
+				AND I.EVENT_NUMBER = #event_number#
+			</isNotEmpty>
+			<isNotEmpty property="poll_seq">
+				AND P.POLL_SEQ = #poll_seq#
+			</isNotEmpty>
+			<isNotEmpty property="work_seq">
+				AND W.WORK_SEQ = #work_seq#
+			</isNotEmpty>
+		ORDER BY EVENT_NUMBER, POLL_DATE
+	</select>
+
+	<select id="pollWinnerPotentialList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.pollWinnerPotentialList */
+			W1.WORK_SEQ, V1.VOTER_SEQ, V1.NAME
+		FROM CULTURE_EVENT_POLL_INFO I1, CULTURE_EVENT_POLL P1, CULTURE_EVENT_POLL_WORK W1, CULTURE_EVENT_POLL_VOTER V1
+		WHERE 1 = 1
+			AND (I1.POLL1_SEQ = P1.POLL_SEQ OR I1.POLL2_SEQ = P1.POLL_SEQ)
+			AND (W1.WORK_SEQ = P1.WORK1_SEQ OR W1.WORK_SEQ = P1.WORK2_SEQ)
+			AND V1.WORK_SEQ = W1.WORK_SEQ
+			AND I1.EVENT_NUMBER = #event_number#
+			AND P1.POLL_SEQ = #poll_seq#
+			AND W1.WORK_SEQ = #work_seq#
+		  
+			AND NOT EXISTS (
+				SELECT
+				    *
+				FROM CULTURE_EVENT_POLL_INFO I2, CULTURE_EVENT_POLL P2, CULTURE_EVENT_POLL_WORK W2, CULTURE_EVENT_POLL_VOTER V2, CULTURE_EVENT_POLL_WINNER R
+				WHERE 1=1
+				AND (I2.POLL1_SEQ = P2.POLL_SEQ OR I2.POLL2_SEQ = P2.POLL_SEQ)
+				AND (W2.WORK_SEQ = P2.WORK1_SEQ OR W2.WORK_SEQ = P2.WORK2_SEQ)
+				AND V2.WORK_SEQ = W2.WORK_SEQ
+				AND V2.VOTER_SEQ = R.VOTER_SEQ
+				AND (V2.NAME = V1.NAME  OR V2.HP_NO = V1.HP_NO)
+				AND SYSDATE - 90 <![CDATA[<]]>  R.REG_DATE
+				AND I2.EVENT_NUMBER = #event_number#
+				AND P2.POLL_SEQ = #poll_seq#
+				AND W2.WORK_SEQ = #work_seq#
+			)
+	</select>
+	
+	<insert id="pollWinnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* pollEvent.pollWinnerInsert */ 
+		INTO CULTURE_EVENT_POLL_WINNER (
+			WINNER_SEQ, VOTER_SEQ, WORK_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_EVENT_POLL_WINNER.NEXTVAL, #voter_seq#, #work_seq#, SYSDATE
+		)
+	</insert>
+	
+	<delete id="pollWinnerDelete" parameterClass="paramMap">
+		DELETE /* pollEvent.pollWinnerDelete */ 
+		FROM CULTURE_EVENT_POLL_WINNER
+		WHERE WINNER_SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<select id="pollWinnerExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT
+			/* pollEvent.pollWinnerExcelList */
+			ROWNUM "num", EVENT_NUMBER "event_number", POLL_TITLE "poll_title", TITLE "work_title", NAME "name", HP_NO "hp_no", POLL_DATE "poll_date"
+		FROM(
+		  SELECT
+		      R.WINNER_SEQ, I.EVENT_NUMBER, P.POLL_TITLE, W.TITLE, NVL(V.NAME,'-') NAME, 
+		      SUBSTR(REPLACE(V.HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(V.HP_NO,'-',''),8,4) HP_NO, 
+		      TO_CHAR(V.POLL_DATE,'YYYY-MM-DD') POLL_DATE
+		  FROM CULTURE_EVENT_POLL_INFO I, CULTURE_EVENT_POLL P, CULTURE_EVENT_POLL_WORK W, CULTURE_EVENT_POLL_VOTER V, CULTURE_EVENT_POLL_WINNER R
+		  WHERE 1=1
+		      AND (I.POLL1_SEQ = P.POLL_SEQ OR I.POLL2_SEQ = P.POLL_SEQ)
+		      AND (W.WORK_SEQ = P.WORK1_SEQ OR W.WORK_SEQ = P.WORK2_SEQ)
+		      AND V.WORK_SEQ = W.WORK_SEQ
+		      AND V.VOTER_SEQ = R.VOTER_SEQ
+		  ORDER BY EVENT_NUMBER, P.POLL_SEQ, W.WORK_SEQ, POLL_DATE
+		)
+	</select>
+	
+	<!-- 추천참여자 조회 -->
+	<select id="recommendListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* pollEvent.recommendListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_RECOMMEND
+		WHERE 1=1
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="entry_month">
+				AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="recommendList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.recommendList */
+			SEQ, USER_NM, RECOMMEND_WORK, HP_NO, MONTH, REG_DATE, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, RECOMMEND_WORK, SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) HP_NO
+				, REPLACE(TO_CHAR(REG_DATE,'MM'),'0','') MONTH, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_RECOMMEND
+			WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="entry_month">
+					AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="recommendWinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* pollEvent.recommendWinnerList */
+			W.SEQ, W.EVENT_SEQ, R.USER_NM, R.RECOMMEND_WORK, R.HP_NO, REPLACE(TO_CHAR(R.REG_DATE,'MM'),'0','') MONTH
+		FROM CULTURE_EVENT_RECOMMEND R, CULTURE_EVENT_RECOMMEND_WINNER W
+		WHERE R.SEQ = W.EVENT_SEQ
+		<isNotEmpty property="entry_month">
+		AND TO_CHAR(R.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		</isNotEmpty>
+	</select>
+	
+	<select id="recommendMonthList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.recommendMonthList */
+			DISTINCT REPLACE(TO_CHAR(REG_DATE,'MM'),'0','') MONTH
+		FROM CULTURE_EVENT_RECOMMEND
+		ORDER BY TO_NUMBER(MONTH)
+	</select>
+	
+	<insert id="recommendWinnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* pollEvent.recommendWinnerInsert */ 
+		INTO CULTURE_EVENT_RECOMMEND_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_EVENT_RECOM_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+	
+	<delete id="recommendWinnerDelete" parameterClass="paramMap">
+		DELETE  /* pollEvent.recommendWinnerDelete */
+		FROM CULTURE_EVENT_RECOMMEND_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<select id="recommendWinnerPotentialList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.recommendWinnerPotentialList */
+		    MAX(A.SEQ) EVENT_SEQ, A.USER_NM, A.HP_NO, MAX(A.RECOMMEND_WORK) RECOMMEND_WORK, MAX(A.REG_DATE) REG_DATE
+		FROM CULTURE_EVENT_RECOMMEND A
+		WHERE 1 = 1
+			AND TO_CHAR(A.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			AND NOT EXISTS (
+				SELECT
+				    *
+				FROM CULTURE_EVENT_RECOMMEND_WINNER S1 , CULTURE_EVENT_RECOMMEND S2
+				WHERE 1=1
+				AND S1.EVENT_SEQ = S2.SEQ
+				AND TO_CHAR(S2.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+				AND (S2.USER_NM = A.USER_NM 		OR S2.HP_NO = A.HP_NO)
+			)
+		GROUP BY A.USER_NM, A.HP_NO
+	</select>
+	
+	<select id="recommendExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT  /* pollEvent.recommendExcelList */
+			ROWNUM "num", "month", "user_nm", "hp_no", "recommend_work", "reg_date"
+		FROM(
+			SELECT
+		    	NVL(USER_NM,'-') "user_nm", SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) "hp_no"
+		    	,  NVL(RECOMMEND_WORK, '') "recommend_work", TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date"
+		    	,  REPLACE(TO_CHAR(REG_DATE, 'MM'),'0','') "month"
+		    FROM CULTURE_EVENT_RECOMMEND
+		    WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="entry_month">
+					AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			ORDER BY REG_DATE
+		)
+	</select>
+	
+	<!-- 댓글참여자 조회 -->
+	<select id="commentListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* pollEvent.commentListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_SHARE
+		WHERE 1=1
+		AND GUBUN = '2'
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="entry_month">
+				AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="name">
+				AND USER_NM LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="hp">
+				AND HP_NO LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="commentList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.commentList */
+			SEQ, USER_NM, URL, HP_NO, MONTH, REG_DATE, PAGE
+		FROM (
+			SELECT
+				SEQ, USER_NM, URL, SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) HP_NO
+				, TO_CHAR(REG_DATE, 'MM') MONTH, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_SHARE
+			WHERE 1=1
+			AND GUBUN = '2'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="entry_month">
+					AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="commentWinnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT  /* pollEvent.commentWinnerList */
+			W.SEQ, W.EVENT_SEQ, E.USER_NM, E.URL, E.HP_NO, TO_CHAR(E.REG_DATE,'MM') MONTH
+		FROM CULTURE_EVENT_SHARE E, CULTURE_EVENT_SHARE_WINNER W
+		WHERE E.SEQ = W.EVENT_SEQ
+		AND E.GUBUN = '2'
+		<isNotEmpty property="entry_month">
+		AND TO_CHAR(E.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		</isNotEmpty>
+	</select>
+	
+	<select id="commentMonthList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.commentMonthList */
+			DISTINCT TO_CHAR(REG_DATE,'MM') MONTH
+		FROM CULTURE_EVENT_SHARE
+		WHERE GUBUN = '2'
+		ORDER BY TO_NUMBER(MONTH)
+	</select>
+	
+	<insert id="commentWinnerInsert" parameterClass="java.util.HashMap">
+		INSERT /* pollEvent.commentWinnerInsert */ 
+		INTO CULTURE_EVENT_SHARE_WINNER (
+			SEQ, EVENT_SEQ, REG_DATE
+		) VALUES (
+			SEQ_CULTURE_EVENT_SHARE_WINNER.NEXTVAL, #event_seq#, SYSDATE
+		)
+	</insert>
+	
+	<delete id="commentWinnerDelete" parameterClass="paramMap">
+		DELETE  /* pollEvent.commentWinnerDelete */
+		FROM CULTURE_EVENT_SHARE_WINNER
+		WHERE SEQ IN 
+		<iterate property="array.chkbox_id" open="(" conjunction="," close=")" >
+ 			#array.chkbox_id[]#
+		</iterate>
+	</delete>
+	
+	<!-- <select id="commentWinnerPotentialList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.commentWinnerPotentialList */
+		    MAX(A.SEQ) EVENT_SEQ, A.USER_NM, A.HP_NO, MAX(A.URL) URL, MAX(A.REG_DATE) REG_DATE
+		FROM CULTURE_EVENT_SHARE A
+		WHERE 1 = 1
+			AND GUBUN ='2' 문화초대 이벤트 구분 '2'
+			AND TO_CHAR(A.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			AND NOT EXISTS (
+				SELECT
+				    *
+				FROM CULTURE_EVENT_SHARE_WINNER S1 , CULTURE_EVENT_SHARE S2
+				WHERE 1=1
+				AND S1.EVENT_SEQ = S2.SEQ
+				AND S2.GUBUN = '2'
+				AND TO_CHAR(S2.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+				AND (S2.USER_NM = A.USER_NM 		OR S2.HP_NO = A.HP_NO	 	OR S2.URL = A.URL)
+			)
+		GROUP BY A.USER_NM, A.HP_NO
+	</select> -->
+	<select id="commentWinnerPotentialList" parameterClass="paramMap" resultClass="commonMap">
+		<isNotEmpty property="random_num">
+		SELECT * FROM(
+		</isNotEmpty> 
+		  SELECT
+		  	ROW_NUMBER() OVER( ORDER BY DBMS_RANDOM.RANDOM) RNUM,
+		  	MAX(SEQ) EVENT_SEQ, USER_NM, HP_NO, URL, MAX(REG_DATE) REG_DATE
+		  FROM CULTURE_EVENT_SHARE S
+		  WHERE 1=1
+		  AND S.GUBUN = '2'
+		  AND S.URL IS NOT NULL
+		  AND S.USER_NM NOT IN (SELECT S2.USER_NM FROM CULTURE_EVENT_SHARE_WINNER W , CULTURE_EVENT_SHARE S2 WHERE W.EVENT_SEQ = S2.SEQ)
+		  AND S.HP_NO NOT IN (SELECT S2.HP_NO FROM CULTURE_EVENT_SHARE_WINNER W , CULTURE_EVENT_SHARE S2 WHERE W.EVENT_SEQ = S2.SEQ)
+		  AND S.URL NOT IN (SELECT S2.URL FROM CULTURE_EVENT_SHARE_WINNER W , CULTURE_EVENT_SHARE S2 WHERE W.EVENT_SEQ = S2.SEQ)
+		  AND TO_CHAR(S.REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+		  GROUP BY USER_NM, HP_NO, URL
+		<isNotEmpty property="random_num">
+		) WHERE RNUM = #random_num#
+		</isNotEmpty> 	
+	</select>
+	
+	<select id="commentExcelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT  /* pollEvent.commentExcelList */
+			ROWNUM "num", "month", "user_nm", "hp_no", "url", "reg_date"
+		FROM(
+			SELECT
+		    	NVL(USER_NM,'-') "user_nm", SUBSTR(REPLACE(HP_NO,'-',''),1,3) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),4,4) || '-' || SUBSTR(REPLACE(HP_NO,'-',''),8,4) "hp_no"
+		    	,  NVL(URL, '-') "url", TO_CHAR(REG_DATE, 'YYYY-MM-DD') "reg_date"
+		    	,  REPLACE(TO_CHAR(REG_DATE, 'MM'),'0','') "month"
+		    FROM CULTURE_EVENT_SHARE
+		    WHERE GUBUN = '2'
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="entry_month">
+					AND TO_CHAR(REG_DATE,'MM') = LPAD(#entry_month#,2,'0')
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND (USER_NM LIKE '%'||#search_keyword#||'%' OR HP_NO LIKE '%'||#search_keyword#||'%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="name">
+					AND USER_NM LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="hp">
+					AND HP_NO LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			ORDER BY REG_DATE
+		)
+	</select>
+	
+	<!-- 이벤트 공지 -->
+	<select id="noticeListCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* pollEvent.noticeListCount */
+			COUNT(1) CNT
+		FROM CULTURE_EVENT_NOTICE
+		WHERE 1=1
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			</isEmpty>
+			<isNotEmpty property="reg_end">
+				AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword">
+			<isEmpty property="search_field">
+				AND TITLE LIKE '%'||#search_keyword#||'%'
+			</isEmpty>
+			<isEqual property="search_field" compareValue="title">
+				AND TITLE LIKE '%'||#search_keyword#||'%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<select id="noticeList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* pollEvent.commentList */
+			SEQ, TITLE, REG_DATE, APPROVAL, PAGE
+		FROM (
+			SELECT
+				SEQ, TITLE, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, APPROVAL,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY REG_DATE DESC)-1)/$list_unit$+1) PAGE
+			FROM CULTURE_EVENT_NOTICE
+			WHERE 1=1
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD')
+				</isEmpty>
+				<isNotEmpty property="reg_end">
+					AND REG_DATE <![CDATA[>=]]> TO_DATE(#reg_start#, 'YYYY-MM-DD') AND REG_DATE <![CDATA[<=]]> TO_DATE(#reg_end#, 'YYYY-MM-DD')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword">
+				<isEmpty property="search_field">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEmpty>
+				<isEqual property="search_field" compareValue="title">
+					AND TITLE LIKE '%'||#search_keyword#||'%'
+				</isEqual>
+			</isNotEmpty>	
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="getNotice" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    SEQ, TITLE, PORTAL_URL, MOBILE_URL, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, APPROVAL
+		FROM CULTURE_EVENT_NOTICE
+		WHERE SEQ = #seq#
+	</select>
+
+	<insert id="insertNotice" parameterClass="paramMap">
+		INSERT INTO CULTURE_EVENT_NOTICE(
+			SEQ
+			,TITLE
+			,PORTAL_URL
+			,MOBILE_URL
+			,REG_DATE
+			,APPROVAL
+		)VALUES(
+			SEQ_CULTURE_EVENT_NOTICE.NEXTVAL
+			,#title#
+			,#portal_url#
+			,#mobile_url#
+			,SYSDATE
+			,#approval#
+		)
+	</insert>
+		
+	<update id="updateNotice" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_NOTICE SET
+			TITLE = #title#
+			, PORTAL_URL = #portal_url#
+			, MOBILE_URL = #mobile_url#
+			, APPROVAL = #approval#
+		WHERE SEQ = #seq#
+	</update>
+	
+	<delete id="noticeDelete" parameterClass="paramMap">
+		DELETE FROM CULTURE_EVENT_NOTICE
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+	
+	<update id="updateNoticeApproval" parameterClass="paramMap">
+		UPDATE CULTURE_EVENT_NOTICE
+		SET
+			APPROVAL		=	#approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+</sqlMap>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="qna">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		<isNotEmpty property="status" prepend="AND">
+			A.STATUS = #status#
+		</isNotEmpty>
+		<isNotEmpty property="public_yn" prepend="AND">
+			A.PUBLIC_YN = #public_yn#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_CUSTOMER_QNA A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+			,A.TITLE
+			,A.USER_NAME
+			,A.USER_ID
+			,A.CONTENT
+			,A.REPLY
+			,A.FILE_NAME
+			,A.FILE_SYSNAME
+			,A.CATEGORY
+			,A.PUBLIC_YN
+			,A.STATUS
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,A.CNT
+			,A.REPLY_ID
+			,TO_CHAR(A.REPLY_DATE, 'YYYY-MM-DD') REPLY_DATE
+		FROM
+			PCN_CUSTOMER_QNA A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.SEQ DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.TITLE
+			,A.USER_NAME
+			,A.USER_ID
+			,A.CONTENT
+			,A.REPLY
+			,A.FILE_NAME
+			,A.FILE_SYSNAME
+			,A.CATEGORY
+			,A.PUBLIC_YN
+			,A.STATUS
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,A.CNT
+			,A.REPLY_ID
+			,TO_CHAR(A.REPLY_DATE, 'YYYY-MM-DD') REPLY_DATE
+		FROM
+			PCN_CUSTOMER_QNA A
+		WHERE
+			SEQ = #seq#
+	</select>
+
+	<update id="updateReply" parameterClass="paramMap">
+		UPDATE PCN_CUSTOMER_QNA
+		SET
+			REPLY		=	#reply#
+			,REPLY_ID	=	#reply_id#
+			,REPLY_DATE	=	SYSDATE
+			,PUBLIC_YN	=	#public_yn#
+			,STATUS		=	#status#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_CUSTOMER_QNA
+		SET
+			STATUS = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_CUSTOMER_QNA
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

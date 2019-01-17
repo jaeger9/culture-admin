@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="resBoard">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = DECODE(#approval#, 'N', 'N', 'Y')
+		</isNotEmpty>
+		<isNotEmpty property="notice" prepend="AND">
+			A.NOTICE = DECODE(#notice#, 'Y', 'Y', 'N')
+		</isNotEmpty>
+		<isNotEmpty property="page_seq" prepend="AND">
+			A.PAGE_SEQ = #page_seq#
+		</isNotEmpty>
+		<isNotEmpty property="menu_seq" prepend="AND">
+			A.MENU_SEQ = #menu_seq#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)				LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.MENU_TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.PAGE_TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CONTENTS)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.REG_ID)				LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="page_seq" prepend="AND">
+				LOWER(A.PAGE_TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="menu_seq" prepend="AND">
+				LOWER(A.MENU_TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="contents" prepend="AND">
+				LOWER(A.CONTENTS)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="reg_id" prepend="AND">
+				LOWER(A.REG_ID)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM (
+			
+			SELECT
+			    A.SEQ
+			    ,A.PAGE_SEQ
+			    ,A.MENU_SEQ
+			    ,A.TITLE
+			    ,A.THUMBNAIL
+			    ,A.REG_ID
+			    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			    ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			    ,DECODE(A.NOTICE, 'Y', 'Y', 'N') NOTICE
+			    ,NVL(A.HIT, 0) HIT
+				,(SELECT T.TITLE FROM PCN_INFO_RESOURCE_PAGE T WHERE T.SEQ = A.PAGE_SEQ) PAGE_TITLE
+				,(SELECT T.TITLE FROM PCN_INFO_RESOURCE_MENU T WHERE T.SEQ = A.MENU_SEQ) MENU_TITLE
+				,A.CONTENTS
+			FROM
+				PCN_INFO_RESOURCE_BOARD A
+			ORDER BY
+				A.SEQ DESC
+		) A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.*
+		FROM (
+			SELECT
+			    A.SEQ
+			    ,A.PAGE_SEQ
+			    ,A.MENU_SEQ
+			    ,A.TITLE
+			    ,A.THUMBNAIL
+			    ,A.REG_ID
+			    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			    ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+			    ,DECODE(A.NOTICE, 'Y', 'Y', 'N') NOTICE
+			    ,NVL(A.HIT, 0) HIT
+				,(SELECT T.TITLE FROM PCN_INFO_RESOURCE_PAGE T WHERE T.SEQ = A.PAGE_SEQ) PAGE_TITLE
+				,(SELECT T.TITLE FROM PCN_INFO_RESOURCE_MENU T WHERE T.SEQ = A.MENU_SEQ) MENU_TITLE
+				,A.CONTENTS
+			FROM
+				PCN_INFO_RESOURCE_BOARD A
+			ORDER BY
+				A.SEQ DESC
+		) A
+		<include refid="sqlList-1" />
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    A.SEQ
+		    ,A.PAGE_SEQ
+		    ,A.MENU_SEQ
+		    ,A.TITLE
+		    ,A.THUMBNAIL
+		    ,A.CONTENTS
+		    ,A.REG_ID
+		    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+		    ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+		    ,DECODE(A.NOTICE, 'Y', 'Y', 'N') NOTICE
+		    ,NVL(A.HIT, 0) HIT
+		    ,A.SPARE1
+		    ,A.SPARE2
+		    ,A.SPARE3
+		    ,A.SPARE4
+		    ,A.SPARE5
+		FROM
+			PCN_INFO_RESOURCE_BOARD A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT PCN_INFO_RESOURCE_BOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+
+		INSERT INTO PCN_INFO_RESOURCE_BOARD (
+			SEQ
+			,PAGE_SEQ
+			,MENU_SEQ
+			,TITLE
+			,THUMBNAIL
+			,CONTENTS
+			,REG_ID
+			,REG_DATE
+			,APPROVAL
+			,NOTICE
+			,HIT
+			,SPARE1
+			,SPARE2
+			,SPARE3
+			,SPARE4
+			,SPARE5
+		) VALUES (
+			#seq#
+			,#page_seq#
+			,#menu_seq#
+			,#title#
+			,#thumbnail#
+			,#contents#
+			,#reg_id#
+			,SYSDATE
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,DECODE(#notice#, 'Y', 'Y', 'N')
+			,0
+			,#spare1#
+			,#spare2#
+			,#spare3#
+			,#spare4#
+			,#spare5#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_BOARD
+		SET
+			TITLE		=	#title#
+			,THUMBNAIL	=	#thumbnail#
+			,CONTENTS	=	#contents#
+			,APPROVAL	=	DECODE(#approval#, 'N', 'N', 'Y')
+			,NOTICE		=	DECODE(#notice#, 'Y', 'Y', 'N')
+			,SPARE1		=	#spare1#
+			,SPARE2		=	#spare2#
+			,SPARE3		=	#spare3#
+			,SPARE4		=	#spare4#
+			,SPARE5		=	#spare5#
+			,PAGE_SEQ	=	#page_seq#
+			,MENU_SEQ	=	#menu_seq#
+		WHERE
+			SEQ		=	#seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_BOARD
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_INFO_RESOURCE_BOARD
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

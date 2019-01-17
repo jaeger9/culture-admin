@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="englishSite">
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.ORG_NAME)		LIKE LOWER('%' || #search_word# || '%')
+					OR LOWER(A.ORG_ENG_NAME)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="org_name" prepend="AND">
+				LOWER(A.ORG_NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="org_eng_name" prepend="AND">
+				LOWER(A.ORG_ENG_NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="approval" prepend="AND">
+			NVL(A.APPROVAL,'Y') = #approval#
+		</isNotEmpty>
+		
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			CULTURE_ENGLISH_SITE A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			X.*
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*
+			FROM (
+				SELECT
+					A.SEQ
+					,A.CATEGORY
+					,A.ORG_NAME
+					,A.ORG_ENG_NAME
+					,A.URL
+					,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+					,A.APPROVAL
+				FROM
+					CULTURE_ENGLISH_SITE A
+				<include refid="sqlList-1" />
+				ORDER BY
+					A.REG_DATE DESC
+			) Z
+	<![CDATA[
+			WHERE
+				ROWNUM <= (#page_no# * #list_unit#)
+		) X
+		WHERE
+			X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.USER_ID
+			,A.CATEGORY
+			,A.ORG_NAME
+			,A.ORG_ENG_NAME
+			,A.URL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,A.APPROVAL
+		FROM
+			CULTURE_ENGLISH_SITE A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM CULTURE_ENGLISH_SITE
+		</selectKey>
+
+		INSERT INTO CULTURE_ENGLISH_SITE (
+			SEQ
+			,CATEGORY
+			,ORG_NAME
+			,ORG_ENG_NAME
+			,URL
+			,USER_ID
+			,REG_DATE
+			,APPROVAL
+		) VALUES (
+			#seq#
+			,#category#
+			,#org_name#
+			,#org_eng_name#
+			,#url#
+			,#user_id#
+			,sysdate
+			,#approval#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE CULTURE_ENGLISH_SITE
+		SET
+			CATEGORY = #category#
+			,ORG_NAME = #org_name#
+			,ORG_ENG_NAME = #org_eng_name#
+			,URL = #url#
+			,APPROVAL = #approval#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE CULTURE_ENGLISH_SITE
+		SET
+			APPROVAL	=	#approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM CULTURE_ENGLISH_SITE
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+</sqlMap>

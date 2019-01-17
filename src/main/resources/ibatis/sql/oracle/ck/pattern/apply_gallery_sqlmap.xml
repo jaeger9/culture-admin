@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="apply.gallery">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT *
+		FROM(
+		   SELECT
+			  	<!-- /*+INDEX_DESC(A PCN_PATTERN_GALLERY_PK) */ -->
+			  	
+			  	<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC) -1)/$list_unit$+1) AS PAGE ,
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY A.SEQ DESC) -1)/$list_unit$+1) AS PAGE ,
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY A.VIEW_CNT DESC nulls last)-1)/$list_unit$ + 1) AS PAGE,
+					</isEqual>
+				</isNotEmpty>
+			  	A.SEQ,
+			  	A.TITLE,
+			  	A.PATTERN_NAME,
+			  	A.VIEW_CNT,
+			  	TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE,
+			  	TO_CHAR(A.UPD_DATE, 'YYYY-MM-DD') UPD_DATE,
+			  	DECODE(A.STATUS , 'Y' , '사용함' , 'N' , '사용안함' , '대기') STATUS 
+			FROM 
+				PCN_PATTERN_GALLERY A
+		    <dynamic prepend="WHERE">
+				<isNotEmpty property="approval" prepend="AND">
+					STATUS = #approval#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="title">
+				    TITLE LIKE '%'||#keyword#||'%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="patternName">
+					PATTERN_NAME LIKE '%'||#keyword#||'%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="user_id">
+					USER_ID LIKE '%'||#keyword#||'%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+			</dynamic>
+		) R
+		WHERE 
+			R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+		  	COUNT(1)
+		FROM 
+			PCN_PATTERN_GALLERY A
+	    <dynamic prepend="WHERE">
+			<isNotEmpty property="approval" prepend="AND">
+				STATUS = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="title">
+			    TITLE LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="patternName">
+				PATTERN_NAME LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="user_id">
+				USER_ID LIKE '%'||#keyword#||'%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ,
+		  	TITLE,
+			USE,
+			CONCEPT,
+			URL,
+			PATTERN_NAME,
+			IMAGE_NAME,
+			CONTENT,
+			STATUS,
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+			TO_CHAR(UPD_DATE, 'YYYY-MM-DD') UPD_DATE,
+			USER_ID
+		FROM 
+			PCN_PATTERN_GALLERY D
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_PATTERN_GALLERY
+  		(
+		    SEQ,
+		    TITLE,
+		    CONCEPT,
+		    USE,
+		    PATTERN_NAME,
+		    URL,
+		    IMAGE_NAME,
+		    CONTENT,
+		    REG_DATE,
+		    STATUS,
+		    VIEW_CNT,
+		    UPD_DATE,
+		    USER_ID
+  		) VALUES (
+    		(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_PATTERN_GALLERY),
+    		#title#,
+		    #concept#,
+		    #use#,
+		    #pattern_name#,
+		    #url#,
+		    #image_name#,
+		    #content#,
+		    SYSDATE,
+		    #status#,
+		    0,
+		    SYSDATE,
+		    #admin_id#
+  		)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_PATTERN_GALLERY
+		SET 
+			TITLE      = #title#,
+			CONCEPT      = #concept#,
+			USE          = #use#,
+			PATTERN_NAME = #pattern_name#,
+			URL          = #url#,
+			CONTENT      = #content#,
+			STATUS       = #status#,
+            <isNotEmpty property="image_name"> IMAGE_NAME = #image_name#,
+            </isNotEmpty> UPD_DATE = SYSDATE
+		WHERE 
+			SEQ      = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE 
+			PCN_PATTERN_GALLERY
+		SET 
+			STATUS = #updateStatus#
+		WHERE 
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_PATTERN_GALLERY
+		WHERE  
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+</sqlMap>

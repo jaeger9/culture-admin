@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="campaign.comment">
+
+	<!-- 문화선물캠페인 응모작 카운트 -->
+	<select id="listCount" parameterClass="paramMap" resultClass="int">
+		SELECT /* campaign.comment.listCount */
+			COUNT(1)
+		FROM (
+			SELECT
+				SEQ, EVENT_SEQ, COMMENT_CONTENTS, USER_EMAIL, REG_DATE,
+				(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND S.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+			FROM CAMPAIGN_COMMENT T
+			WHERE 1=1
+		)
+		WHERE 1=1
+		<isNotEmpty property="search_event" prepend="AND">
+			EVENT_SEQ = #search_event#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="nm">
+				USER_NM LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				USER_EMAIL LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="contents">
+				CONTENTS LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+	</select>
+
+	<!-- 문화선물캠페인 응모작 목록 -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.comment.list */
+			SEQ, EVENT_SEQ, COMMENT_CONTENTS, USER_NM, USER_EMAIL, REG_DATE,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM
+		FROM (
+			SELECT
+				SEQ, EVENT_SEQ, COMMENT_CONTENTS, USER_NM, USER_EMAIL, REG_DATE,
+				FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/10+1) PAGE 
+			FROM (
+				SELECT
+					SEQ, EVENT_SEQ, COMMENT_CONTENTS, USER_EMAIL, REG_DATE,
+					(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND S.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+				FROM CAMPAIGN_COMMENT T
+				WHERE 1=1
+			) T
+			WHERE 1=1
+			<isNotEmpty property="search_event" prepend="AND">
+				EVENT_SEQ = #search_event#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="search_keyword" prepend="AND">
+				<isEmpty property="search_field">
+					(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+				</isEmpty>
+				<isEqual property="search_field" compareValue="nm">
+					USER_NM LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="email">
+					USER_EMAIL LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+				<isEqual property="search_field" compareValue="contents">
+					CONTENTS LIKE '%' || #search_keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		) T
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<!-- 문화선물캠페인 응모작 상세보기 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.comment.view */
+			SEQ, EVENT_SEQ, USER_EMAIL, TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') REG_DATE, COMMENT_CONTENTS, DEL_YN,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) EVENT_NM,
+			(SELECT S.USER_NM FROM CAMPAIGN_USER_INFO S WHERE S.USER_EMAIL = T.USER_EMAIL AND T.EVENT_SEQ = T.EVENT_SEQ) USER_NM
+		FROM CAMPAIGN_COMMENT T
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 문화선물캠페인 응모작 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* campaign.comment.update */
+		CAMPAIGN_COMMENT SET
+			COMMENT_CONTENTS = #comment_contents#,
+			DEL_YN = #del_yn#,
+			ADMIN_ID = #admin_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- 문화선물캠페인 응모작 삭제 -->
+	<update id="delete" parameterClass="paramMap">
+		DELETE /* campaign.comment.delete */
+		FROM CAMPAIGN_COMMENT
+		WHERE SEQ IN  
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+ 			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<!-- 캠페인 댓글 엑셀 다운로드 목록 -->
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT /* campaign.comment.exelList */
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = T.EVENT_SEQ) "event_nm",
+			COMMENT_CONTENTS "comment_contents", USER_NM "user_nm", USER_EMAIL "user_email", HP_NO "hp_no",
+			TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI') "reg_date",
+			DECODE(DEL_YN, 'N', '공개', 'Y', '비공개') "open_yn"
+		FROM (
+			SELECT
+				A.SEQ, A.EVENT_SEQ, A.COMMENT_CONTENTS, A.USER_EMAIL, A.REG_DATE, A.DEL_YN, B.USER_NM, B.HP_NO
+			FROM CAMPAIGN_COMMENT A
+			INNER JOIN CAMPAIGN_USER_INFO B ON (B.USER_EMAIL = A.USER_EMAIL AND B.EVENT_SEQ = A.EVENT_SEQ)
+			WHERE 1=1
+		) T
+		WHERE 1=1
+		<isNotEmpty property="search_event" prepend="AND">
+			EVENT_SEQ = #search_event#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start">
+			<isEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_start# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isEmpty>
+			<isNotEmpty property="reg_end" prepend="AND">
+				REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE(#reg_end# || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="search_keyword" prepend="AND">
+			<isEmpty property="search_field">
+				(USER_NM LIKE '%' || #search_keyword# || '%' OR USER_EMAIL LIKE '%' || #search_keyword# || '%' OR CONTENTS LIKE '%' || #search_keyword# || '%')
+			</isEmpty>
+			<isEqual property="search_field" compareValue="nm">
+				USER_NM LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="email">
+				USER_EMAIL LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+			<isEqual property="search_field" compareValue="contents">
+				CONTENTS LIKE '%' || #search_keyword# || '%'
+			</isEqual>
+		</isNotEmpty>
+		ORDER BY SEQ DESC
+	</select>
+	
+	<!-- 댓글 이벤트 당첨자 조회 -->
+	<select id="winnerList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.comment.winnerList */
+			A.EVENT_SEQ, A.USER_EMAIL,
+			B.USER_NM, B.HP_NO,
+			(SELECT S.TITLE FROM CAMPAIGN_EVENT_INFO S WHERE S.SEQ = A.EVENT_SEQ) EVENT_NM
+		FROM (
+			SELECT 
+				EVENT_SEQ, USER_EMAIL
+			FROM CAMPAIGN_COMMENT_WINNER
+			WHERE EVENT_SEQ = #event_seq#
+		) A
+		INNER JOIN CAMPAIGN_USER_INFO B ON (B.EVENT_SEQ = A.EVENT_SEQ AND B.USER_EMAIL = A.USER_EMAIL)
+		ORDER BY B.USER_NM ASC
+	</select>
+	
+	<!-- 댓글 이벤트 당첨자 랜덤 선정 -->
+	<select id="winnerRandomLotList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* campaign.comment.winnerRandomLotList */
+			EVENT_SEQ, USER_EMAIL
+		FROM (
+			SELECT
+				T.EVENT_SEQ, T.USER_EMAIL
+			FROM CAMPAIGN_USER_INFO T
+			WHERE EVENT_SEQ = #event_seq#
+			AND EXISTS (
+				SELECT COUNT(1) FROM CAMPAIGN_COMMENT S WHERE S.EVENT_SEQ = T.EVENT_SEQ AND S.USER_EMAIL = T.USER_EMAIL AND S.DEL_YN = 'N'
+			)
+			ORDER BY DBMS_RANDOM.RANDOM
+		)
+		WHERE ROWNUM &lt;= 50
+	</select>
+	
+	<!-- 댓글 이벤트 당첨자 등록 -->
+	<insert id="insertWinner" parameterClass="java.util.List">
+		INSERT ALL /* campaign.comment.insertWinner */
+		<iterate>
+ 			INTO CAMPAIGN_COMMENT_WINNER (
+ 				EVENT_SEQ, USER_EMAIL, REG_DATE
+ 			) VALUES (
+ 				#[].event_seq#, #[].user_email#, SYSDATE
+ 			)
+		</iterate>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<!-- 댓글 이벤트 당첨자 삭제 -->
+	<delete id="deleteWinner" parameterClass="paramMap">
+		DELETE /* campaign.comment.deleteWinner */
+		FROM CAMPAIGN_COMMENT_WINNER
+		WHERE EVENT_SEQ = #event_seq#
+	</delete>
+	
+</sqlMap>

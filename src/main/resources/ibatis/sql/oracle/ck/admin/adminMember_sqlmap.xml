@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="adminMember">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="active" prepend="AND">
+			A.ACTIVE = #active#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+			(
+				LOWER(A.USER_ID)			LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.NAME)				LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.EMAIL)				LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(REPLACE(A.TEL, '-')	LIKE LOWER('%' || REPLACE(#search_word#, '-') || '%')
+			)
+			</isEqual>
+			<isEqual property="search_type" compareValue="user_id" prepend="AND">
+				LOWER(A.USER_ID)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+				LOWER(A.NAME)				LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="email" prepend="AND">
+				LOWER(A.EMAIL)				LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="tel" prepend="AND">
+				LOWER(REPLACE(A.TEL, '-')	LIKE LOWER('%' || REPLACE(#search_word#, '-') || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="create_date_start" prepend="AND"><![CDATA[
+			A.CREATE_DATE >= TO_DATE(#create_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="create_date_end" prepend="AND"><![CDATA[
+			A.CREATE_DATE <= TO_DATE(#create_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_start" prepend="AND"><![CDATA[
+			NVL(A.MODIFY_DATE, A.CREATE_DATE) >= TO_DATE(#modify_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="modify_date_end" prepend="AND"><![CDATA[
+			NVL(A.MODIFY_DATE, A.CREATE_DATE) <= TO_DATE(#modify_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			ADMIN_USERS A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.USER_ID
+			,A.NAME
+			,DECODE(A.ACTIVE, 'N', 'N', 'Y')							ACTIVE
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD')						CREATE_DATE
+			,TO_CHAR(NVL(A.MODIFY_DATE, A.CREATE_DATE), 'YYYY-MM-DD')	MODIFY_DATE
+		FROM
+			ADMIN_USERS A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.MODIFY_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.USER_ID
+			,A.NAME
+			,A.PASSWORD
+			,A.DESCRIPTION
+			,A.EMAIL
+			,A.TEL
+			,DECODE(A.ACTIVE, 'N', 'N', 'Y')							ACTIVE
+			,TO_CHAR(A.CREATE_DATE, 'YYYY-MM-DD')						CREATE_DATE
+			,TO_CHAR(NVL(A.MODIFY_DATE, A.CREATE_DATE), 'YYYY-MM-DD')	MODIFY_DATE
+		FROM
+			ADMIN_USERS A
+		WHERE
+			A.USER_ID = #user_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO ADMIN_USERS (
+			USER_ID
+			,PASSWORD
+			,NAME
+			,TEL
+			,EMAIL
+			,DESCRIPTION
+			,ACTIVE
+			,CREATE_DATE
+			,MODIFY_DATE
+		) VALUES ( 
+			#user_id#
+			,#password#
+			,#name#
+			,#tel#
+			,#email#
+			,#description#
+			,#active#
+			,SYSDATE
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE ADMIN_USERS
+		SET
+			NAME			=	#name#
+			,EMAIL			=	#email#
+			,TEL			=	#tel#
+			,DESCRIPTION	=	#description#
+			,ACTIVE			=	DECODE(#active#, 'N', 'N', 'Y')
+			,MODIFY_DATE	=	SYSDATE
+		<isNotEmpty property="password">
+			,PASSWORD		=	#password#
+		</isNotEmpty>
+		WHERE
+			USER_ID	=	#user_id#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE ADMIN_USERS
+		SET
+			ACTIVE = DECODE(#active#, 'N', 'N', 'Y')
+		WHERE
+			USER_ID IN
+		<iterate property="array.user_ids" open="(" conjunction="," close=")">
+			#array.user_ids[]#
+		</iterate>
+	</update>
+
+	<delete id="deleteByUserId" parameterClass="paramMap">
+		DELETE FROM ADMIN_USERS
+		WHERE
+			USER_ID IN
+		<iterate property="array.user_ids" open="(" conjunction="," close=")">
+			#array.user_ids[]#
+		</iterate>
+	</delete>
+
+	<!-- admin user 등록 시 id 중복 체크 -->
+	<select id="countByUserId" parameterClass="string" resultClass="int">
+		SELECT COUNT(1) FROM ADMIN_USERS WHERE USER_ID = #value#
+	</select>
+
+</sqlMap>

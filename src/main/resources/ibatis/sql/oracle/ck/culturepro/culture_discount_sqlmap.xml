@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_discount">
+
+	<!-- 할인 이벤트  -->
+	<update id="updateDViewDiscount" parameterClass="paramMap">
+		update PCN_PREFORM_TICKET
+			set view_discount = #viewDiscount#
+		where seq = #seq#
+	</update>
+	<select id="dlistCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture_discount.dlistCnt */
+			COUNT(1)
+		FROM PCN_PREFORM_TICKET
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="approval_yn" prepend="AND">
+				app_APPROVAL = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="strt_dt">
+				<isNotEmpty property="end_dt" prepend="AND">
+					(
+						(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_dt AND end_dt)
+						OR
+						(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_dt AND end_dt)
+					)
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<update id="DstatusUpdate" parameterClass="paramMap">
+		update PCN_PREFORM_TICKET
+			set app_approval = #updateStatus#
+		where seq = #seq#
+	</update>
+	
+	<select id="dlist" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture_discount.dlist */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT 
+					seq
+				  , 'D' type
+				  , title
+				  , discount
+				  , to_char(start_dt,'yyyy-mm-dd') start_dt
+				  , to_char(end_dt,'yyyy-mm-dd') end_dt
+				  , view_discount
+				  , view_cnt as hit_count
+				  , to_char(reg_date,'yyyy-mm-dd')  as reg_dt
+				  , app_APPROVAL
+				  , UCI
+				from PCN_PREFORM_TICKET
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="approval_yn" prepend="AND">
+						app_APPROVAL = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						TITLE LIKE '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+					
+					<!-- 기간 -->
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="end_dt" prepend="AND">
+							(
+								(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_dt AND end_dt)
+								OR
+								(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_dt AND end_dt)
+							)
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<!-- 등록일 -->
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_end" prepend="AND">
+							reg_date between TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+								AND TO_DATE(#reg_end#  || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="view_discount" prepend="AND">
+						view_discount >= #view_discount#
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#
+	</select>
+	
+	
+	
+	<!-- 문화 릴레이  -->
+	<update id="updateRViewDiscount" parameterClass="paramMap">
+		update EVENT_RELAYTICKET_DISCOUNT
+			set view_discount = #viewDiscount#
+		where seq = #seq#
+	</update>
+	<select id="rlistCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture_discount.rlistCnt */
+			COUNT(1)
+		FROM EVENT_RELAYTICKET_DISCOUNT
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="approval_yn" prepend="AND">
+				app_approval = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				TITLE LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="strt_dt">
+				<isNotEmpty property="end_dt" prepend="AND">
+					(
+						(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_date AND end_date)
+						OR
+						(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_date AND end_date)
+					)
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<update id="RstatusUpdate" parameterClass="paramMap">
+		update EVENT_RELAYTICKET_DISCOUNT
+			set app_approval = #updateStatus#
+		where seq = #seq#
+	</update>
+	
+	<select id="rlist" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture_discount.rlist */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT 
+					seq
+				  , 'R' type
+				  , title 
+				  , discount
+				  , start_date start_dt
+				  , end_date end_dt
+				  , view_discount
+				  , VIEW_CNT as hit_count
+				  , to_char(reg_date,'yyyy-mm-dd')  as reg_dt
+				  , app_APPROVAL
+				  , UCI
+				from EVENT_RELAYTICKET_DISCOUNT
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="approval_yn" prepend="AND">
+						app_approval = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						TITLE LIKE '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="end_dt" prepend="AND">
+							(
+								(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_date AND end_date)
+								OR
+								(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN start_date AND end_date)
+							)
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<!-- 등록일 -->
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_end" prepend="AND">
+							reg_date between TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+								AND TO_DATE(#reg_end#  || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="view_discount" prepend="AND">
+						view_discount >= #view_discount#
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	
+	<!-- 문화소식  -->
+	<update id="updateNViewDiscount" parameterClass="paramMap">
+		update WD_NEWS
+			set view_discount = #viewDiscount#
+		where seq = #seq#
+	</update>
+	<select id="nlistCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture_discount.nlistCnt */
+			COUNT(1)
+		FROM WD_NEWS
+		WHERE delete_yn = 'N'
+		<isNotEmpty property="approval_yn" prepend="AND">
+			display_yn = #approval_yn#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%' || #searchKeyword# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="strt_dt">
+			<isNotEmpty property="end_dt" prepend="AND">
+				(
+					(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN begin_date AND end_date)
+					OR
+					(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN begin_date AND end_date)
+				)
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+	
+	<update id="NstatusUpdate" parameterClass="paramMap">
+		update WD_NEWS
+			set app_approval = #updateStatus#
+		where seq = #seq#
+	</update>
+	
+	<select id="nlist" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture_discount.nlist */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT 
+					seq
+				  , 'N' type
+				  , title
+				  , summary as discount
+				  , to_char(begin_date,'yyyy-mm-dd')  as start_dt
+				  , to_char(end_date,'yyyy-mm-dd')  as end_dt
+				  , view_discount
+				  , hit as hit_count
+				  , to_char(inp_date,'yyyy-mm-dd')  as reg_dt
+				  , app_APPROVAL
+				from WD_NEWS
+				where delete_yn = 'N'
+				<isNotEmpty property="approval_yn" prepend="AND">
+					app_approval = #approval_yn#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="strt_dt">
+					<isNotEmpty property="end_dt" prepend="AND">
+						(
+							(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN begin_date AND end_date)
+							OR
+							(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN begin_date AND end_date)
+						)
+					</isNotEmpty>
+				</isNotEmpty>
+				
+				<!-- 등록일 -->
+				<isNotEmpty property="reg_start">
+					<isNotEmpty property="reg_end" prepend="AND">
+						inp_date BETWEEN TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+							AND TO_DATE(#reg_end#  || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="view_discount" prepend="AND">
+					view_discount >= #view_discount#
+				</isNotEmpty>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<!-- 참여시설  -->
+	<update id="updateFViewDiscount" parameterClass="paramMap">
+		update PCN_WDAY_PLACE
+			set view_discount = #viewDiscount#
+		where seq = #seq#
+	</update>
+	
+	<update id="FstatusUpdate" parameterClass="paramMap">
+		update PCN_WDAY_PLACE
+			set app_approval = #updateStatus#
+		where seq = #seq#
+	</update>
+	
+	<select id="flistCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culture_discount.flistCnt */
+			COUNT(1)
+		FROM PCN_WDAY_PLACE
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="approval_yn" prepend="AND">
+				app_approval = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				agent_name LIKE '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty property="strt_dt">
+				<isNotEmpty property="end_dt" prepend="AND">
+					(
+						(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN display_begin_date AND display_end_date)
+						OR
+						(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN display_begin_date AND display_end_date)
+					)
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="flist" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culture_discount.flist */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT 
+					seq
+				  , 'F' type
+				  , agent_name title
+				  , discount
+				  , to_char(display_begin_date,'yyyy-mm-dd') as start_dt
+				  , to_char(display_end_date,'yyyy-mm-dd') as end_dt
+				  , view_discount
+				  , VIEW_CNT as hit_count
+				  , to_char(reg_date,'yyyy-mm-dd')  as reg_dt
+				  , app_APPROVAL
+				from PCN_WDAY_PLACE
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="approval_yn" prepend="AND">
+						app_approval = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						agent_name LIKE '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="end_dt" prepend="AND">
+							(
+								(TO_DATE(#strt_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN display_begin_date AND display_end_date)
+								OR
+								(TO_DATE(#end_dt#  || '00:00:00','yyyy-mm-dd hh24:mi:ss') BETWEEN display_begin_date AND display_end_date)
+							)
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<!-- 등록일 -->
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_end" prepend="AND">
+							reg_date BETWEEN TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+								AND TO_DATE(#reg_end#  || '23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+					<isNotEmpty property="view_discount" prepend="AND">
+						view_discount >= #view_discount#
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+</sqlMap>

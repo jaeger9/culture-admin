@@ -1,0 +1,9 @@
+@import url("./jquery-ui.min.css");
+
+/* jquery ui thema 변경하고 싶을 경우 위에 경로를 관련 thema css로 변경하고 수정할 부분은 아래 작성할 것 */
+/* ex) 한글이 들어가면서 깨지는 부분 등 */
+
+.ui-datepicker .ui-datepicker-title {height:23px; vertical-align:middle; overflow:hidden;}
+.ui-datepicker select.ui-datepicker-month,
+.ui-datepicker select.ui-datepicker-year {width:auto; background:#fff; font:11px/1.0 dotum;}
+img.ui-datepicker-trigger {margin-left:5px;}

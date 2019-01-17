@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	
+	<!-- 사용하려면 쓰고 -->
+<!-- 	<aop:config>
+		<aop:aspect id="ExtenalAspect" ref="ApiLog">
+			show method 에만 걸어둠 나중에 쓸땐 save , delte 에만 걸어두면 되겠다..
+			<aop:before pointcut="execution(public * kr.go.culture.*.web..*.*(..))"  method="writeLog" />
+		</aop:aspect>
+	</aop:config>	
+
+	<bean id="ApiLog" class="com.kr.lpa.common.service.ApiLogService"></bean> -->
+	
+</beans>

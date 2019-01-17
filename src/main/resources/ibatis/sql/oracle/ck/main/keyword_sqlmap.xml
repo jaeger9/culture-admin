@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="keyword">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM (
+			SELECT 
+				(ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC)) NUM
+				, FLOOR((ROW_NUMBER()OVER( ORDER BY  REG_DATE DESC)-1)/$list_unit$+1) AS PAGE
+				, IDX
+				, KEYWORD
+				, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE
+				, DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+				, DECODE ( MOBILE_YN , 'Y' , '모바일' , '포털') AS MOBILE_YN
+			FROM 
+				PCN_INFO_KEYWORD 
+			<dynamic prepend="WHERE">
+				<isNotEmpty property="approvalyn" prepend="AND">
+					APPROVAL = 'Y'
+				</isNotEmpty>
+	  			<isNotEmpty property="searchKeyword" prepend="AND">
+					KEYWORD LIKE '%'||#searchKeyword#||'%' 
+				</isNotEmpty>
+	  			<isNotEmpty property="searchMobileYn" prepend="AND">
+					NVL(MOBILE_YN,'N') = #searchMobileYn#
+				</isNotEmpty>
+			</dynamic>
+	  					 
+		) R
+		 WHERE 
+		 	PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM 
+			PCN_INFO_KEYWORD 
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="approvalyn" prepend="AND">
+				APPROVAL = 'Y'
+			</isNotEmpty>
+			<isNotEmpty property="searchKeyword" prepend="AND">
+				KEYWORD LIKE '%'||#searchKeyword#||'%' 
+			</isNotEmpty>
+  			<isNotEmpty property="searchMobileYn" prepend="AND">
+				MOBILE_YN = #searchMobileYn#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		
+		SELECT
+		 	*
+		FROM
+		(
+			SELECT
+		  		IDX , APPROVAL , 
+		  		TRIM(SUBSTR(KEYWORD , INSTR(KEYWORD , ',' , 1 , LEVEL) + 1 , INSTR(KEYWORD , ',' ,1 , LEVEL + 1) - INSTR(KEYWORD , ',',1 , LEVEL) - 1)) AS KEYWORD, MOBILE_YN
+			FROM
+			(
+		  		SELECT
+		    		IDX , APPROVAL , ',' || KEYWORD || ',' AS KEYWORD, MOBILE_YN
+		  		FROM 
+		    		PCN_INFO_KEYWORD
+		  		WHERE
+		    		IDX = #idx#
+			)
+			CONNECT BY INSTR(KEYWORD , ',',1,LEVEL) > 0
+		)
+		WHERE
+		  KEYWORD IS NOT NULL
+		<!-- SELECT
+			IDX , APPROVAL , KEYWORD
+		FROM
+			PCN_INFO_KEYWORD
+		WHERE
+			IDX = #idx# -->
+		
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_INFO_KEYWORD(
+			IDX
+			,REG_DATE
+			,APPROVAL
+			,KEYWORD
+			,USER_ID
+			,MOBILE_YN
+		) VALUES (
+			(SELECT NVL(MAX(IDX),0)+1 FROM PCN_INFO_KEYWORD)
+			,SYSDATE
+			,#approval#
+			,#keyword#
+			,'cys'
+			,#mobile_yn#
+		)
+	</insert>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE 
+			PCN_INFO_KEYWORD 
+		SET
+			APPROVAL = #updateStatus#
+		WHERE 
+		<iterate property="array.idx" prepend="IDX IN " open="(" close=")" conjunction=",">
+			#array.idx[]#
+		</iterate>
+	</update>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_INFO_KEYWORD 
+		SET
+			APPROVAL = #approval#
+			, KEYWORD = #keyword#
+			, USER_ID = 'cys'
+			, MOBILE_YN = #mobile_yn#
+		WHERE 
+			IDX = #idx#
+	</update>
+	
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE 
+			PCN_INFO_KEYWORD 
+		WHERE 
+		<iterate property="array.idx" prepend="IDX IN " open="(" close=")" conjunction=",">
+			#array.idx[]#
+		</iterate>
+	</delete>
+</sqlMap>

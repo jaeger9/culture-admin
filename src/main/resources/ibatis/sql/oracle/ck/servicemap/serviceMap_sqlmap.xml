@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="serviceMap">
+
+<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+</sql>
+
+<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+]]></sql>	
+
+<sql id="sqlList-1">
+		WHERE
+		SEQ IS NOT NULL
+		<isNotEmpty property="approval" prepend="AND">
+			APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(org_service)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(org_organ)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(org_sitename)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="org_service" prepend="AND">
+				LOWER(org_service)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="org_organ" prepend="AND">
+				LOWER(org_organ)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="org_sitename" prepend="AND">
+				LOWER(org_sitename)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+	</sql>
+
+
+
+<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			CULTURE_SITEMAP
+			<include refid="sqlList-1" />
+</select>
+	
+<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+			SELECT
+			SEQ,
+			ORG_COST ,
+            ORG_OFFLINE ,
+            ORG_ONLINE ,
+            ORG_AGE ,
+            ORG_POLY ,
+            ORG_SPECIAL ,
+            ORG_GENRE ,
+            ORG_SERVICE ,
+            ORG_GUBUN ,
+            ORG_ORGAN, 
+            ORG_KEYWORD ,
+            ORG_SITENAME ,
+            ORG_MAIN ,
+            ORG_URL ,
+            ORG_KEYSERVICE,
+            DECODE(APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL,
+            TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+		FROM
+			CULTURE_SITEMAP
+			<include refid="sqlList-1" />
+		ORDER BY
+			SEQ DESC
+		<include refid="sqlPagingEnd" />
+</select>	
+
+<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM CULTURE_SITEMAP
+		</selectKey>
+		INSERT INTO CULTURE_SITEMAP (
+			SEQ
+			, ORG_COST
+			, ORG_OFFLINE
+			, ORG_ONLINE
+			, ORG_AGE
+			, ORG_POLY
+			, ORG_SPECIAL
+			, ORG_GENRE
+			, ORG_SERVICE
+			, ORG_GUBUN
+			, ORG_ORGAN
+			, ORG_KEYWORD
+			, ORG_SITENAME
+			, ORG_URL
+			, ORG_KEYSERVICE
+			, APPROVAL
+			, REG_DATE
+		) VALUES (
+			#seq#
+			, #org_cost#
+			, #org_offline#
+			, #org_online#
+			, #org_age#
+			, #org_poly#
+			, #org_special#
+			, #org_genre#
+			, #org_service#
+			, #org_gubun#
+			, #org_organ#
+			, #org_keyword#
+			, #org_sitename#
+			, #org_url#  
+			, #org_keyservice#  
+			, #approval#  
+			, SYSDATE
+		)
+	</insert>
+
+<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			, ORG_COST
+			, ORG_OFFLINE
+			, ORG_ONLINE
+			, ORG_AGE
+			, ORG_POLY
+			, ORG_SPECIAL
+			, ORG_GENRE
+			, ORG_SERVICE
+			, ORG_GUBUN
+			, ORG_ORGAN
+			, ORG_KEYWORD
+			, ORG_SITENAME
+			, ORG_URL
+			, ORG_KEYSERVICE
+			, APPROVAL
+			, REG_DATE
+		FROM
+			CULTURE_SITEMAP
+		WHERE
+			SEQ = #seq#
+	</select>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE CULTURE_SITEMAP
+		SET	
+			  ORG_COST       =#org_cost#       
+			, ORG_OFFLINE    =#org_offline#
+			, ORG_ONLINE     =#org_online#
+			, ORG_AGE        =#org_age#
+			, ORG_POLY       =#org_poly#
+			, ORG_SPECIAL    =#org_special#
+			, ORG_GENRE      =#org_genre#
+			, ORG_SERVICE    =#org_service#
+			, ORG_GUBUN      =#org_gubun#
+			, ORG_ORGAN      =#org_organ#
+			, ORG_KEYWORD    =#org_keyword#
+			, ORG_SITENAME   =#org_sitename#
+			, ORG_URL        =#org_url#  
+			, ORG_KEYSERVICE =#org_keyservice#
+			, APPROVAL       =#approval#  
+			, REG_DATE       =SYSDATE
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE CULTURE_SITEMAP
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM CULTURE_SITEMAP
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+	
+	
+
+	
+</sqlMap>

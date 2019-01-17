@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	
+	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" lazy-init="true" />
+	
+	<bean id="sqlMapClient-ck" 
+		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		
+		<property name="configLocations">
+			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>
+		</property>
+		<property name="mappingLocations">
+		  	<value>classpath:/ibatis/sql/oracle/ck/**/*.xml</value>
+		</property>
+		<property name="dataSource">
+			<ref bean="admin.datasource.ck" />
+		</property>
+		<property name="lobHandler" >
+			<ref bean="lobHandler" />
+		</property>
+	</bean>
+	
+	<bean id="sqlMapClient-kiiss" 
+		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocations">
+			<value>classpath:/ibatis/conf/ibatis-cubrid-config.xml</value>
+		</property>
+		<property name="mappingLocations">
+		  	<value>classpath:/ibatis/sql/cubrid/**/*.xml</value>
+		</property>
+		<property name="dataSource">
+			<ref bean="dataSource-kiiss" />
+		</property>
+		<property name="lobHandler" >
+			<ref bean="lobHandler" />
+		</property>
+	</bean>
+	<bean id="sqlMapClient-culture" 
+		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		
+		<property name="configLocations">
+			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>
+		</property>
+		<property name="mappingLocations">
+		  	<value>classpath:/ibatis/sql/oracle/culture/**/*.xml</value>
+		</property>
+		<property name="dataSource">
+			<ref bean="admin.datasource.culture" />
+		</property>
+		<property name="lobHandler" >
+			<ref bean="lobHandler" />
+		</property>
+	</bean>
+	
+	<bean id="sqlMapClient-culdata" 
+		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		
+		<property name="configLocations">
+			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>
+		</property>
+		<property name="mappingLocations">
+		  	<value>classpath:/ibatis/sql/oracle/ck/**/*.xml</value>
+		</property>
+		<property name="dataSource">
+			<ref bean="admin.datasource.culdata" />
+		</property>
+		<property name="lobHandler" >
+			<ref bean="lobHandler" />
+		</property>
+	</bean>
+</beans>

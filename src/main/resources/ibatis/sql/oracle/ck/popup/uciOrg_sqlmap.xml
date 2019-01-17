@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="uciOrg">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="category" prepend="AND">
+			A.CATEGORY = #category#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.NAME) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			UCI_ORG A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.NAME
+			,A.CATEGORY
+			,A.ORG_ID
+			,A.ORG_CODE
+			,A.CATE_TYPE
+			,A.USE_STATUS
+			,A.CRE_DATE
+		FROM
+			UCI_ORG A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.CATEGORY ASC NULLS LAST
+			,A.NAME ASC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="categoryList" resultClass="string">
+		SELECT
+			DISTINCT A.CATEGORY
+		FROM
+			UCI_ORG A
+		WHERE
+			A.CATEGORY IS NOT NULL
+		ORDER BY
+			A.CATEGORY
+	</select>
+
+</sqlMap>

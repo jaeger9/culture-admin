@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="mataManager">
+<!-- 	통계 리스트 -->
+	<select id="statisticList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT 
+			REG_DATE
+			, JOB_GROUP_ID
+			, (SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) JOB_GROUP_NAME
+			, CNT
+			FROM (
+				SELECT
+					REG_DATE
+					, JOB_GROUP_ID
+					, SUM(CNT) CNT
+				FROM PCN_RDF_STATISTIC A
+				WHERE REG_DATE = TO_CHAR(SYSDATE, 'yyyy-mm-dd') 
+				GROUP BY REG_DATE, JOB_GROUP_ID 
+			) A
+			WHERE 1=1
+			<isNotEmpty property="keyword" prepend=" AND">
+				(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) LIKE '%'|| #keyword#  ||'%'
+			</isNotEmpty>
+			<isNotEmpty property="category" prepend=" AND">
+				JOB_GROUP_ID IN 
+			    (SELECT JOB_GROUP_ID FROM BN_JOB_GROUP WHERE ORG_CODE IN
+			    	(SELECT ORG_CODE FROM UCI_ORG WHERE CATEGORY = #category#)
+			    )
+			</isNotEmpty>
+	</select>
+	
+<!-- 	통계 일자별 조회 -->
+	<select id="statisticView" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT
+			REG_DATE
+			,JOB_ID
+			,(SELECT JOB_NAME FROM BN_JOB WHERE JOB_ID = A.JOB_ID)JOB_NAME 
+			,(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = #group_id#) JOB_GROUP_NAME
+			,CNT
+			,(SELECT COUNT(DISTINCT JOB_ID) FROM PCN_RDF_STATISTIC WHERE JOB_GROUP_ID = #group_id# AND REG_DATE = A.REG_DATE) ROWCNT
+		FROM PCN_RDF_STATISTIC A
+		WHERE JOB_GROUP_ID = #group_id#
+		<isNotEmpty property="reg_start">
+			<isNotEmpty property="reg_end">
+				AND REG_DATE BETWEEN #reg_start# AND #reg_end#
+			</isNotEmpty>
+			<isEmpty property="reg_end">
+				AND REG_DATE BETWEEN #reg_start# AND #reg_start#
+			</isEmpty>
+		</isNotEmpty>
+		ORDER BY REG_DATE DESC, JOB_ID ASC
+	</select>
+	
+<!-- 	기관별 수집항목 카운트 -->
+	<select id="statisticRowCnt" parameterClass="java.util.Map" resultClass="int">
+		SELECT
+			COUNT(DISTINCT JOB_ID) CNT
+		FROM PCN_RDF_STATISTIC
+		WHERE JOB_GROUP_ID = #group_id#
+	</select>
+	
+<!-- 	기관이름 -->
+	<select id="statisticViewName" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = #group_id#
+	</select>
+	
+<!-- 전수조사 리스트 전수조사 카운트 대비 마지막 수집 카운트 % 계산 -->
+	<select id="metaQualityList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT (SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) JOB_GROUP_NAME,
+			A.JOB_GROUP_ID, 
+			NVL(A.SURVEY_COUNT, 0) SURVEY_COUNT, 
+			NVL(B.NOW_COUNT, 0) NOW_COUNT
+		FROM 
+			(SELECT JOB_GROUP_ID, SURVEY_COUNT FROM BN_JOB_GROUP WHERE DEL_YN='N' ) A, 
+			(SELECT JOB_GROUP_ID, SUM(CNT) NOW_COUNT FROM PCN_RDF_STATISTIC 
+				WHERE REG_DATE = TO_CHAR(SYSDATE, 'yyyy-mm-dd') GROUP BY JOB_GROUP_ID ) B 
+		WHERE A.JOB_GROUP_ID = B.JOB_GROUP_ID(+)
+		<isNotEmpty property="category" prepend=" AND">
+			A.JOB_GROUP_ID IN 
+		    (SELECT JOB_GROUP_ID FROM BN_JOB_GROUP WHERE ORG_CODE IN
+		    	(SELECT ORG_CODE FROM UCI_ORG WHERE CATEGORY = #category#)
+		    )
+		</isNotEmpty>
+		<isNotEmpty property="keyword" prepend=" AND">
+			(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID)  like '%' || #keyword# || '%'
+		</isNotEmpty>
+	</select>
+	
+	<!-- 전수조사 리스트 전수조사 카운트 대비 마지막 수집 카운트 % 계산 -->
+	<select id="metaQualityView" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT JOB_GROUP_ID, SURVEY_COUNT FROM BN_JOB_GROUP WHERE DEL_YN='N' and JOB_GROUP_ID = #group_id#
+	</select>
+	
+	<!-- 전수조사 리스트 전수조사 카운트 대비 마지막 수집 카운트 % 수정 -->
+	<update id="metaQualityUpdate" parameterClass="java.util.Map" >
+		UPDATE BN_JOB_GROUP SET SURVEY_COUNT = #survey_count# WHERE JOB_GROUP_ID = #group_id#
+	</update>
+	
+	<!-- 수집항목 품질관리 리스트 -->
+	<select id="itemQualityList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT 
+			(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) JOB_GROUP_NAME,
+			JOB_GROUP_ID,
+			(SELECT JOB_NAME FROM BN_JOB WHERE JOB_ID = A.JOB_ID) JOB_NAME,
+			JOB_ID,
+			MARK_CNT,
+			COLLECT_CNT,
+			(SELECT COUNT(DISTINCT JOB_ID) FROM PCN_RDF_ITEMQUALITY WHERE JOB_GROUP_ID  = A.JOB_GROUP_ID ) ROW_CNT 
+		FROM PCN_RDF_ITEMQUALITY A
+		WHERE 1=1
+		<isNotEmpty property="category" prepend=" AND">
+			JOB_GROUP_ID IN 
+		    (SELECT JOB_GROUP_ID FROM BN_JOB_GROUP WHERE ORG_CODE IN
+		    	(SELECT ORG_CODE FROM UCI_ORG WHERE CATEGORY = #category#)
+		    )
+		</isNotEmpty>
+		<isNotEmpty property="keyword" prepend=" AND">
+			(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) like '%' || #keyword# || '%'
+		</isNotEmpty>
+		ORDER BY JOB_GROUP_NAME, JOB_GROUP_ID
+	</select>
+
+	<!-- 수집항목 품질관리 뷰 -->
+	<select id="itemQualityMenuView" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT 
+			(SELECT JOB_GROUP_NAME FROM BN_JOB_GROUP WHERE JOB_GROUP_ID = A.JOB_GROUP_ID) JOB_GROUP_NAME,
+			JOB_GROUP_ID,
+			(SELECT JOB_NAME FROM BN_JOB WHERE JOB_ID = A.JOB_ID) JOB_NAME,
+			JOB_ID,
+			MARK_CNT,
+			MARK_ITEM,
+			COLLECT_CNT,
+			COLLECT_ITEM,
+			(SELECT CNT FROM PCN_RDF_STATISTIC WHERE JOB_GROUP_ID = #group_id# and JOB_ID = #job_id# AND REG_DATE = TO_CHAR(SYSDATE, 'yyyy-mm-dd')) CNT
+		FROM PCN_RDF_ITEMQUALITY A
+		WHERE JOB_GROUP_ID = #group_id# and JOB_ID = #job_id#
+	</select>	
+
+	<!-- 수집항목 품질관리 메뉴 리스트 -->
+	<select id="itemQualityMenuList" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT 
+			COLUMN_IDX,
+			COLUMN_NAME,
+			COLUMN_DESCRIPTION
+		FROM RDF_METADATA_INFO
+		ORDER BY COLUMN_IDX ASC
+	</select>
+	
+		<!-- 수집항목 품질관리 뷰 -->
+	<update id="itemQualityMenuUpdate" parameterClass="java.util.Map">
+		UPDATE PCN_RDF_ITEMQUALITY SET 
+			MARK_ITEM = #mark_item#
+			,MARK_CNT = #mark_count# 
+		WHERE JOB_GROUP_ID = #group_id# and JOB_ID = #job_id#
+	</update>
+
+</sqlMap>

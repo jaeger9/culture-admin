@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="cultureNotice">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		/* cultureNotice.list */
+		SELECT  
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, R.*
+			FROM (
+				SELECT				
+					SEQ
+					, TITLE
+					, CONTENTS
+					, APPROVAL_YN
+					, DECODE(APPROVAL_YN, 'Y', '승인', 'N', '미승인', '대기') APPROVAL_NM
+					, DEL_YN
+					, VIEW_CNT
+					, REG_ID
+					, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+					, OUTLINK
+					, OUTLINK_KIND
+				FROM CULTURE_NOTICE
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="del_yn" prepend="AND">
+						DEL_YN = #del_yn#
+					</isNotEmpty>
+					<isNotEmpty property="approval_yn" prepend="AND">
+						APPROVAL_YN = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="keyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="contents">
+							CONTENTS LIKE '%' || #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="reg_start">
+						<isEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#		
+	</select>
+	
+	<!-- 카드 뉴스  목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		/* cultureNotice.listCnt */
+		SELECT 
+			COUNT(1)
+		FROM CULTURE_NOTICE
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="del_yn" prepend="AND">
+				DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="approval_yn" prepend="AND">
+				APPROVAL_YN = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%' )
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="contents">
+					CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 상태 변경 -->
+	<update id="statusUpdate" parameterClass="paramMap">		
+		/* cultureNotice.statusUpdate */
+		UPDATE 
+		CULTURE_NOTICE SET
+		<isNotEmpty property="updateStatus">			
+			APPROVAL_YN = #updateStatus#,		
+		</isNotEmpty>
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<!-- 영상관리  상세 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		/* cultureNotice.view */
+		SELECT 
+		      SEQ,
+		       TITLE,
+		       CONTENTS,
+		       APPROVAL_YN,
+		       DEL_YN,
+		       VIEW_CNT,
+		       REG_ID,
+		       REG_DATE,
+		       UPD_ID,
+		       UPD_DATE,
+		       OUTLINK,
+		       OUTLINK_KIND
+		  FROM CULTURE_NOTICE
+		 WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			/* cultureNotice.insert */
+			SELECT SEQ_CULTURE_VIDEO.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT  
+		INTO CULTURE_NOTICE (
+			SEQ, TITLE, CONTENTS, APPROVAL_YN, DEL_YN, VIEW_CNT, REG_ID, REG_DATE, OUTLINK, OUTLINK_KIND
+		) VALUES(
+			#seq#, #title#, #contents#, #approval_yn#, #del_yn#, 0, #reg_id#, SYSDATE, #outlink#, #outlink_kind#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		/* cultureNotice.update */
+		UPDATE  
+		CULTURE_NOTICE 
+		SET
+			TITLE = #title#,
+			CONTENTS = #contents#,
+			APPROVAL_YN =#approval_yn#,
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE,
+			OUTLINK = #outlink#,
+			OUTLINK_KIND = #outlink_kind#
+		WHERE SEQ = #seq#
+	</update>
+	
+	
+	
+	<!-- 삭제 -->
+	<delete id="delete" parameterClass="paramMap">		
+		/* cultureNotice.delete */
+		DELETE FROM CULTURE_NOTICE
+		WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

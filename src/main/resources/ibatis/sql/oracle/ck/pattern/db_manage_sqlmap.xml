@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="db.manage">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * 
+		FROM (
+			SELECT 
+				/*+INDEX_DESC(A PK_DOCMETA)*/
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY XCREATED DESC) -1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY XCREATED DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY VIEW_CNT DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				,DID
+				, XTITLE
+				, XDIMENSION
+				, XTAXONOMY
+				, XVIEW
+				, XFILE
+				, XCREATED
+				, XAGE
+				, XTHUMBSEQ
+				, XABSTRACT
+				, XTYPE
+				, VIEW_CNT
+				, XTAXONOMY || ' ' || XTYPE || '(' || XDIMENSION || ')' AS PLACE
+				, (SELECT  DALTERNATIVE FROM COLLECTIONS@PATTERN WHERE DCOLLECTIONNAME = A.XTITLE AND ROWNUM = 1  ) AS DALTERNATIVE
+				<!-- , (SELECT  DALTERNATIVE FROM COLLECTIONS WHERE DCOLLECTIONNAME = A.XTITLE AND ROWNUM = 1  ) AS DALTERNATIVE -->
+			FROM 
+				DOCMETA@PATTERN A 
+				<!-- DOCMETA A -->
+			WHERE 
+				XHIDDEN='거짓'
+				<isNotEmpty property="xtype" prepend="AND ">
+					XTYPE = #xtype#
+				</isNotEmpty>
+				<isNotEmpty property="xdimension" prepend="AND ">
+					XDIMENSION = #xdimension#
+				</isNotEmpty>
+				<isEqual property="searchGubun" compareValue="did" prepend="AND">
+					DID = #keyword#
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					XTITLE LIKE  '%' || #keyword# || '%'
+				</isEqual>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+			)R
+	       WHERE 
+				R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(*) CNT 
+		FROM 
+			DOCMETA@PATTERN A  
+			<!-- DOCMETA -->
+		WHERE 
+			1=1
+		AND 
+			XHIDDEN='거짓'
+			<isNotEmpty property="xtype" prepend="AND ">
+				XTYPE = #xtype#
+			</isNotEmpty>
+			<isNotEmpty property="xdimension" prepend="AND ">
+				XDIMENSION = #xdimension#
+			</isNotEmpty>
+			<isEqual property="searchGubun" compareValue="did" prepend="AND">
+				DID = #keyword#
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title" prepend="AND">
+				XTITLE LIKE  '%' || #keyword# || '%'
+			</isEqual>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			DOCMETA.DID,
+			XTITLE,
+			XALTERNATIVE,
+			XCREATOR,
+			XTAXONOMY,
+			XDIMENSION,
+			XMAIN,
+			XMAT,
+			XUSE,
+			XAGE,
+			XPLACE,
+			XPUBLISHER,
+			XNAME,
+			XCORPORATE,
+			XTYPE,
+			XCATEGORY,
+			XCREATED,
+			XMODIFIED,
+			XFORMAT,
+			XVIEW,
+			LOWER(XVIEW) AS WEBXVIEW,
+			XFILE,
+			XPRIMARY,
+			XWORK,
+			XORIGINAL,
+			XWORD,
+			XLOCATION,
+			XRIGHT,
+			XPROPERTY,
+			XCOPYRIGHT,
+			XPRICE,
+			XSERVICE,
+			XTHUMBSEQ,
+			XABSTRACT,
+			XABSTRACT2,
+			XDEVELOPMENT,
+			XCOLLECTIONID,
+			XHIDDEN,
+			XREADONLY,
+			XINHIBITUPDATE,
+			XTRASHDELETER,
+			XTRASHDELETEDATE,
+			XTRASHDELETELOC,
+			XTRASHDELETENAME,
+			XCONTROLID,
+			XSUBJECT,
+			XGRADES,
+			XCAD,
+			DDOCNAME
+		FROM 
+			DOCMETA@PATTERN
+			<!-- DOCMETA -->
+		WHERE 
+			DID = #did#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="DID" resultClass="int" type="pre">
+			SELECT NVL(MAX(DID),0)+1 FROM DOCMETA
+		</selectKey>
+		INSERT INTO 
+			DOCMETA@PATTERN (
+			<!-- DOCMETA ( -->
+			DID, XTITLE, XALTERNATIVE, 
+			XCREATOR, XTAXONOMY, XDIMENSION, 
+			XMAIN, XMAT, XUSE, 
+			XAGE, XPLACE, XPUBLISHER, 
+			XNAME, XCORPORATE, XTYPE, 
+			XCATEGORY, XCREATED, XMODIFIED, 
+			XFORMAT, XVIEW, XFILE, 
+			XPRIMARY, XWORK, XORIGINAL, 
+			XWORD, XLOCATION, XRIGHT, 
+			XPROPERTY, XCOPYRIGHT, XPRICE, 
+			XSERVICE, XTHUMBSEQ, XABSTRACT, 
+			XABSTRACT2, XDEVELOPMENT, XCOLLECTIONID, 
+			XHIDDEN, XREADONLY, XINHIBITUPDATE, 
+			XTRASHDELETER, XTRASHDELETEDATE, XTRASHDELETELOC, 
+			XTRASHDELETENAME, XCONTROLID, XSUBJECT, 
+			XGRADES, XCAD, DDOCNAME , XTAXONOMY || ' ' || XTYPE || '(' || XDIMENSION || ')' AS PLACE
+		) VALUES(
+			#DID#, #XTITLE#, #XALTERNATIVE#, 
+			#XCREATOR#, #XTAXONOMY#, #XDIMENSION#, 
+			#XMAIN#, #XMAT#, #XUSE#, 
+			#XAGE#, #XPLACE#, #XPUBLISHER#, 
+			#XNAME#, #XCORPORATE#, #XTYPE#, 
+			#XCATEGORY#, #XCREATED#, #XMODIFIED#, 
+			#XFORMAT#, #XVIEW#, #XFILE#, 
+			#XPRIMARY#, #XWORK#, #XORIGINAL#, 
+			#XWORD#, #XLOCATION#, #XRIGHT#, 
+			#XPROPERTY#, #XCOPYRIGHT#, #XPRICE#, 
+			#XSERVICE#, #XTHUMBSEQ#, #XABSTRACT#, 
+			#XABSTRACT2#, #XDEVELOPMENT#, #XCOLLECTIONID#, 
+			#xHidden#, #XREADONLY#, #XINHIBITUPDATE#, 
+			#XTRASHDELETER#, #XTRASHDELETEDATE#, #XTRASHDELETELOC#, 
+			#XTRASHDELETENAME#, #XCONTROLID#, #XSUBJECT#, 
+			#XGRADES#, #XCAD#, (SELECT LPAD(NVL(MAX(TO_NUMBER(DDOCNAME)),0)+1,6,'0')  FROM  DOCMETA), #PLACE#
+		)
+	</insert>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			DOCMETA@PATTERN (
+			<!-- DOCMETA  --> 
+		WHERE 
+		<iterate property="array.did" open="DID IN (" conjunction="," close=")">
+			#array.did[]#
+		</iterate>
+	</delete>
+	<select id="listAllPattern" parameterClass="paramMap" resultClass="commonMap">
+        SELECT *
+        FROM ( 
+           SELECT T.*, FLOOR((ROW_NUMBER()OVER(ORDER BY DID DESC) -1)/$list_unit$+1) AS PAGE
+           FROM (
+				SELECT DID, XTITLE, XVIEW, XTHUMBSEQ XFILE, 'PG01' GBN, '' DEPTH1
+					, '/tradition/patternView.do?did=' || did || '&amp;sType=' ||
+		              CASE
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '인물문' THEN '01&amp;dpid=139'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '동물문' THEN '02&amp;dpid=140'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '식물문' THEN '03&amp;dpid=141'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '인공물문' THEN '04&amp;dpid=142'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '자연산수문' THEN '05&amp;dpid=143'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '문자문' THEN '06&amp;dpid=144'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '기하문' THEN '07&amp;dpid=145'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '복합문' THEN '08&amp;dpid=146'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '기타문' THEN '09&amp;dpid=147'
+		                  ELSE '09&amp;dpid=147'
+		              END || '&amp;xtaxonomy=' || SUBSTR(XTAXONOMY,INSTR(XTAXONOMY,'/')+1) AS url
+				FROM DOCMETA@PATTERN A
+				WHERE XHIDDEN='거짓'
+				UNION ALL
+				SELECT DID, XTITLE, XVIEW, SUBSTR(reg_date, 1, 4) || '/250/' || UFILE XFILE, 'PG03' GBN, '' DEPTH1
+					, '/tradition/designPatternView.do?seq=' || seq || '&amp;did=' || '&amp;sType=' ||
+		              CASE
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '인물문' THEN '01&amp;dpid=139'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '동물문' THEN '02&amp;dpid=140'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '식물문' THEN '03&amp;dpid=141'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '인공물문' THEN '04&amp;dpid=142'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '자연산수문' THEN '05&amp;dpid=143'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '문자문' THEN '06&amp;dpid=144'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '기하문' THEN '07&amp;dpid=145'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '복합문' THEN '08&amp;dpid=146'
+		                  WHEN SUBSTR(XTAXONOMY,1,INSTR(XTAXONOMY,'/')-1) = '기타문' THEN '09&amp;dpid=147'
+		                  ELSE '09&amp;dpid=147'
+		              END || '&amp;xtaxonomy=' || SUBSTR(XTAXONOMY,INSTR(XTAXONOMY,'/')+1) AS url
+				FROM PCN_CULTURE_DESIGN@PATTERN B
+				UNION ALL
+				SELECT SEQ, XTITLE, XVIEW, UFILE XFILE, 'PG04' GBN, DEPTH1
+					, '/tradition/usePatternView.do?seq=' || seq || '&amp;type=' || 
+		              CASE 
+		                  WHEN DEPTH1 = '1도패턴' 
+		                      OR DEPTH1 = '2,3도패턴' 
+		                      OR DEPTH1 = '4도패턴' 
+		                  THEN 'A' 
+		                  WHEN DEPTH1 = '템플릿' 
+		                      OR DEPTH1 = '템플릿소스' 
+		                  THEN 'B' 
+		                  WHEN DEPTH1 = 'MOBILE 배경화면' 
+		                  THEN 'C' 
+		                  WHEN DEPTH1 = '부피형' 
+		                      OR DEPTH1 = '확산형' 
+		                      OR DEPTH1 = '기둥형' 
+		                      OR DEPTH1= '응용형' 
+		                  THEN 'D' 
+		              END || '&amp;type2=' || DECODE(DEPTH1,'MOBILE 배경화면',DEPTH2,DEPTH1) AS url 
+				FROM PCN_MCH_PATTERN@PATTERN C
+				UNION ALL
+				SELECT SEQ, XTITLE, UVIEW, UFILE, 'PG04' GBN, '템플릿조합' DEPTH1, '/tradition/usePatternView.do?seq=' || seq || '&amp;type=B&amp;type2=' || '템플릿조합' url
+				FROM PCN_MCH_TEMPLETE@PATTERN D
+				UNION ALL
+				SELECT SEQ, XTITLE, XVIEW, FILE_NAME, 'PG05' GBN, '' DEPTH1, '/industry/content3dView.do?seq=' || seq url
+				FROM PCN_3D_PATTERN@PATTERN C
+           ) T
+           WHERE 1=1
+			<isEqual property="searchGubun" compareValue="did" prepend="AND">
+				DID = #keyword#
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title" prepend="AND">
+				XTITLE LIKE  '%' || #keyword# || '%'
+			</isEqual>
+        )
+        WHERE page = #page_no#
+	</select>
+	<select id="listAllPatternCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM (
+		     SELECT DID, XTITLE, XVIEW, XTHUMBSEQ XFILE, 'PG01' DIV
+		     FROM DOCMETA@PATTERN A
+		     WHERE XHIDDEN='거짓'
+		     UNION ALL
+		     SELECT DID, XTITLE, XVIEW, UFILE, 'PG03' DIV
+		     FROM PCN_CULTURE_DESIGN@PATTERN B
+		     UNION ALL
+		     SELECT SEQ, XTITLE, XVIEW, UFILE, 'PG04' DIV
+		     FROM PCN_MCH_PATTERN@PATTERN C
+		     UNION ALL
+		     SELECT SEQ, XTITLE, UVIEW, UFILE, 'PG04' DIV
+		     FROM PCN_MCH_TEMPLETE@PATTERN D
+		     UNION ALL
+		     SELECT SEQ, XTITLE, XVIEW, FILE_NAME, 'PG05' DIV
+		     FROM PCN_3D_PATTERN@PATTERN C
+		) T
+		WHERE 1=1
+		<isEqual property="searchGubun" compareValue="did" prepend="AND">
+			DID = #keyword#
+		</isEqual>
+		<isEqual property="searchGubun" compareValue="title" prepend="AND">
+			XTITLE LIKE  '%' || #keyword# || '%'
+		</isEqual>
+	</select>
+</sqlMap>

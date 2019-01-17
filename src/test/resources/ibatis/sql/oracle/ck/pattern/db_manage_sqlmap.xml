@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="db.manage">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * 
+		FROM (
+			SELECT 
+				/*+INDEX_DESC(A PK_DOCMETA)*/
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY XCREATED DESC) -1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY XCREATED DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY VIEW_CNT DESC) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				,DID
+				, XTITLE
+				, XDIMENSION
+				, XTAXONOMY
+				, XVIEW
+				, XFILE
+				, XCREATED
+				, XAGE
+				, XTHUMBSEQ
+				, XABSTRACT
+				, XTYPE
+				, VIEW_CNT
+				, (SELECT  DALTERNATIVE FROM COLLECTIONS@PATTERN WHERE DCOLLECTIONNAME = A.XTITLE AND ROWNUM = 1  ) AS DALTERNATIVE
+				<!-- , (SELECT  DALTERNATIVE FROM COLLECTIONS WHERE DCOLLECTIONNAME = A.XTITLE AND ROWNUM = 1  ) AS DALTERNATIVE -->
+			FROM 
+				DOCMETA@PATTERN A 
+				<!-- DOCMETA A -->
+			WHERE 
+				XHIDDEN='거짓'
+				<isNotEmpty property="xtype" prepend="AND ">
+					XTYPE = #xtype#
+				</isNotEmpty>
+				<isNotEmpty property="xdimension" prepend="AND ">
+					XDIMENSION = #xdimension#
+				</isNotEmpty>
+				<isEqual property="searchGubun" compareValue="did" prepend="AND">
+					DID = #keyword#
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					XTITLE LIKE  '%' || #keyword# || '%'
+				</isEqual>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+			)R
+	       WHERE 
+				R.PAGE = #page_no# 
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(*) CNT 
+		FROM 
+			DOCMETA@PATTERN A  
+			<!-- DOCMETA -->
+		WHERE 
+			1=1
+		AND 
+			XHIDDEN='거짓'
+			<isNotEmpty property="xtype" prepend="AND ">
+				XTYPE = #xtype#
+			</isNotEmpty>
+			<isNotEmpty property="xdimension" prepend="AND ">
+				XDIMENSION = #xdimension#
+			</isNotEmpty>
+			<isEqual property="searchGubun" compareValue="did" prepend="AND">
+				DID = #keyword#
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title" prepend="AND">
+				XTITLE LIKE  '%' || #keyword# || '%'
+			</isEqual>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					to_date(xcreated || ' 01:00:00', 'yyyy-mm-dd hh24:mi:ss' ) BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			DOCMETA.DID,
+			XTITLE,
+			XALTERNATIVE,
+			XCREATOR,
+			XTAXONOMY,
+			XDIMENSION,
+			XMAIN,
+			XMAT,
+			XUSE,
+			XAGE,
+			XPLACE,
+			XPUBLISHER,
+			XNAME,
+			XCORPORATE,
+			XTYPE,
+			XCATEGORY,
+			XCREATED,
+			XMODIFIED,
+			XFORMAT,
+			XVIEW,
+			LOWER(XVIEW) AS WEBXVIEW,
+			XFILE,
+			XPRIMARY,
+			XWORK,
+			XORIGINAL,
+			XWORD,
+			XLOCATION,
+			XRIGHT,
+			XPROPERTY,
+			XCOPYRIGHT,
+			XPRICE,
+			XSERVICE,
+			XTHUMBSEQ,
+			XABSTRACT,
+			XABSTRACT2,
+			XDEVELOPMENT,
+			XCOLLECTIONID,
+			XHIDDEN,
+			XREADONLY,
+			XINHIBITUPDATE,
+			XTRASHDELETER,
+			XTRASHDELETEDATE,
+			XTRASHDELETELOC,
+			XTRASHDELETENAME,
+			XCONTROLID,
+			XSUBJECT,
+			XGRADES,
+			XCAD,
+			DDOCNAME
+		FROM 
+			DOCMETA@PATTERN
+			<!-- DOCMETA -->
+		WHERE 
+			DID = #did#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="DID" resultClass="int" type="pre">
+			SELECT NVL(MAX(DID),0)+1 FROM DOCMETA
+		</selectKey>
+		INSERT INTO 
+			DOCMETA@PATTERN (
+			<!-- DOCMETA ( -->
+			DID, XTITLE, XALTERNATIVE, 
+			XCREATOR, XTAXONOMY, XDIMENSION, 
+			XMAIN, XMAT, XUSE, 
+			XAGE, XPLACE, XPUBLISHER, 
+			XNAME, XCORPORATE, XTYPE, 
+			XCATEGORY, XCREATED, XMODIFIED, 
+			XFORMAT, XVIEW, XFILE, 
+			XPRIMARY, XWORK, XORIGINAL, 
+			XWORD, XLOCATION, XRIGHT, 
+			XPROPERTY, XCOPYRIGHT, XPRICE, 
+			XSERVICE, XTHUMBSEQ, XABSTRACT, 
+			XABSTRACT2, XDEVELOPMENT, XCOLLECTIONID, 
+			XHIDDEN, XREADONLY, XINHIBITUPDATE, 
+			XTRASHDELETER, XTRASHDELETEDATE, XTRASHDELETELOC, 
+			XTRASHDELETENAME, XCONTROLID, XSUBJECT, 
+			XGRADES, XCAD, DDOCNAME 
+		) VALUES(
+			#DID#, #XTITLE#, #XALTERNATIVE#, 
+			#XCREATOR#, #XTAXONOMY#, #XDIMENSION#, 
+			#XMAIN#, #XMAT#, #XUSE#, 
+			#XAGE#, #XPLACE#, #XPUBLISHER#, 
+			#XNAME#, #XCORPORATE#, #XTYPE#, 
+			#XCATEGORY#, #XCREATED#, #XMODIFIED#, 
+			#XFORMAT#, #XVIEW#, #XFILE#, 
+			#XPRIMARY#, #XWORK#, #XORIGINAL#, 
+			#XWORD#, #XLOCATION#, #XRIGHT#, 
+			#XPROPERTY#, #XCOPYRIGHT#, #XPRICE#, 
+			#XSERVICE#, #XTHUMBSEQ#, #XABSTRACT#, 
+			#XABSTRACT2#, #XDEVELOPMENT#, #XCOLLECTIONID#, 
+			#xHidden#, #XREADONLY#, #XINHIBITUPDATE#, 
+			#XTRASHDELETER#, #XTRASHDELETEDATE#, #XTRASHDELETELOC#, 
+			#XTRASHDELETENAME#, #XCONTROLID#, #XSUBJECT#, 
+			#XGRADES#, #XCAD#, (SELECT LPAD(NVL(MAX(TO_NUMBER(DDOCNAME)),0)+1,6,'0')  FROM  DOCMETA)
+		)
+	</insert>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			DOCMETA@PATTERN (
+			<!-- DOCMETA  --> 
+		WHERE 
+		<iterate property="array.did" open="DID IN (" conjunction="," close=")">
+			#array.did[]#
+		</iterate>
+	</delete>
+</sqlMap>

@@ -1,0 +1,90 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+	<!-- <http access-decision-manager-ref="accessDecisionManager" auto-config="true"> -->
+	<!-- <http auto-config="true">
+		<intercept-url pattern="/welcome.do" access="ROLE_USER" />
+		<intercept-url pattern="/test1.do" access="ROLE_USER" />
+		
+		<form-login login-page="/login.do" default-target-url="/welcome.do"
+		    always-use-default-target="false"
+		    authentication-success-handler-ref="authenticationSuccessHandler"
+			authentication-failure-url="/loginfailed.do" />
+		<logout logout-success-url="/logout.do" />
+	</http> 
+	
+	<beans:bean id="authenticationSuccessHandler" class="com.kr.opadm.login.OpadmAuthenticationSuccessHandler" />
+	
+	<authentication-manager>
+        <authentication-provider user-service-ref="UserService" />
+	</authentication-manager>
+
+	<beans:bean id="UserService" class="com.kr.opadm.login.service.UserService">
+	    <beans:property name="userDAO" ref="UserDAO"/>
+	</beans:bean>
+	
+	<beans:bean id="UserDAO" class=" com.kr.opadm.login.dao.UserDAO">
+	    <beans:property name="sqlMapClient" ref="sqlMapClient-opadm"/>
+	</beans:bean>
+	-->
+	
+	<http access-denied-page="/loginaccessdenied">
+       <form-login login-page="/login" default-target-url="/index.do"
+		    authentication-success-handler-ref="authenticationSuccessHandler"
+			authentication-failure-url="/loginfailed" />
+		<logout logout-success-url="/logout" />
+        <http-basic />
+        <custom-filter before="FILTER_SECURITY_INTERCEPTOR"
+             ref="securityFilter" />
+    </http>
+
+	<beans:bean id="authenticationSuccessHandler" class="kr.go.culture.login.AdminAuthenticationSuccessHandler" />
+													     
+    <beans:bean id="securityFilter" class="kr.go.culture.login.filter.AdminFilterSecurityInterceptor">
+        <beans:property name="authenticationManager"
+             ref="authenticationManager" />
+        <beans:property name="accessDecisionManager"
+             ref="AdminAccessDecisionManager" />
+        <beans:property name="securityMetadataSource"
+             ref="securityMetadataSource" />
+    </beans:bean>
+   
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider
+            user-service-ref="AdminUserDetailService">
+            <!--   패스워드 encoder
+                 <password-encoder hash="md5" />
+            -->
+            <password-encoder ref="passwordEncoder" />
+        </authentication-provider>
+    </authentication-manager>
+    
+    <beans:bean id="AdminUserDetailService" class="kr.go.culture.login.service.UserService">
+	    <beans:property name="loginDAO" ref="LoginDAO"/>
+	</beans:bean>
+	
+	<beans:bean id="LoginDAO" class="kr.go.culture.login.dao.LoginDAO">
+	    <beans:property name="sqlMapClient" ref="sqlMapClient-ck"/>
+	</beans:bean>
+   
+    <beans:bean id="AdminAccessDecisionManager"
+         class="kr.go.culture.login.AdminAccessDecisionManager">
+    </beans:bean>
+   
+    <beans:bean id="AdminUrlResourceService" class="kr.go.culture.login.service.UrlResourceService">
+	    	<beans:property name="loginDAO" ref="LoginDAO"/>
+	</beans:bean>
+	
+     <beans:bean id="securityMetadataSource"
+         class="kr.go.culture.login.AdminInvocationSecurityMetadataSource">
+	    	<beans:property name="urlResourceService" ref="AdminUrlResourceService"/>
+	</beans:bean>
+	
+	<beans:bean id="passwordEncoder" class="kr.go.culture.login.MD5MessageDigestPasswordEncoder" />
+	
+	
+</beans:beans>

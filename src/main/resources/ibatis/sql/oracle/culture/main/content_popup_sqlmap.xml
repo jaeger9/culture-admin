@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="content.popup">
+	<select id="culturestatisticList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			*
+		FROM 
+		(
+			SELECT 
+				A.*
+			FROM 
+			(
+				SELECT 
+					ROW_NUMBER() OVER(ORDER BY VISIT DESC) AS NUM ,
+					TBL_MGM_NO,
+					TBL_KOR_NM TITLE, 
+					BI_URL URL,
+					REG_DATE CONT_DATE
+				FROM V_CULTURE_STATISTICS A
+				WHERE TBL_END_YMD = TO_CHAR(ADD_MONTHS(SYSDATE ,  -24) , 'YYYY') 
+				<isNotEmpty property="sWord" prepend="AND">
+					TBL_KOR_NM LIKE '%'||#sWord#||'%'
+				</isNotEmpty>
+				ORDER BY NUM
+			) A
+			WHERE NUM &lt;= #enum#
+		)
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="culturestatisticListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			V_CULTURE_STATISTICS  
+		WHERE 
+			tbl_end_ymd = TO_CHAR(ADD_MONTHS(SYSDATE ,  -24) , 'YYYY') 
+			<isNotEmpty property="sWord" prepend="AND">
+				TBL_KOR_NM LIKE '%'||#sWord#||'%'
+			</isNotEmpty>
+	</select>		
+</sqlMap>

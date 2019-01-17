@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="microsite">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.SITE_ID)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.SITE_NAME)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.DESCRIPTION)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.USER_ID)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="site_id" prepend="AND">
+				LOWER(A.SITE_ID)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="site_name" prepend="AND">
+				LOWER(A.SITE_NAME)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.DESCRIPTION)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="user_id" prepend="AND">
+				LOWER(A.USER_ID)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			MICROSITE A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!--
+		,A.DESCRIPTION
+		,A.URL
+	-->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SITE_ID
+			,A.SITE_NAME
+			,A.SITE_IMG
+			,A.USER_ID
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.APPROVAL, 'Y', 'Y', 'N') APPROVAL
+		FROM
+			MICROSITE A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.REG_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SITE_ID
+			,A.SITE_NAME
+			,A.SITE_IMG
+			,A.DESCRIPTION
+			,A.URL
+			,A.USER_ID
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.APPROVAL, 'Y', 'Y', 'N') APPROVAL
+		FROM
+			MICROSITE A
+		WHERE
+			SITE_ID = #site_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO MICROSITE (
+			SITE_ID
+			,SITE_NAME
+			,SITE_IMG
+			,DESCRIPTION
+			,URL
+			,USER_ID
+			,REG_DATE
+			,APPROVAL
+		) VALUES (
+			#site_id#
+			,#site_name#
+			,#site_img#
+			,#description#
+			,#url#
+			,#user_id#
+			,SYSDATE
+			,DECODE(#approval#, 'N', 'N', 'Y')
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE MICROSITE
+		SET
+			SITE_NAME		=	#site_name#
+			,SITE_IMG		=	#site_img#
+			,DESCRIPTION	=	#description#
+			,URL			=	#url#
+			,USER_ID		=	#user_id#
+			,APPROVAL		=	DECODE(#approval#, 'N', 'N', 'Y')
+		WHERE
+			SITE_ID = #site_id#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE MICROSITE
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SITE_ID IN
+		<iterate property="array.site_ids" open="(" conjunction="," close=")">
+			#array.site_ids[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM MICROSITE
+		WHERE
+			SITE_ID IN
+		<iterate property="array.site_ids" open="(" conjunction="," close=")">
+			#array.site_ids[]#
+		</iterate>
+	</delete>
+
+	<select id="listBySiteName" resultClass="commonMap">
+		SELECT
+			A.SITE_ID
+			,A.SITE_NAME
+		FROM
+			MICROSITE A
+		ORDER BY
+			A.SITE_NAME ASC
+	</select>
+
+</sqlMap>

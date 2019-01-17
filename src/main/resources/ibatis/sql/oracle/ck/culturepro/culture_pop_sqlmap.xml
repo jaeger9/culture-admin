@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_pop">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		/* culture_pop.list */
+		SELECT  
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, R.*
+			FROM (
+				SELECT SEQ
+					 , TITLE					 									 
+					 , CONTENTS
+					 , APPROVAL_YN
+					 , VIEW_CNT					  					 
+					 , REG_ID
+					 , TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
+					 , TO_CHAR(STRT_DT, 'YYYY-MM-DD') STRT_DT
+					 , TO_CHAR(END_DT, 'YYYY-MM-DD') END_DT
+					 , OUTLINK
+					 , OUTLINK_KIND
+				  FROM CULTURE_POP
+				<dynamic prepend="WHERE">		
+					<isNotEmpty property="approval_yn" prepend="AND">
+						approval_yn = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENTS LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+				
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_start" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') >= #reg_start#]]>
+						</isNotEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="strt_dt" prepend="AND">
+							<![CDATA[TO_CHAR(STRT_DT, 'YYYY-MM-DD') >= #strt_dt#]]>
+						</isNotEmpty>
+						<isNotEmpty property="end_dt" prepend="AND">
+							<![CDATA[TO_CHAR(END_DT, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#	
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		/* culture_pop.listCnt */
+				SELECT COUNT(*)
+				  FROM CULTURE_POP
+				<dynamic prepend="WHERE">		
+					<isNotEmpty property="approval_yn" prepend="AND">
+						approval_yn = #approval_yn#
+					</isNotEmpty>
+					<isNotEmpty property="searchKeyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #searchKeyword# || '%' OR CONTENTS LIKE '%' || #searchKeyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="content">
+							CONTENTS LIKE '%' || #searchKeyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+				
+					<isNotEmpty property="reg_start">
+						<isNotEmpty property="reg_start" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') >= #reg_start#]]>
+						</isNotEmpty>
+						<isNotEmpty property="reg_end" prepend="AND">
+							<![CDATA[TO_CHAR(REG_DATE, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+					
+					<isNotEmpty property="strt_dt">
+						<isNotEmpty property="strt_dt" prepend="AND">
+							<![CDATA[TO_CHAR(STRT_DT, 'YYYY-MM-DD') >= #strt_dt#]]>
+						</isNotEmpty>
+						<isNotEmpty property="end_dt" prepend="AND">
+							<![CDATA[TO_CHAR(END_DT, 'YYYY-MM-DD') <= #end_dt#]]>
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+	    /* culture_qna.view */
+		SELECT A.SEQ,
+		       A.TITLE,
+		       A.CONTENTS,
+		       A.APPROVAL_YN,
+		       A.VIEW_CNT,
+		       A.REG_ID,
+		       TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') AS REG_DATE,
+		       A.UPD_ID,
+		       A.UPD_DATE,
+		       TO_CHAR(A.STRT_DT, 'YYYY-MM-DD') AS STRT_DT,
+		       TO_CHAR(A.END_DT, 'YYYY-MM-DD') AS END_DT,
+		       OUTLINK,
+		       OUTLINK_KIND
+		  FROM CULTURE_POP A
+         WHERE A.SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">	    
+		/* culture_pop.insert */
+		INSERT INTO CULTURE_POP
+		     ( 
+		        SEQ
+		      , TITLE
+		      , CONTENTS /* 이미지 url 이 들어 간다. */
+		      , APPROVAL_YN		     
+		      , REG_ID
+		      , REG_DATE
+		      , STRT_DT
+		      , END_DT
+		      , OUTLINK
+		      , OUTLINK_KIND
+		     )
+       VALUES
+             ( 
+               SEQ_CULTURE_POP.NEXTVAL
+             , #title#
+             , #imgUrl#
+             , #approval_yn#             
+             , #reg_id#
+             , TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+             , #strt_dt#
+             , #end_dt#
+             , #outlink#
+             , #outlink_kind#
+             )
+	</insert>
+	
+	<update id="viewCnt" parameterClass="paramMap">
+		/* culture_pop.view */
+		UPDATE CULTURE_POP
+		   SET VIEW_CNT = NVL(VIEW_CNT,0)+1
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<update id="update" parameterClass="paramMap">
+		/* culture_pop.update */
+		UPDATE CULTURE_POP
+		   SET TITLE = #title#
+		     , CONTENTS = #contents#
+		     , STRT_DT = #strt_dt#
+		     , END_DT = #end_dt#
+		     , APPROVAL_YN = #approval_yn#
+		     , UPD_DATE = SYSDATE
+		     , OUTLINK = #outlink#
+		     , OUTLINK_KIND = #outlink_kind#
+		 WHERE SEQ = #seq#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">	
+		/* culture_pop.statusUpdate */	
+		UPDATE CULTURE_POP 
+		    SET APPROVAL_YN = #updateStatus#	
+			  , UPD_ID = #upd_id#
+			  , UPD_DATE = SYSDATE
+		  WHERE SEQ IN 
+		<iterate property="array.seq" open="(" conjunction="," close=")" >
+			#array.seq[]#
+		</iterate>
+	</update>
+</sqlMap>

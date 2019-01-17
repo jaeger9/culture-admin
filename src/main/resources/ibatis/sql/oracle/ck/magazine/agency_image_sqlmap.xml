@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="agency.image">
+	<!-- 2016-10-11 수정 : 175.125.91.47.1521:CULDATA 에 수집된 데이터 -->
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (
+			SELECT 
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC NULLS LAST, UCI, URL, CONTEXT_NAME)-1)/$list_unit$+1) AS PAGE,
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC NULLS LAST, UCI, URL, CONTEXT_NAME)-1)/$list_unit$+1) AS PAGE,
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY VIEW_CNT DESC NULLS LAST, UCI, URL, CONTEXT_NAME)-1)/$list_unit$ + 1) AS PAGE,
+					</isEqual>
+				</isNotEmpty>
+			    UCI, 
+			    TITLE, 
+			    CREATOR, 
+			    URL, 
+			    TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE, 
+			    NVL(VIEW_CNT, 0) VIEW_CNT,
+			    DECODE(NVL(APPROVAL, 'Y') , 'Y' , '승인' , 'N' , '미승인' , '대기') APPROVAL
+			FROM MV_RDF_METADATA_VIDEO 
+			WHERE 1=1
+			<isNotEmpty property="approval" prepend="AND">
+				NVL(APPROVAL,'Y') = #approval#
+			</isNotEmpty>
+			<isEmpty property="jobGroupIds">
+				<isNotEmpty property="jobGroupId" prepend="AND">
+					JOB_GROUP_ID = #jobGroupId#
+				</isNotEmpty>
+				<isNotEmpty property="jobId" prepend="AND">
+					JOB_ID = #jobId#
+				</isNotEmpty>
+				<isNotEmpty property="type" prepend="AND">
+					TYPE = #type#
+				</isNotEmpty>
+			</isEmpty>
+			<isNotEmpty property="jobGroupIds" prepend="AND">
+				<iterate property="jobGroupIds" open="JOB_GROUP_ID IN (" close=")" conjunction=",">
+					#jobGroupIds[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="jobIds" prepend="AND">
+				<iterate property="jobIds" open="JOB_ID IN (" close=")" conjunction=",">
+					#jobIds[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="types" prepend="AND">
+				<iterate property="types" open="TYPE IN (" close=")" conjunction=",">
+					#types[]#
+				</iterate>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start" prepend="AND">
+				REG_DATE BETWEEN TO_DATE(#reg_start#,'YYYY-MM-DD') AND TO_DATE(#reg_end#||'235959','YYYY-MM-DD HH24MISS')
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="content">
+					DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+				</isEqual>
+			</isNotEmpty>
+		)
+		WHERE PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM MV_RDF_METADATA_VIDEO 
+		WHERE 1=1
+		<isNotEmpty property="approval" prepend="AND">
+			NVL(APPROVAL,'Y') = #approval#
+		</isNotEmpty>
+		<isEmpty property="jobGroupIds">
+			<isNotEmpty property="jobGroupId" prepend="AND">
+				JOB_GROUP_ID = #jobGroupId#
+			</isNotEmpty>
+			<isNotEmpty property="jobId" prepend="AND">
+				JOB_ID = #jobId#
+			</isNotEmpty>
+			<isNotEmpty property="type" prepend="AND">
+				TYPE = #type#
+			</isNotEmpty>
+		</isEmpty>
+		<isNotEmpty property="jobGroupIds" prepend="AND">
+			<iterate property="jobGroupIds" open="JOB_GROUP_ID IN (" close=")" conjunction=",">
+				#jobGroupIds[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="jobIds" prepend="AND">
+			<iterate property="jobIds" open="JOB_ID IN (" close=")" conjunction=",">
+				#jobIds[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="types" prepend="AND">
+			<iterate property="types" open="TYPE IN (" close=")" conjunction=",">
+				#types[]#
+			</iterate>
+		</isNotEmpty>
+		<isNotEmpty property="reg_start" prepend="AND">
+			REG_DATE BETWEEN TO_DATE(#reg_start#,'YYYY-MM-DD') AND TO_DATE(#reg_end#||'235959','YYYY-MM-DD HH24MISS')
+		</isNotEmpty>
+		<isNotEmpty property="keyword" prepend="AND">
+			<isEqual property="searchGubun" compareValue="">
+				(TITLE LIKE '%' || #keyword# || '%' OR DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0)
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title">
+				TITLE LIKE '%'||#keyword#||'%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="content">
+				DBMS_LOB.INSTR(DESCRIPTION,#keyword#) > 0
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			,TITLE
+			,TYPE
+			,USER_ID
+			,to_char(REG_DATE, 'yyyy-mm-dd') REG_DATE
+			,TOP_YN
+			,APPROVAL
+			,BLOG_URL
+		FROM 
+			PCN_RECOM_TALK
+		WHERE 
+			SEQ = #seq#
+	</select>
+	<insert id="insertPublicMov" parameterClass="paramMap">
+		INSERT INTO PCN_MOV_PUBLICMOV 
+		(
+			SEQ, 
+			TITLE, 
+			COMPANY_SEQ, 
+			URL, 
+			THUMB_NAME, 
+			CONTENT, 
+			REG_DATE ,
+			STATUS, 
+			VIEW_CNT, 
+			UPD_DATE, 
+			UCC_IDX, 
+			UCC_ROUND, 
+			UCC_TBL, 
+			UCC_TITLE, 
+			UCC_YN
+		)VALUES (
+			(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_MOV_PUBLICMOV), 
+			#title#, 
+			#company_seq#, 
+			#url#, 
+			#thumb_name#, 
+			#content#,
+			SYSDATE, 
+			#approval#,
+			0, 
+			SYSDATE,
+			#ucc_idx#,
+			#ucc_round#, 
+			#ucc_tbl#, 
+			#ucc_title#, 
+			#ucc_yn#
+		)
+	</insert>
+	<update id="updateStatusPublicMov" parameterClass="java.util.HashMap">
+		UPDATE 
+			PCN_MOV_PUBLICMOV
+		SET 
+			<isNotEmpty property="updateStatus">			
+				STATUS	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="updateStatusPublicMovForRdf" parameterClass="java.util.HashMap">
+		UPDATE 
+			MV_RDF_METADATA_VIDEO
+		SET 
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+			UCI = #seq#
+	</update>
+	<delete id="deleteStatusPublicMov" parameterClass="java.lang.String">
+		DELETE FROM 
+			PCN_MOV_PUBLICMOV 
+		WHERE 
+			SEQ = #seq#
+	</delete>
+	<delete id="deletePublicMovForRdf" parameterClass="java.lang.String">
+		DELETE FROM 
+			MV_RDF_METADATA_VIDEO 
+		WHERE 
+			UCI = #seq#
+	</delete>
+	
+</sqlMap>

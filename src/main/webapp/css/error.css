@@ -1,0 +1,80 @@
+@charset "utf-8";
+@font-face {
+	font-family:'NGBold';
+	font-style:normal;
+	font-weight:700;
+	src:url('/font/NanumGothicBold.eot');
+	/* src:local(※), url('/font/NanumGothicBold.eot') format('embedded-opentype'), url('/font/NanumGothicBold.woff') format('woff'); */
+	src:url('/font/NanumGothicBold.eot') format('embedded-opentype'), url('/font/NanumGothicBold.woff') format('woff');
+}
+/* 100% 적용 */
+html, body{width:100%;height:100%}
+html{font-family:'NGBold'}
+body{position:relative;font-family:'NGBold';;color:#666;font-size:9pt;line-height:1.4}
+body,object,iframe,
+h1,h2,h3,h4,h5,h6,div,span,p,blockquote,pre,abbr,acronym,address,cite,code,del,dfn,em,img,figure,
+ins,kbd,q,samp,small,strong,sub,sup,var,b,i,dl,dt,dd,ol,ul,li,
+form,fieldset,legend,a,textarea,input,select,option,button,label,table,caption,tbody,tfoot,thead,tr,th,td,
+article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{margin:0;padding:0;font-family:'NGBold';border:0;outline:0;background:transparent}
+/* Media */
+audio:not([controls]){display:none;height:0;}
+/* Link */
+a{color:#444}
+a:link{text-decoration:none;}
+a:focus, input:focus, button:focus{outline: thin dotted !important}
+a:hover{outline:0;text-decoration:underline}
+a:active,a:visited{text-decoration:none;}
+/* Typography */
+h1, h2, h3, h4, h5, h6{font-weight:normal;font-size:inherit;}
+b, strong{font-weight:bold;}
+hr{display:none;box-sizing:content-box;height:0;}
+address, caption, cite, code, dfn, em, var{font-style:normal;font-weight:normal;}
+abbr, acronym, img, button{border:0;}
+pre{white-space:pre-wrap;}
+q{quotes:"\201C" "\201D" "\2018" "\2019";}
+sub, sup{line-height:0;position:relative;vertical-align:baseline;}
+sup{top:-0.5em;}
+sub{bottom:-0.25em;}
+/* span,em,strong{vertical-align:top;}*/
+img{vertical-align:top}
+legend{visibility:hidden}
+/* List */
+ul, ol, li{list-style:none;}
+/* Figures */
+figure{margin:0;}
+/* Forms */
+button{cursor:pointer;}
+button, input, textarea{border:0 none;outline:0 none;background-color:#fff;}
+select{height:21px;border:1px solid  #d5d5d5}
+input[type="checkbox"], input[type="radio"]{display:inline-block;width:13px;height:13px;padding:0;vertical-align:text-top}
+input[type="text"]{border:1px solid #d5d5d5;padding:2px 1px 0 7px;height:19px;color:#666;line-height:1.2}
+input[type="text"]:disabled{border:1px solid #d5d5d5;background:#e5e5e5;color:#666}
+/* button, select{text-transform:none;} */
+textarea{vertical-align:top;border:solid 1px #d5d5d5}
+/* Table */
+table{border-collapse:collapse;empty-cells:show;border-spacing:0;table-layout:fixed;}
+table caption, fieldset legend{display:none;}
+/* summary :common */
+/* scroll
+.scroll{overflow:auto;z-index:10;margin:0;}*/
+abbr[title]{border-bottom:1px dotted;}
+
+/* layout */
+#wrap{position:relative;width:100%;height:100%;text-align:center;}
+/* 상단 */
+#header{padding:174px 0 45px}
+/* logo */
+#header h1 a{display:inline-block}
+/* content */
+#content p{font-family:'NGBold'}
+#content p.txt01{padding-bottom:14px;color:#010101;font-size:2em;letter-spacing:-0.05em}
+#content p.txt02{color:#646a81;font-size:1.4em;font-family:'NGBold';letter-spacing:-0.05em;line-height:1.75}
+#content p.txt03{color:#646a81;font-size:1.4em;letter-spacing:-0.05em;line-height:1.75}
+/* footer */
+#footer{margin-top:42px}
+#footer a{color:#444}
+#footer a:first-child{margin-right:9px;padding-right:14px;background:url('/images/error/bg_line02.jpg') no-repeat right 0}
+/* button */
+.btnBox{margin-top:26px}
+.button{display:inline-block;padding-right:16px;border:1px solid #999}
+.button a{display:inline-block;width:97px;height:30px;padding:0 16px;color:#333;font-family:'NGBold';font-size:1.25em;font-weight:bold;letter-spacing:-0.05em;line-height:1.9;background:url('/images/error/bgLink.jpg') no-repeat right 8px}

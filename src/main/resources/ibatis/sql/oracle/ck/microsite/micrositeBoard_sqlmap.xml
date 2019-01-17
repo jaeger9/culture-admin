@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="micrositeBoard">
+
+	<delete id="deleteBySiteId" parameterClass="paramMap">
+		DELETE FROM MICROSITE_BOARD
+		WHERE
+			SITE_ID IN
+		<iterate property="array.site_ids" open="(" conjunction="," close=")">
+			#array.site_ids[]#
+		</iterate>
+	</delete>
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = DECODE(#approval#, 'N', 'N', 'Y')
+		</isNotEmpty>
+		<isNotEmpty property="notice" prepend="AND">
+			A.NOTICE = DECODE(#notice#, 'Y', 'Y', 'N')
+		</isNotEmpty>
+		<isNotEmpty property="site_id" prepend="AND">
+			A.SITE_ID = #site_id#
+		</isNotEmpty>
+		<isNotEmpty property="menu_id" prepend="AND">
+			A.MENU_ID = #menu_id#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CONTENTS)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.WRITER)			LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="contents" prepend="AND">
+				LOWER(A.CONTENTS)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="writer" prepend="AND">
+				LOWER(A.WRITER)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			MICROSITE_BOARD A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			X.*
+			,(SELECT T.SITE_NAME FROM MICROSITE T		WHERE T.SITE_ID = X.SITE_ID) SITE_NAME
+			,(SELECT T.MENU_NAME FROM MICROSITE_MENU T	WHERE T.MENU_ID = X.MENU_ID AND T.SITE_ID = X.SITE_ID) MENU_NAME
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*
+			FROM (
+				SELECT
+				    A.SEQ
+				    ,A.SITE_ID
+				    ,A.MENU_ID
+				    ,A.TITLE
+				    ,A.THUMBNAIL
+				    ,A.WRITER
+				    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+				    ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+				    ,DECODE(A.NOTICE, 'Y', 'Y', 'N') NOTICE
+				    ,NVL(A.HIT, 0) HIT
+				FROM
+					MICROSITE_BOARD A
+				<include refid="sqlList-1" />
+				ORDER BY
+					A.SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		    A.SEQ
+		    ,A.SITE_ID
+		    ,A.MENU_ID
+		    ,A.TITLE
+		    ,A.THUMBNAIL
+		    ,A.CONTENTS
+		    ,A.WRITER
+		    ,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+		    ,DECODE(A.APPROVAL, 'N', 'N', 'Y') APPROVAL
+		    ,DECODE(A.NOTICE, 'Y', 'Y', 'N') NOTICE
+		    ,NVL(A.HIT, 0) HIT
+		    ,A.SPARE1
+		    ,A.SPARE2
+		    ,A.SPARE3
+		    ,A.SPARE4
+		    ,A.SPARE5
+		FROM
+			MICROSITE_BOARD A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT MICROSITE_BOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+
+		INSERT INTO MICROSITE_BOARD (
+			SEQ
+			,SITE_ID
+			,MENU_ID
+			,TITLE
+			,THUMBNAIL
+			,CONTENTS
+			,WRITER
+			,REG_DATE
+			,APPROVAL
+			,NOTICE
+			,HIT
+			,SPARE1
+			,SPARE2
+			,SPARE3
+			,SPARE4
+			,SPARE5
+		) VALUES (
+			#seq#
+			,#site_id#
+			,#menu_id#
+			,#title#
+			,#thumbnail#
+			,#contents#
+			,#writer#
+			,SYSDATE
+			,DECODE(#approval#, 'N', 'N', 'Y')
+			,DECODE(#notice#, 'Y', 'Y', 'N')
+			,0
+			,#spare1#
+			,#spare2#
+			,#spare3#
+			,#spare4#
+			,#spare5#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE MICROSITE_BOARD
+		SET
+			TITLE		=	#title#
+			,THUMBNAIL	=	#thumbnail#
+			,CONTENTS	=	#contents#
+			,WRITER		=	#writer#
+			,APPROVAL	=	DECODE(#approval#, 'N', 'N', 'Y')
+			,NOTICE		=	DECODE(#notice#, 'Y', 'Y', 'N')
+			,SPARE1		=	#spare1#
+			,SPARE2		=	#spare2#
+			,SPARE3		=	#spare3#
+			,SPARE4		=	#spare4#
+			,SPARE5		=	#spare5#
+		WHERE
+			SEQ		=	#seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE MICROSITE_BOARD
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM MICROSITE_BOARD
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

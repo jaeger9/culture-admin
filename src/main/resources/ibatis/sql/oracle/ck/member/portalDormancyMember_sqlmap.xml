@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalDormancyMember">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE 1=1
+<!-- 		(
+			
+            DORMANCY_MAIL_DATE IS NOT NULL
+			AND
+			DORMANCY_ACNT_YN='N'
+			AND
+			to_char(SYSDATE,'yyyy-mm-dd') = to_char(DORMANCY_MAIL_DATE+16,'yyyy-mm-dd')
+			AND
+			LOGIN_DATE <![CDATA[<]]> DORMANCY_MAIL_DATE
+         )
+          -->
+         
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="user_id" prepend="AND">
+					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="email" prepend="AND">
+					LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+		
+		<isNotEmpty property="join_date_start" prepend="AND"><![CDATA[
+			A.JOIN_DATE >= TO_DATE(#join_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="join_date_end" prepend="AND"><![CDATA[
+			A.JOIN_DATE <= TO_DATE(#join_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_MEMBER_DORMANCY A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+				A.USER_ID    ,
+                A.NAME ,
+                A.EMAIL,
+                TO_CHAR(A.DORMANCY_DATE,'YYYY-MM-DD') DORMANCY_DATE,
+                TO_CHAR(A.LOGIN_DATE,'YYYY-MM-DD') LOGIN_DATE,
+                TO_CHAR(A.JOIN_DATE,'YYYY-MM-DD') JOIN_DATE   
+		FROM
+			PCN_MEMBER_DORMANCY A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.DORMANCY_DATE DESC, LOGIN_DATE DESC, JOIN_DATE DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+	
+	<select id="batchUpdateDate" parameterClass="paramMap" resultClass="String">
+		SELECT
+			TO_CHAR(DORMANCY_UPDATE_DATE,'YYYY-MM-DD HH24:MI:SS') DORMANCY_UPDATE_DATE
+		FROM(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY DORMANCY_UPDATE_DATE DESC) AS R,
+				DORMANCY_UPDATE_DATE
+			FROM PCN_MEMBER_DORMANCY_BATCH_LOG
+		)
+		WHERE R = 1
+	</select>
+
+</sqlMap>

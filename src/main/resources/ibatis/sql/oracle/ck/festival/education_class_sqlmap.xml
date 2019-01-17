@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="education.class">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		
+		SELECT
+		  	R.*
+		FROM (
+		  	SELECT
+		  		<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY E.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY E.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY E.VIEW_CNT DESC nulls last)-1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+		    	, E.SEQ
+		    	, E.TITLE 
+		    	, E.USER_ID 
+		    	, TO_CHAR(E.REG_DATE , 'YYYY-MM-DD') AS REG_DATE
+		    	, E.VIEW_CNT
+		    	, DECODE(E.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') APPROVAL
+		    	, NVL(( SELECT SUM(A.PERSON) FROM PORTAL_EDU_APPLY A WHERE A.P_SEQ = E.SEQ) , 0 ) APPLY_CNT
+		    	, E.APPLY_TYPE
+		  	FROM
+		    	PORTAL_EDUCATION E 
+		  	<dynamic prepend="WHERE">
+				<isNotEmpty property="delete_yn" prepend="AND">
+		  			E.DELETE_YN = #delete_yn#
+		  		</isNotEmpty> 
+		  		<isNotEmpty property="apply_type" prepend="AND">
+		  			E.APPLY_TYPE = #apply_type#
+		  		</isNotEmpty> 
+		  		<isNotEmpty property="approval" prepend="AND">
+		  			E.APPROVAL = #approval#
+		  		</isNotEmpty> 
+		  		<isNotEmpty property="periodGubun">
+		  			<isEqual property="periodGubun" compareValue="education">
+	  					<isNotEmpty property="period_start" prepend="AND">
+	  						<![CDATA[
+	  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.START_DT
+	  						]]>
+	  					</isNotEmpty>
+	  					<isNotEmpty property="period_end" prepend="AND">
+	  						<![CDATA[
+	  						E.END_DT < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+	  						]]>
+	  					</isNotEmpty>
+	  				</isEqual>
+	  				<isEqual property="periodGubun" compareValue="apply">
+	  					<isNotEmpty property="period_start" prepend="AND">
+	  						<![CDATA[
+	  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.APPLY_START_DT
+	  						]]>
+	  					</isNotEmpty>
+	  					<isNotEmpty property="period_end" prepend="AND">
+	  						<![CDATA[
+	  						E.APPLY_END_DT < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+	  						]]>
+	  					</isNotEmpty>
+	  				</isEqual>
+	  				<isEqual property="periodGubun" compareValue="insert">
+	  					<isNotEmpty property="period_start" prepend="AND">
+	  						<![CDATA[
+	  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.REG_DATE
+	  						]]>
+	  					</isNotEmpty>
+	  					<isNotEmpty property="period_end" prepend="AND">
+	  						<![CDATA[
+	  						E.REG_DATE < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+	  						]]>
+	  					</isNotEmpty>
+	  				</isEqual>
+		  		</isNotEmpty>
+		  		<isNotEmpty property="keyword" >
+					<isEqual property="searchGubun" compareValue="all" prepend="AND">
+						( 
+							E.TITLE like '%'|| #keyword# || '%' or
+							DBMS_LOB.INSTR(E.CONTENT,#keyword#) > 0
+						)
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title" prepend="AND">
+						E.TITLE like '%'|| #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="description" prepend="AND">
+						DBMS_LOB.INSTR(E.CONTENT,#keyword#) > 0
+					</isEqual>
+				</isNotEmpty>
+		  	</dynamic>
+		) R
+		WHERE
+		  	R.PAGE = #page_no#
+	</select>
+
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+	    	COUNT(1) 
+	  	FROM
+	    	PORTAL_EDUCATION E 
+	  	<dynamic prepend="WHERE">
+	  		<isNotEmpty property="delete_yn" prepend="AND">
+	  			E.DELETE_YN = #delete_yn#
+	  		</isNotEmpty> 
+	  		<isNotEmpty property="apply_type" prepend="AND">
+	  			E.APPLY_TYPE = #apply_type#
+	  		</isNotEmpty> 
+	  		<isNotEmpty property="approval" prepend="AND">
+	  			E.APPROVAL = #approval#
+	  		</isNotEmpty> 
+	  		
+	  		<isNotEmpty property="periodGubun">
+	  			<isEqual property="periodGubun" compareValue="education">
+  					<isNotEmpty property="period_start" prepend="AND">
+  						<![CDATA[
+  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.START_DT
+  						]]>
+  					</isNotEmpty>
+  					<isNotEmpty property="period_end" prepend="AND">
+  						<![CDATA[
+  						E.END_DT < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+  						]]>
+  					</isNotEmpty>
+  				</isEqual>
+  				<isEqual property="periodGubun" compareValue="apply">
+  					<isNotEmpty property="period_start" prepend="AND">
+  						<![CDATA[
+  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.APPLY_START_DT
+  						]]>
+  					</isNotEmpty>
+  					<isNotEmpty property="period_end" prepend="AND">
+  						<![CDATA[
+  						E.APPLY_END_DT < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+  						]]>
+  					</isNotEmpty>
+  				</isEqual>
+  				<isEqual property="periodGubun" compareValue="insert">
+  					<isNotEmpty property="period_start" prepend="AND">
+  						<![CDATA[
+  						TO_DATE(#period_start# , 'YYYY-MM-DD') < E.REG_DATE
+  						]]>
+  					</isNotEmpty>
+  					<isNotEmpty property="period_end" prepend="AND">
+  						<![CDATA[
+  						E.REG_DATE < TO_DATE('$period_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+  						]]>
+  					</isNotEmpty>
+  				</isEqual>
+	  		</isNotEmpty>
+	  		<isNotEmpty property="keyword" >
+				<isEqual property="searchGubun" compareValue="" prepend="AND">
+					( 
+						E.TITLE like '%'|| #keyword# || '%' or
+						DBMS_LOB.INSTR(E.CONTENT,#keyword#) > 0
+					)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title" prepend="AND">
+					E.TITLE like '%'|| #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="description" prepend="AND">
+					DBMS_LOB.INSTR(E.CONTENT,#keyword#) > 0
+				</isEqual>
+			</isNotEmpty>
+	  	</dynamic>
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ            
+			, TITLE          
+			, UCI            
+			, REG_DATE       
+			, USER_ID        
+			, RIGHTS         
+			, HOME_PAGE      
+			, TEL            
+			, AUTO_YN        
+			, PERIOD         
+			, START_DT       
+			, END_DT         
+			, VENUE          
+			, ZIP_YN         
+			, ZIP_CODE       
+			, ADDR1          
+			, ADDR2          
+			, GPS_LAT        
+			, GPS_LNG        
+			, INSTRUCTOR     
+			, CHARGE         
+			, CONTENT        
+			, APPROVAL       
+			, VIEW_CNT       
+			, APPLY_TYPE     
+			, APPLY_PERSON   
+			, APPLY_START_DT 
+			, APPLY_END_DT   
+			, LOCATION       
+		FROM 
+			PORTAL_EDUCATION A
+		WHERE 
+			SEQ = #seq#  
+	</select>
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PORTAL_EDUCATION
+		(
+			SEQ            
+			, TITLE          
+			, UCI            
+			, REG_DATE       
+			, USER_ID        
+			, RIGHTS         
+			, HOME_PAGE      
+			, TEL            
+			, AUTO_YN        
+			, PERIOD         
+			, START_DT       
+			, END_DT         
+			, VENUE          
+			, ZIP_YN         
+			, ZIP_CODE       
+			, ADDR1          
+			, ADDR2          
+			, GPS_LAT        
+			, GPS_LNG        
+			, INSTRUCTOR     
+			, CHARGE         
+			, CONTENT        
+			, APPROVAL       
+			, VIEW_CNT       
+			, APPLY_TYPE     
+			, APPLY_PERSON   
+			, APPLY_START_DT 
+			, APPLY_END_DT   
+			, LOCATION       
+		) VALUES(
+			EDUCATION_SEQ.NEXTVAL
+			, #title#          
+			, 'G706'|| FN_CURRENT_TIME_MILLIS() 
+			, SYSDATE       
+			, #user_id#        
+			, #rights#         
+			, #home_page#      
+			, #tel#            
+			, #auto_yn#        
+			, #start_dt# || '~' || #end_dt#         
+			, #start_dt#       
+			, #end_dt#         
+			, #venue#          
+			, #zip_yn#         
+			, #zip_code#       
+			, #addr1#          
+			, #addr2#          
+			, #gps_lat#        
+			, #gps_lng#        
+			, #instructor#     
+			, #charge#         
+			, #content:clob#
+			, #approval#       
+			, 0     
+			, #apply_type#     
+			, #apply_person#   
+			, #apply_start_dt# 
+			, #apply_end_dt#   
+			, #location#       
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE  PORTAL_EDUCATION SET			
+			  TITLE				=  #title#                                    
+			, USER_ID           =  #user_id#                         
+			, RIGHTS            =  #rights#                          
+			, HOME_PAGE         =  #home_page#                       
+			, TEL               =  #tel#                             
+			, AUTO_YN           =  #auto_yn#                         
+			, PERIOD            =  #start_dt# || '~' || #end_dt#     
+			, START_DT          =  #start_dt#                        
+			, END_DT            =  #end_dt#                          
+			, VENUE             =  #venue#                           
+			, ZIP_YN            =  #zip_yn#                          
+			, ZIP_CODE          =  #zip_code#                        
+			, ADDR1             =  #addr1#                           
+			, ADDR2             =  #addr2#                           
+			, GPS_LAT           =  #gps_lat#                         
+			, GPS_LNG           =  #gps_lng#                         
+			, INSTRUCTOR        =  #instructor#                      
+			, CHARGE            =  #charge#                          
+			, CONTENT           =  #content:clob#                    
+			, APPROVAL          =  #approval#                        
+			, APPLY_TYPE        =  #apply_type#                      
+			, APPLY_PERSON      =  #apply_person#                    
+			, APPLY_START_DT    =  #apply_start_dt#                  
+			, APPLY_END_DT      =  #apply_end_dt#                    
+			, LOCATION          =  #location#                        
+		WHERE 
+			SEQ = #seq#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PORTAL_EDUCATION 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_EDUCATION 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+	<select id="deleteContentsList" parameterClass="paramMap" resultClass="commonMap">
+  		SELECT CONTENT FROM PORTAL_EDUCATION 		
+  		WHERE 
+		<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+  	</select>
+</sqlMap>

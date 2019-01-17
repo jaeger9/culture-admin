@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culture_welfare">
+	
+	<select id="cultureWelfareList" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			*
+		FROM
+		(
+			SELECT 
+				SEQ
+			    ,TITLE
+			    ,VIEW_CNT
+			    ,URL
+			    ,SUBSTR(START_DATE, 0, 4) || '-' || SUBSTR(START_DATE, 5,2) || '-' || SUBSTR(START_DATE, 7,2)  START_DATE
+			    ,SUBSTR(END_DATE, 0, 4) || '-' || SUBSTR(END_DATE, 5,2) || '-' || SUBSTR(END_DATE, 7,2) END_DATE
+			    ,FILE_NAME
+			    ,CONTENT
+			    ,DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') APPROVAL
+			    ,TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+			    ,GUBUN
+			    ,NEW_WIN_YN
+			    ,FLOOR((ROW_NUMBER()OVER(ORDER BY REG_DATE DESC NULLS last)-1)/$list_unit$+1) AS PAGE
+			FROM PORTAL_CULTURE_WELFARE
+			WHERE 1=1
+			<isNotEmpty property="gubun" prepend="AND">
+				GUBUN = #gubun#
+			</isNotEmpty>
+			<isNotEmpty property="search_word" prepend="AND">
+				<isEqual property="searchGubun" compareValue="all">
+					(
+						TITLE LIKE '%'|| #search_word# ||'%' OR
+						CONTENT LIKE '%'|| #search_word# ||'%'
+					)
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%'|| #search_word# ||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="contents">
+					CONTENT LIKE '%'|| #search_word# ||'%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="searchAproval" prepend="AND">
+				APPROVAL = #searchAproval#
+			</isNotEmpty>
+			<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+				REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+			]]></isNotEmpty>
+			<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+				REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			]]></isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	
+	<select id="cultureWelfareListCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT
+			COUNT(1)
+		FROM PORTAL_CULTURE_WELFARE
+		WHERE 1=1
+		<isNotEmpty property="gubun" prepend="AND">
+			GUBUN = #gubun#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			<isEqual property="searchGubun" compareValue="all">
+				(
+					TITLE LIKE '%'|| #search_word# ||'%' OR
+					CONTENT LIKE '%'|| #search_word# ||'%'
+				)
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="title">
+				TITLE LIKE '%'|| #search_word# ||'%'
+			</isEqual>
+			<isEqual property="searchGubun" compareValue="contents">
+				CONTENT LIKE '%'|| #search_word# ||'%'
+			</isEqual>
+		</isNotEmpty>
+		<isNotEmpty property="searchAproval" prepend="AND">
+			APPROVAL = #searchAproval#
+		</isNotEmpty>
+		<isNotEmpty property="reg_start" prepend="AND"><![CDATA[
+			REG_DATE >= TO_DATE(#reg_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_end" prepend="AND"><![CDATA[
+			REG_DATE <= TO_DATE(#reg_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</select>
+	
+	<select id="cultureWelfareView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+		    ,TITLE
+		    ,VIEW_CNT
+		    ,URL
+		    ,START_DATE
+		    ,END_DATE
+		    ,FILE_NAME
+		    ,CONTENT
+		    ,APPROVAL
+		    ,TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+		    ,GUBUN
+		    ,NEW_WIN_YN
+		FROM PORTAL_CULTURE_WELFARE
+		WHERE SEQ = #seq#
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_CULTURE_WELFARE
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PORTAL_CULTURE_WELFARE
+		</selectKey>
+		INSERT INTO PORTAL_CULTURE_WELFARE
+		(
+			SEQ
+			,TITLE
+			,VIEW_CNT
+			,URL
+			,START_DATE
+			,END_DATE
+			,FILE_NAME
+			,CONTENT
+			,APPROVAL
+			,REG_DATE
+			,GUBUN
+			,NEW_WIN_YN
+		) VALUES(
+			#seq#
+			,#title#
+			,0
+			,#url#
+			,#start_date#
+			,#end_date#
+			,#file_name#
+			,#content#
+			,#approval#
+			,SYSDATE
+			,#gubun#
+			,#new_win_yn#
+		)
+	
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PORTAL_CULTURE_WELFARE
+		SET
+			TITLE			= #title#	
+			,URL			= #url#
+			,START_DATE		= #start_date#
+			,END_DATE		= #end_date#
+			,FILE_NAME		= #file_name#
+			,CONTENT		= #content#
+			,APPROVAL		= #approval#
+			,NEW_WIN_YN		= #new_win_yn#
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_CULTURE_WELFARE 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+
+	
+</sqlMap>

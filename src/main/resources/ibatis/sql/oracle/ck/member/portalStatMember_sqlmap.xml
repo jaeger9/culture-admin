@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="portalStatMember">
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<isEqual property="member_type" compareValue="newmember">
+			SELECT
+				COUNT(AA.USER_ID) CNT
+				,DT
+			FROM
+			(
+				SELECT
+					A.USER_ID
+					,TO_CHAR(A.JOIN_DATE, #date_format#) DT
+				FROM
+					PCN_MEMBER A
+				WHERE
+					A.JOIN_DATE IS NOT NULL
+				<isNotEmpty property="date_start" prepend="AND"><![CDATA[
+					A.JOIN_DATE >= TO_DATE(#date_start#, 'YYYY-MM-DD')
+				]]></isNotEmpty>
+				<isNotEmpty property="date_end" prepend="AND"><![CDATA[
+					A.JOIN_DATE <= TO_DATE(#date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+				]]></isNotEmpty>
+			) AA
+			GROUP BY
+				AA.DT
+			ORDER BY
+				AA.DT DESC
+		</isEqual>		
+		<isEqual property="member_type" compareValue="withdraw">
+			SELECT
+				COUNT(AA.USER_ID) CNT
+				,DT
+			FROM
+			(
+				SELECT
+					A.USER_ID
+					,TO_CHAR(A.WITHDRAW_DATE, #date_format#) DT
+				FROM
+					PCN_MEMBER_WITHDRAW A
+				WHERE
+					A.WITHDRAW_DATE IS NOT NULL
+				<isNotEmpty property="date_start" prepend="AND"><![CDATA[
+					A.WITHDRAW_DATE >= TO_DATE(#date_start#, 'YYYY-MM-DD')
+				]]></isNotEmpty>
+				<isNotEmpty property="date_end" prepend="AND"><![CDATA[
+					A.WITHDRAW_DATE <= TO_DATE(#date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+				]]></isNotEmpty>
+			) AA
+			GROUP BY
+				AA.DT
+			ORDER BY
+				AA.DT DESC
+		</isEqual>
+		<isEqual property="member_type" compareValue="login">
+			SELECT
+				COUNT(AA.USER_ID) CNT
+				,DT
+			FROM
+			(
+				SELECT
+					A.USER_ID
+					,TO_CHAR(A.LOGIN_DATE, #date_format#) DT
+				FROM
+					PCN_MEMBER A
+				WHERE
+					A.LOGIN_DATE IS NOT NULL
+				<isNotEmpty property="date_start" prepend="AND"><![CDATA[
+					A.LOGIN_DATE >= TO_DATE(#date_start#, 'YYYY-MM-DD')
+				]]></isNotEmpty>
+				<isNotEmpty property="date_end" prepend="AND"><![CDATA[
+					A.LOGIN_DATE <= TO_DATE(#date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+				]]></isNotEmpty>
+			) AA
+			GROUP BY
+				AA.DT
+			ORDER BY
+				AA.DT DESC
+		</isEqual>
+	</select>
+
+</sqlMap>

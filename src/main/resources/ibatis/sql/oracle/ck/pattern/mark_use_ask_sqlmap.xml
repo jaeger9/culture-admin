@@ -1,0 +1,770 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="ask">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* ask.list */
+			SEQ, NAME, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, CASE WHEN STATUS = 'Y' THEN TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') ELSE '' END CONFIRM_DATE,
+			DECODE(STATUS, 'Y', '승인', 'N', '사용안함', 'C', '신청취소','D','다운로드', '대기') STATUS,
+			(SELECT COUNT(1) FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ) PATTERN_CNT,
+			CASE 
+				WHEN PATTERN_GUBUN IN ('PG01', 'PG02') THEN (
+					SELECT XTITLE
+					FROM DOCMETA@PATTERN P 
+					WHERE P.DID = T.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG03' THEN (
+					SELECT XTITLE
+					FROM PCN_CULTURE_DESIGN@PATTERN P 
+					WHERE P.SEQ = T.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND PATTERN_CODE &lt; 2000000 THEN (
+					SELECT XTITLE
+					FROM PCN_MCH_PATTERN@PATTERN P
+					WHERE P.SEQ = T.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND PATTERN_CODE > 2000000 THEN (
+					SELECT 
+						(SELECT XTITLE FROM DOCMETA@PATTERN WHERE XFILE = P.XFILE1)||', '
+						||(SELECT XTITLE FROM DOCMETA@PATTERN WHERE XFILE = P.XFILE2) XTITLE
+					FROM PCN_MCH_TEMPLETE@PATTERN P
+					WHERE P.SEQ = T.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG05' THEN (
+					SELECT 
+						XTITLE
+					FROM PCN_3D_PATTERN@PATTERN P
+					WHERE P.SEQ = T.PATTERN_CODE        
+				)
+				ELSE (
+					SELECT XTITLE
+					FROM (
+						SELECT P1.DID, P1.XTITLE 
+						FROM DOCMETA@PATTERN P1
+						UNION ALL
+						SELECT P2.SEQ DID, P2.XTITLE
+						FROM PCN_MCH_PATTERN@PATTERN P2
+					) P
+					WHERE P.DID = T.PATTERN_CODE
+				)
+			END ||'('||PATTERN_CODE||')' TITLE,
+       		CONTENTS1,
+       		CONTENTS2,
+       		CONTENTS3
+		FROM (
+			SELECT
+				SEQ, NAME, REG_DATE, CONFIRM_DATE, STATUS,
+				PATTERN,
+				SUBSTR(PATTERN, 0, (INSTR(PATTERN, '>')-1)) PATTERN_CODE,
+				SUBSTR(PATTERN, (INSTR(PATTERN, '>')+1), LENGTH(PATTERN)) PATTERN_GUBUN,
+          		CONTENTS1,
+          		CONTENTS2,
+          		CONTENTS3
+			FROM (
+				SELECT 
+					SEQ, NAME, REG_DATE, CONFIRM_DATE, STATUS,
+					(SELECT S.PATTERN_CODE||'>'||S.PATTERN_GUBUN 
+						FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ AND ROWNUM = 1) PATTERN ,
+               		CONTENTS1,
+               		CONTENTS2,
+               		CONTENTS3
+				FROM (
+					SELECT 
+						SEQ, NAME, REG_DATE, CONFIRM_DATE, STATUS,
+						FLOOR((ROW_NUMBER() OVER(ORDER BY SEQ DESC)-1)/$list_unit$+1) PAGE,
+                		CONTENTS1,
+                		CONTENTS2,
+                		CONTENTS3
+					FROM PCN_PATTERN_USEAPPLICATION
+					<dynamic prepend="WHERE">
+						<isNotEmpty property="status" prepend="AND">
+							STATUS = #status#
+						</isNotEmpty>
+						<isNotEmpty property="keyword" prepend="AND">
+							<isEmpty property="searchGubun">
+								( NAME LIKE '%'||#keyword#||'%' )
+								OR
+								(
+									SEQ IN (
+										SELECT A.PSEQ
+										FROM PCN_PATTERN_USEPATTERN A, (
+											SELECT B1.DID, B1.XTITLE
+											FROM DOCMETA@PATTERN B1
+											UNION ALL
+											SELECT B2.DID, B2.XTITLE
+											FROM DOCMETA@PATTERN B2
+											UNION ALL
+											SELECT B3.SEQ DID, B3.XTITLE
+											FROM PCN_CULTURE_DESIGN@PATTERN B3
+											UNION ALL
+											SELECT B4.SEQ DID, B4.XTITLE
+											FROM PCN_MCH_PATTERN@PATTERN B4
+											UNION ALL
+											SELECT B5.SEQ DID, B5.XTITLE
+						                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+				                            UNION ALL
+				                            SELECT B6.SEQ DID, B6.XTITLE
+				                            FROM PCN_3D_PATTERN@PATTERN B6
+										) B
+										WHERE A.PATTERN_CODE = B.DID
+										AND	B.XTITLE LIKE '%'||#keyword#||'%'
+									)
+								)
+							</isEmpty>
+							<isEqual property="searchGubun" compareValue="name">
+								NAME LIKE '%'||#keyword#||'%'
+							</isEqual>
+							<isEqual property="searchGubun" compareValue="title">
+								SEQ IN (
+									SELECT A.PSEQ
+									FROM PCN_PATTERN_USEPATTERN A, (
+										SELECT B1.DID, B1.XTITLE
+										FROM DOCMETA@PATTERN B1
+										UNION ALL
+										SELECT B2.DID, B2.XTITLE
+										FROM DOCMETA@PATTERN B2
+										UNION ALL
+										SELECT B3.SEQ DID, B3.XTITLE
+										FROM PCN_CULTURE_DESIGN@PATTERN B3
+										UNION ALL
+										SELECT B4.SEQ DID, B4.XTITLE
+										FROM PCN_MCH_PATTERN@PATTERN B4
+										UNION ALL
+										SELECT B5.SEQ DID, B5.XTITLE
+					                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+			                            UNION ALL
+			                            SELECT B6.SEQ DID, B6.XTITLE
+			                            FROM PCN_3D_PATTERN@PATTERN B6
+									) B
+									WHERE A.PATTERN_CODE = B.DID
+									AND	B.XTITLE LIKE '%'||#keyword#||'%'
+								)
+							</isEqual>
+						</isNotEmpty>
+						<isNotEmpty property="start_date" prepend="AND">
+							<isEqual property="searchDateType" compareValue="regDate">
+								REG_DATE BETWEEN #start_date# AND TO_DATE(#end_date# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+							</isEqual>
+							<isEqual property="searchDateType" compareValue="confirmDate">
+								CONFIRM_DATE BETWEEN #start_date# AND TO_DATE(#end_date# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+							</isEqual>
+						</isNotEmpty>
+						<isNotEmpty property="searchContestsType" prepend="AND">
+							<isEqual property="searchContestsType" compareValue="1">
+								CONTENTS1 = #searchContestsType#
+							</isEqual>
+							<isEqual property="searchContestsType" compareValue="2">
+								CONTENTS2 = #searchContestsType#
+							</isEqual>
+							<isEqual property="searchContestsType" compareValue="3">
+								CONTENTS3 = #searchContestsType#
+							</isEqual>
+						</isNotEmpty>
+					</dynamic>
+				) T
+				WHERE PAGE = #page_no#
+			) T
+		) T
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+				COUNT(1)
+		FROM 
+			PCN_PATTERN_USEAPPLICATION A
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="status" prepend="AND">
+				STATUS = #status#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEmpty property="searchGubun">
+					( NAME LIKE '%'||#keyword#||'%' )
+					OR
+					(
+						SEQ IN (
+							SELECT A.PSEQ
+							FROM PCN_PATTERN_USEPATTERN A, (
+								SELECT B1.DID, B1.XTITLE
+								FROM DOCMETA@PATTERN B1
+								UNION ALL
+								SELECT B2.DID, B2.XTITLE
+								FROM DOCMETA@PATTERN B2
+								UNION ALL
+								SELECT B3.SEQ DID, B3.XTITLE
+								FROM PCN_CULTURE_DESIGN@PATTERN B3
+								UNION ALL
+								SELECT B4.SEQ DID, B4.XTITLE
+								FROM PCN_MCH_PATTERN@PATTERN B4
+								UNION ALL
+								SELECT B5.SEQ DID, B5.XTITLE
+			                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+	                            UNION ALL
+	                            SELECT B6.SEQ DID, B6.XTITLE
+	                            FROM PCN_3D_PATTERN@PATTERN B6
+							) B
+							WHERE A.PATTERN_CODE = B.DID
+							AND	B.XTITLE LIKE '%'||#keyword#||'%'
+						)
+					)
+				</isEmpty>
+				<isEqual property="searchGubun" compareValue="name">
+			    NAME LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					SEQ IN (
+						SELECT A.PSEQ
+						FROM PCN_PATTERN_USEPATTERN A, (
+							SELECT B1.DID, B1.XTITLE
+							FROM DOCMETA@PATTERN B1
+							UNION ALL
+							SELECT B2.DID, B2.XTITLE
+							FROM DOCMETA@PATTERN B2
+							UNION ALL
+							SELECT B3.SEQ DID, B3.XTITLE
+							FROM PCN_CULTURE_DESIGN@PATTERN B3
+							UNION ALL
+							SELECT B4.SEQ DID, B4.XTITLE
+							FROM PCN_MCH_PATTERN@PATTERN B4
+							UNION ALL
+							SELECT B5.SEQ DID, B5.XTITLE
+		                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+                            UNION ALL
+                            SELECT B6.SEQ DID, B6.XTITLE
+                            FROM PCN_3D_PATTERN@PATTERN B6
+						) B
+						WHERE A.PATTERN_CODE = B.DID
+						AND	B.XTITLE LIKE '%'||#keyword#||'%'
+					)
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="start_date" prepend="AND">
+				<isEqual property="searchDateType" compareValue="regDate">
+				REG_DATE BETWEEN #start_date# AND TO_DATE(#end_date# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+				</isEqual>
+				<isEqual property="searchDateType" compareValue="confirmDate">
+				CONFIRM_DATE BETWEEN #start_date# AND TO_DATE(#end_date# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="searchContestsType" prepend="AND">
+				<isEqual property="searchContestsType" compareValue="1">
+					CONTENTS1 = #searchContestsType#
+				</isEqual>
+				<isEqual property="searchContestsType" compareValue="2">
+					CONTENTS2 = #searchContestsType#
+				</isEqual>
+				<isEqual property="searchContestsType" compareValue="3">
+					CONTENTS3 = #searchContestsType#
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="useMarkList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* ask.useMarkList */
+			B.SEQ, B.PSEQ, B.PATTERN_CODE, B.PATTERN_GUBUN, COUNT(1) OVER() PATTERN_CNT,    
+			CASE
+				WHEN PATTERN_GUBUN IN ('PG01', 'PG02') THEN (
+					SELECT XTITLE
+					FROM DOCMETA@PATTERN P 
+					WHERE P.DID = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG03' THEN (
+					SELECT XTITLE
+					FROM PCN_CULTURE_DESIGN@PATTERN P 
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND B.PATTERN_CODE &lt; 2000000 THEN (
+					SELECT XTITLE
+					FROM PCN_MCH_PATTERN@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND B.PATTERN_CODE > 2000000 THEN (
+					SELECT 
+						(SELECT XTITLE FROM DOCMETA@PATTERN WHERE XFILE = P.XFILE1)||', '
+						||(SELECT XTITLE FROM DOCMETA@PATTERN WHERE XFILE = P.XFILE2) XTITLE
+					FROM PCN_MCH_TEMPLETE@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG05' THEN (
+					SELECT XTITLE
+					FROM PCN_3D_PATTERN@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE   
+                )
+				ELSE (
+					SELECT XTITLE
+					FROM (
+						SELECT P1.DID, P1.XTITLE 
+						FROM DOCMETA@PATTERN P1
+						UNION ALL
+						SELECT P2.SEQ DID, P2.XTITLE
+						FROM PCN_MCH_PATTERN@PATTERN P2
+					) P
+					WHERE P.DID = B.PATTERN_CODE
+				)
+			END XTITLE,
+			CASE
+				WHEN PATTERN_GUBUN IN ('PG01', 'PG02') THEN (
+					SELECT XFILE
+					FROM DOCMETA@PATTERN P 
+					WHERE P.DID = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG03' THEN (
+					SELECT UFILE XFILE
+					FROM PCN_CULTURE_DESIGN@PATTERN P 
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND B.PATTERN_CODE &lt; 2000000 THEN (
+					SELECT UFILE XFILE
+					FROM PCN_MCH_PATTERN@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG04' AND B.PATTERN_CODE > 2000000 THEN (
+					SELECT UFILE XFILE
+					FROM PCN_MCH_TEMPLETE@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				WHEN PATTERN_GUBUN = 'PG05' THEN (
+					SELECT FILE_NAME XFILE
+					FROM PCN_3D_PATTERN@PATTERN P
+					WHERE P.SEQ = B.PATTERN_CODE        
+				)
+				ELSE (
+					SELECT XFILE
+					FROM (
+						SELECT P1.DID, P1.XFILE
+						FROM DOCMETA@PATTERN P1
+						UNION ALL
+						SELECT P2.SEQ DID, P2.UFILE XFILE
+						FROM PCN_MCH_PATTERN@PATTERN P2
+					) P
+					WHERE P.DID = B.PATTERN_CODE
+				)
+			END XFILE,
+			A.REG_DATE, A.CONFIRM_DATE
+		FROM PCN_PATTERN_USEAPPLICATION A
+		INNER JOIN PCN_PATTERN_USEPATTERN B ON (B.PSEQ = A.SEQ)
+		WHERE A.SEQ = #seq#
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ,
+	  		NAME,
+	  		USER_ID,
+	  		EMAIL,
+	  		TEL,
+	  		PHONE,
+			COMPANY,
+		  	USE_YEAR,
+		  	USE_REASON,
+		  	MIME_TYPE,
+		  	ETC,
+		  	STATUS,
+		  	TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+		  	TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') CONFIRM_DATE,
+		  	TO_CHAR(CONFIRM_DATE, 'YYYY')+USE_YEAR
+		  	||'-'
+		  	||TO_CHAR(CONFIRM_DATE, 'MM-DD') CONFIRM_END_DATE,
+		  	ADMIN_REPLY,
+		  	CONTENTS1,
+	        CONTENTS2,
+	        CONTENTS3
+		FROM 
+			PCN_PATTERN_USEAPPLICATION D
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ),0)+1 FROM PCN_PATTERN_USEAPPLICATION
+		</selectKey>
+		INSERT
+			INTO PCN_PATTERN_USEAPPLICATION
+			(
+			 	SEQ
+			    , NAME
+			    , TEL
+			    , PHONE
+			    , EMAIL
+			    , COMPANY
+			    , USER_ID
+			    , USE_YEAR
+			    , ETC
+			    , REG_DATE
+			    , STATUS
+			    <isNotEmpty property="array.mime_type" prepend=",">
+			     MIME_TYPE					  
+			    </isNotEmpty>
+			    , USE_REASON
+			    , ADMIN_REPLY
+			    , CONTENTS1
+			    , CONTENTS2
+			    , CONTENTS3
+			) VALUES (
+			    #seq#
+			    ,#name#
+			    ,#tel1# || '-' || #tel2# || '-' || #tel3#
+			    ,#phone1# || '-' || #phone2# || '-' || #phone3#
+			    ,#mail1# || '@' || #mail2# 
+			    ,#company#
+			    ,#user_id#
+			    ,#use_year#
+			    ,#etc#
+			    ,SYSDATE
+			    ,#status#
+			    <isNotEmpty property="array.mime_type" prepend=",">
+			     	<iterate property="array.mime_type" open="" conjunction=" || ',' || " close="">
+						#array.mime_type[]#
+					</iterate>				  
+			    </isNotEmpty>
+			    ,#use_reason#
+			    ,#admin_reply#
+			    ,#contents1#
+			    ,#contents2#
+			    ,#contents3#
+			)
+	</insert>
+	<insert id="insertUseMark" parameterClass="java.util.Map">
+		INSERT
+			INTO PCN_PATTERN_USEPATTERN
+		  	(
+				SEQ,
+			    PSEQ,
+			    PATTERN_CODE,
+			    PATTERN_GUBUN
+		  	) VALUES (
+		    	(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_PATTERN_USEPATTERN)
+		   	 	, #seq#
+		    	, #pattern_code#
+		    	, #pattern_gubun#
+		  	)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PCN_PATTERN_USEAPPLICATION
+		SET 
+			NAME = #name#
+			, TEL = #tel1# || '-' || #tel2# || '-' || #tel3#
+			, PHONE = #phone1# || '-' || #phone2# || '-' || #phone3#
+			, EMAIL = #mail1# || '@' || #mail2#
+			, COMPANY = #company#
+			, USE_YEAR = #use_year#
+			, ETC = #etc#
+			, STATUS = #status#
+			<!-- MIME_TYPE = #mime_type#, -->
+			<isNotEmpty property="array.mime_type" prepend=",">
+		     	<iterate property="array.mime_type" open="MIME_TYPE = " conjunction=" || ',' || " close="">
+					#array.mime_type[]#
+				</iterate>				  
+		    </isNotEmpty>
+			, ADMIN_REPLY = #admin_reply#
+			<isEqual property="status" compareValue="Y" prepend=",">
+				CONFIRM_DATE = SYSDATE
+			</isEqual>
+			,USE_REASON = #use_reason#
+			,CONTENTS1 = #contents1#
+			,CONTENTS2 = #contents2#
+			,CONTENTS3 = #contents3#
+		WHERE 
+			SEQ = #seq#
+	</update>
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE  
+			PCN_PATTERN_USEAPPLICATION
+		SET
+			STATUS = #updateStatus# , 
+			confirm_date = sysdate
+		WHERE  
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</update>
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_PATTERN_USEAPPLICATION
+		WHERE  
+			<iterate property="array.seq" open="SEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+	<delete id="deleteUseMark">
+		DELETE FROM
+			PCN_PATTERN_USEPATTERN
+		WHERE
+			<iterate property="array.seq" open="PSEQ IN(" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</delete>
+	
+	<select id="excelList" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT
+			RNUM "num", REG_DATE "신청일자", CONFIRM_DATE "승인일자", STATUS "승인여부"
+		    , NAME "신청자", PHONE "연락처(휴대폰)", EMAIL "이메일"
+		    , DECODE(TITLE, '(1111111)', '전통문양사용신청 요청', TITLE) || CASE WHEN (PATTERN_CNT-1) > 0 THEN ' 외' || (PATTERN_CNT-1) || '건' ELSE '' END "해당데이터"
+		    , CON "분류", USE_REASON "콘텐츠 사용용도(이용목적)"
+		FROM(
+		SELECT
+		    ROW_NUMBER() OVER( ORDER BY SEQ DESC ) RNUM,
+		    TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE,
+		    CASE WHEN STATUS = 'Y' THEN TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') ELSE '-' END CONFIRM_DATE,
+		    DECODE(STATUS, 'Y', '승인', 'N', '사용안함', 'C', '신청취소', 'D', '다운로드', '대기') STATUS,
+		    NVL(NAME,'-') NAME,
+		    NVL(PHONE,'-') PHONE,
+		    NVL(EMAIL,'-') EMAIL,
+		    PATTERN_CNT,
+		   CASE
+		       WHEN PATTERN_GUBUN IN ('PG01', 'PG02')
+		       THEN
+		           (SELECT XTITLE
+		             FROM DOCMETA@PATTERN P
+		            WHERE P.DID = T.PATTERN_CODE
+		           )
+		       WHEN PATTERN_GUBUN = 'PG03'
+		       THEN
+		           (SELECT XTITLE
+		             FROM PCN_CULTURE_DESIGN@PATTERN P
+		            WHERE P.SEQ = T.PATTERN_CODE
+		           )
+		       WHEN PATTERN_GUBUN = 'PG04'
+		           AND PATTERN_CODE &lt; 2000000
+		       THEN
+		           (SELECT XTITLE
+		             FROM PCN_MCH_PATTERN@PATTERN P
+		            WHERE P.SEQ = T.PATTERN_CODE
+		           )
+		       WHEN PATTERN_GUBUN = 'PG04'
+		           AND PATTERN_CODE > 2000000
+		       THEN
+		           (SELECT
+		                  (SELECT XTITLE
+		                    FROM DOCMETA@PATTERN
+		                   WHERE XFILE = P.XFILE1
+		                  )||', ' ||
+		                  (SELECT XTITLE
+		                    FROM DOCMETA@PATTERN
+		                   WHERE XFILE = P.XFILE2
+		                  ) XTITLE
+		             FROM PCN_MCH_TEMPLETE@PATTERN P
+		            WHERE P.SEQ = T.PATTERN_CODE
+		           )
+		       WHEN PATTERN_GUBUN = 'PG05'
+		       THEN
+		           (SELECT XTITLE
+		             FROM PCN_3D_PATTERN@PATTERN P
+		            WHERE P.SEQ = T.PATTERN_CODE
+		           )
+		       ELSE
+		           (SELECT XTITLE
+		             FROM
+		                  (SELECT P1.DID,
+		                         P1.XTITLE
+		                    FROM DOCMETA@PATTERN P1
+		                      UNION ALL
+		                  SELECT P2.SEQ DID,
+		                         P2.XTITLE
+		                    FROM PCN_MCH_PATTERN@PATTERN P2
+		                  ) P
+		            WHERE P.DID = T.PATTERN_CODE
+		           )
+		   END ||'('||PATTERN_CODE||')' AS TITLE,
+		   NVL(SUBSTR(CON, 0, INSTR(CON, ',', -1)-1),'-') CON,
+		   USE_REASON
+		  FROM
+		       (SELECT SEQ,
+		              NAME,
+		              PHONE,
+		              EMAIL,
+		              REG_DATE,
+		              CONFIRM_DATE,
+		              STATUS,
+		              (SELECT S.PATTERN_CODE FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ AND ROWNUM = 1) PATTERN_CODE ,
+		              (SELECT S.PATTERN_GUBUN FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ AND ROWNUM = 1) PATTERN_GUBUN ,
+		              DECODE(CONTENTS1,1,'개인,') || DECODE(CONTENTS2,2,'민간,') || DECODE(CONTENTS3,3,'공공,') CON,
+		              (SELECT COUNT(1) FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ) PATTERN_CNT,
+		              DBMS_LOB.SUBSTR(USE_REASON, 1000, 1) USE_REASON
+		         FROM PCN_PATTERN_USEAPPLICATION T
+		         <dynamic prepend="WHERE">
+					<isNotEmpty property="status" prepend="AND">
+						STATUS = #status#
+					</isNotEmpty>
+					<isNotEmpty property="keyword" prepend="AND">
+						<isEmpty property="searchGubun">
+							( NAME LIKE '%'||#keyword#||'%' )
+							OR
+							(
+								SEQ IN (
+									SELECT A.PSEQ
+									FROM PCN_PATTERN_USEPATTERN A, (
+										SELECT B1.DID, B1.XTITLE
+										FROM DOCMETA@PATTERN B1
+										UNION ALL
+										SELECT B2.DID, B2.XTITLE
+										FROM DOCMETA@PATTERN B2
+										UNION ALL
+										SELECT B3.SEQ DID, B3.XTITLE
+										FROM PCN_CULTURE_DESIGN@PATTERN B3
+										UNION ALL
+										SELECT B4.SEQ DID, B4.XTITLE
+										FROM PCN_MCH_PATTERN@PATTERN B4
+										UNION ALL
+										SELECT B5.SEQ DID, B5.XTITLE
+					                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+			                            UNION ALL
+			                            SELECT B6.SEQ DID, B6.XTITLE
+			                            FROM PCN_3D_PATTERN@PATTERN B6
+									) B
+									WHERE A.PATTERN_CODE = B.DID
+									AND	B.XTITLE LIKE '%'||#keyword#||'%'
+								)
+							)
+						</isEmpty>
+						<isEqual property="searchGubun" compareValue="name">
+					    NAME LIKE '%'||#keyword#||'%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							SEQ IN (
+								SELECT A.PSEQ
+								FROM PCN_PATTERN_USEPATTERN A, (
+									SELECT B1.DID, B1.XTITLE
+									FROM DOCMETA@PATTERN B1
+									UNION ALL
+									SELECT B2.DID, B2.XTITLE
+									FROM DOCMETA@PATTERN B2
+									UNION ALL
+									SELECT B3.SEQ DID, B3.XTITLE
+									FROM PCN_CULTURE_DESIGN@PATTERN B3
+									UNION ALL
+									SELECT B4.SEQ DID, B4.XTITLE
+									FROM PCN_MCH_PATTERN@PATTERN B4
+									UNION ALL
+									SELECT B5.SEQ DID, B5.XTITLE
+				                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+		                            UNION ALL
+		                            SELECT B6.SEQ DID, B6.XTITLE
+		                            FROM PCN_3D_PATTERN@PATTERN B6
+								) B
+								WHERE A.PATTERN_CODE = B.DID
+								AND	B.XTITLE LIKE '%'||#keyword#||'%'
+							)
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="start_date" prepend="AND">
+						<isEqual property="searchDateType" compareValue="regDate">
+						TO_CHAR(REG_DATE,'YYYY-MM-DD') BETWEEN #start_date# AND #end_date#
+						</isEqual>
+						<isEqual property="searchDateType" compareValue="confirmDate">
+						TO_CHAR(CONFIRM_DATE,'YYYY-MM-DD') BETWEEN #start_date# AND #end_date#
+						</isEqual>
+					</isNotEmpty>
+					<isNotEmpty property="searchContestsType" prepend="AND">
+						<isEqual property="searchContestsType" compareValue="1">
+							CONTENTS1 = #searchContestsType#
+						</isEqual>
+						<isEqual property="searchContestsType" compareValue="2">
+							CONTENTS2 = #searchContestsType#
+						</isEqual>
+						<isEqual property="searchContestsType" compareValue="3">
+							CONTENTS3 = #searchContestsType#
+						</isEqual>
+					</isNotEmpty>
+				</dynamic>
+		       ) T
+		)T
+	</select>
+	
+	<select id="excelList2" parameterClass="paramMap" resultClass="java.util.LinkedHashMap">
+		SELECT 
+			REG_DATE "신청일자", NAME "신청자", CNT "건수"
+		FROM(
+			SELECT
+				TO_CHAR(A.REG_DATE,'YYYY-MM-DD') REG_DATE,  NVL(A.NAME,'-') NAME, COUNT(*) CNT
+			FROM PCN_PATTERN_USEAPPLICATION A, PCN_PATTERN_USEPATTERN P
+			WHERE A.SEQ = P.PSEQ
+			<isNotEmpty property="status" prepend="AND">
+				STATUS = #status#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEmpty property="searchGubun">
+					( NAME LIKE '%'||#keyword#||'%' )
+					OR
+					(
+						A.SEQ IN (
+							SELECT A.PSEQ
+							FROM PCN_PATTERN_USEPATTERN A, (
+								SELECT B1.DID, B1.XTITLE
+								FROM DOCMETA@PATTERN B1
+								UNION ALL
+								SELECT B2.DID, B2.XTITLE
+								FROM DOCMETA@PATTERN B2
+								UNION ALL
+								SELECT B3.SEQ DID, B3.XTITLE
+								FROM PCN_CULTURE_DESIGN@PATTERN B3
+								UNION ALL
+								SELECT B4.SEQ DID, B4.XTITLE
+								FROM PCN_MCH_PATTERN@PATTERN B4
+								UNION ALL
+								SELECT B5.SEQ DID, B5.XTITLE
+			                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+	                            UNION ALL
+	                            SELECT B6.SEQ DID, B6.XTITLE
+	                            FROM PCN_3D_PATTERN@PATTERN B6
+							) B
+							WHERE A.PATTERN_CODE = B.DID
+							AND	B.XTITLE LIKE '%'||#keyword#||'%'
+						)
+					)
+				</isEmpty>
+				<isEqual property="searchGubun" compareValue="name">
+			    NAME LIKE '%'||#keyword#||'%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					A.SEQ IN (
+						SELECT A.PSEQ
+						FROM PCN_PATTERN_USEPATTERN A, (
+							SELECT B1.DID, B1.XTITLE
+							FROM DOCMETA@PATTERN B1
+							UNION ALL
+							SELECT B2.DID, B2.XTITLE
+							FROM DOCMETA@PATTERN B2
+							UNION ALL
+							SELECT B3.SEQ DID, B3.XTITLE
+							FROM PCN_CULTURE_DESIGN@PATTERN B3
+							UNION ALL
+							SELECT B4.SEQ DID, B4.XTITLE
+							FROM PCN_MCH_PATTERN@PATTERN B4
+							UNION ALL
+							SELECT B5.SEQ DID, B5.XTITLE
+		                    FROM PCN_MCH_TEMPLETE@PATTERN B5
+                            UNION ALL
+                            SELECT B6.SEQ DID, B6.XTITLE
+                            FROM PCN_3D_PATTERN@PATTERN B6
+						) B
+						WHERE A.PATTERN_CODE = B.DID
+						AND	B.XTITLE LIKE '%'||#keyword#||'%'
+					)
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="start_date" prepend="AND">
+				<isEqual property="searchDateType" compareValue="regDate">
+				TO_CHAR(REG_DATE,'YYYY-MM-DD') BETWEEN #start_date# AND #end_date#
+				</isEqual>
+				<isEqual property="searchDateType" compareValue="confirmDate">
+				TO_CHAR(CONFIRM_DATE,'YYYY-MM-DD') BETWEEN #start_date# AND #end_date#
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="searchContestsType" prepend="AND">
+				<isEqual property="searchContestsType" compareValue="1">
+					CONTENTS1 = #searchContestsType#
+				</isEqual>
+				<isEqual property="searchContestsType" compareValue="2">
+					CONTENTS2 = #searchContestsType#
+				</isEqual>
+				<isEqual property="searchContestsType" compareValue="3">
+					CONTENTS3 = #searchContestsType#
+				</isEqual>
+			</isNotEmpty>
+
+			GROUP BY TO_CHAR(A.REG_DATE,'YYYY-MM-DD'), A.NAME
+		)
+		ORDER BY REG_DATE DESC
+	</select>
+</sqlMap>

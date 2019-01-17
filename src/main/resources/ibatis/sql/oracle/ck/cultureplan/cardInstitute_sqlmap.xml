@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="cardInstitute">
+	<select id="list" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT /* cardInstitute.list */ 
+			R.*
+		FROM (
+			SELECT 
+				FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$ + 1) AS PAGE
+			  	, SEQ 
+			  	, TITLE 
+			  	, FILE_NAME
+			  	, URL
+			  	, CONTENTS
+			  	, NOTE
+			  	, REG_DATE
+			  	, REG_ID
+			  	, DECODE(APPROVAL_YN , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL_YN
+			FROM PORTAL_CARD_INSTITUTE
+			WHERE 1 = 1
+				<isNotEmpty property="approval_yn" prepend="AND">
+					APPROVAL_YN = #approval_yn#
+				</isNotEmpty>
+				<isNotEmpty property="keyword" prepend="AND">
+					<isEqual property="searchGubun" compareValue="">
+						(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%')
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="title">
+						TITLE LIKE '%' || #keyword# || '%'
+					</isEqual>
+					<isEqual property="searchGubun" compareValue="contents">
+						CONTENTS LIKE '%' || #keyword# || '%'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="reg_start">
+					<isEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isEmpty>
+					<isNotEmpty property="reg_end" prepend="AND">
+						REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+					</isNotEmpty>
+				</isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT /* cardInstitute.listCnt */ 
+			COUNT(1)
+		FROM PORTAL_CARD_INSTITUTE
+		WHERE 1 = 1
+			<isNotEmpty property="approval_yn" prepend="AND">
+				APPROVAL_YN = #approval_yn#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="contents">
+					CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					REG_DATE BETWEEN  TO_DATE(#reg_start#  || '00:00:00','yyyy-mm-dd hh24:mi:ss')   AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* cardInstitute.view */ 
+			SEQ
+		  	, TITLE
+		  	, FILE_NAME
+		  	, URL
+		  	, CONTENTS
+		  	, NOTE
+		  	, APPROVAL_YN
+		FROM PORTAL_CARD_INSTITUTE
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE /* cardInstitute.statusUpdate */ 
+		  	PORTAL_CARD_INSTITUTE
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL_YN = #updateStatus#,		
+			</isNotEmpty>
+			UPD_ID = #upd_id#,
+			UPD_DATE = SYSDATE
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PORTAL_CARD_INSTITUTE
+		</selectKey>
+		INSERT /* cardInstitute.insert */ 
+		INTO PORTAL_CARD_INSTITUTE
+		(
+			SEQ
+			, TITLE
+			, FILE_NAME
+			, URL
+			, CONTENTS
+			, NOTE
+			, APPROVAL_YN
+			, REG_ID
+			, REG_DATE
+		) VALUES(
+			#seq#
+			, #title#
+			, #file_name#
+			, #url#
+			, #contents#
+			, #note#
+			, #approval_yn#
+			, #reg_id#
+			, SYSDATE
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* cardInstitute.update */
+			PORTAL_CARD_INSTITUTE
+		SET
+			TITLE					=#title#
+		  	, FILE_NAME				=#file_name#
+		  	, URL					=#url#
+		  	, CONTENTS				=#contents#
+		  	, NOTE					=#note#
+		  	, APPROVAL_YN			=#approval_yn#
+		  	, UPD_ID				=#upd_id#
+		  	, UPD_DATE				=SYSDATE
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE /* cardInstitute.delete */ 
+		FROM PORTAL_CARD_INSTITUTE 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="gukak">
+	<select id="list" parameterClass="ParamMap" resultClass="commonMap">
+		SELECT
+			R.*
+		FROM
+		(
+			SELECT
+			    FLOOR((ROW_NUMBER()OVER(ORDER BY reg_date DESC nulls last)-1)/$list_unit$ + 1) AS PAGE 
+			    ,SEQ     
+				,DECODE(LIVE_YN , 'Y' , '실연' , 'N' , '실연아님' ) AS LIVE_YN  
+				,BC_DATE   
+				,BC_TYPE   
+				,BC_COMPANY
+				,BC_PROGRAM
+				,TITLE     
+				,BC_COUNT  
+				,SONG_TYPE
+				,REG_DATE
+				,DECODE(APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			  FROM PORTAL_GUGAK
+			  WHERE 1=1             
+			  <isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'|| #title# ||'%'
+			  </isNotEmpty>
+			  <isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			   </isNotEmpty>
+			   <isNotEmpty property="live_yn" prepend="AND">
+				LIVE_YN = #live_yn#
+			   </isNotEmpty>
+		) R
+		WHERE
+			R.PAGE = #page_no#
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT 
+			COUNT(1)
+		FROM 
+		  	PORTAL_GUGAK
+		  	WHERE 1=1
+		    <isNotEmpty property="title" prepend="AND">
+				TITLE LIKE '%'|| #title# ||'%'
+			 </isNotEmpty>
+			 <isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			 </isNotEmpty>
+			 <isNotEmpty property="live_yn" prepend="AND">
+				LIVE_YN = #live_yn#
+			 </isNotEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			SEQ
+			,BC_COMPANY
+			,BC_PROGRAM
+			,BC_TYPE 
+		  	,TITLE
+		  	,SINGER    
+		    ,ALBUM     
+			,LYRICIST  
+			,COMPOSER  
+			,ARRANGER  
+		  	,LIVE_YN
+		  	,APPROVAL
+		FROM
+			PORTAL_GUGAK
+		WHERE 
+			SEQ = #seq#
+	</select>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PORTAL_GUGAK
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PORTAL_GUGAK
+		SET
+			TITLE					=#title#
+		  	, LIVE_YN				=#live_yn#
+		  	,SINGER                 =#singer#
+		    ,ALBUM                  =#album#
+			,LYRICIST              =#lyricist#
+			,COMPOSER             =#composer#
+			,ARRANGER             =#arranger#             
+		  	,APPROVAL            =#approval#
+		WHERE
+			SEQ = #seq#
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PORTAL_GUGAK
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+</sqlMap>

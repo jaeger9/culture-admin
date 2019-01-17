@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="sns">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="subject" prepend="AND">
+			A.SUBJECT = #subject#
+		</isNotEmpty>
+		<isNotEmpty property="subject_name" prepend="AND">
+			A.SUBJECT_NAME = #subject_name#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.CREATOR) LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_RECOM_SNS A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.IDX
+			,A.CREATOR
+			,A.SUBJECT_NAME
+			,A.BLOG_URL
+			,A.TWITTER_URL
+			,A.FACE_URL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.APPROVAL, 'W', 'W', 'N', 'N', 'Y') APPROVAL
+		FROM
+			PCN_RECOM_SNS A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.IDX DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.IDX
+			,A.CREATOR
+			,A.PUBLISHER
+			,A.SUBJECT
+			,A.SUBJECT_NAME
+			,A.BLOG_URL
+			,A.BLOG_URL_RSS
+			,A.TWITTER_URL
+			,A.FACE_URL
+			,A.IMG_URL
+			,A.REG_ID
+			,A.ORGAN_URL
+			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			,DECODE(A.APPROVAL, 'W', 'W', 'N', 'N', 'Y') APPROVAL
+		FROM
+			PCN_RECOM_SNS A
+		WHERE
+			A.IDX = #idx#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="idx" type="pre" resultClass="int">
+			SELECT NVL(MAX(IDX), 0) + 1 FROM PCN_RECOM_SNS
+		</selectKey>
+		INSERT INTO PCN_RECOM_SNS (
+			IDX
+			,CREATOR
+			,SUBJECT
+			,SUBJECT_NAME
+			,REG_DATE
+			,REG_ID
+			,BLOG_URL
+			,BLOG_URL_RSS
+			,TWITTER_URL
+			,FACE_URL
+			,APPROVAL
+			,IMG_URL
+			,ORGAN_URL
+			,SORT
+			<!-- ,PUBLISHER -->
+		) VALUES (
+			#idx#
+			,#creator#
+			,#subject#
+			,(SELECT NAME FROM PCN_COMMON_CODE WHERE PCODE = 190 AND VALUE = #subject#)
+			,SYSDATE
+			,#reg_id#
+			,#blog_url#
+			,#blog_url_rss#
+			,#twitter_url#
+			,#face_url#
+			,DECODE(#approval#, 'W', 'W', 'N', 'N', 'Y')
+			,#img_url#
+			,#organ_url#
+			,#sort#
+			<!-- ,#publisher# -->
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_RECOM_SNS
+		SET
+			CREATOR			=	#creator#
+			,SUBJECT		=	#subject#
+			,SUBJECT_NAME	=	(SELECT NAME FROM PCN_COMMON_CODE WHERE PCODE = 190 AND VALUE = #subject#)
+			,REG_ID			=	#reg_id#
+			,BLOG_URL		=	#blog_url#
+			,BLOG_URL_RSS	=	#blog_url_rss#
+			,TWITTER_URL	=	#twitter_url#
+			,FACE_URL		=	#face_url#
+			,APPROVAL		=	#approval#
+			,IMG_URL		=	#img_url#
+			,ORGAN_URL      =   #organ_url#	
+			,SORT			=   #sort#	
+			<!-- ,PUBLISHER		=	#publisher# -->
+		WHERE
+			IDX = #idx#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_RECOM_SNS
+		SET
+			APPROVAL = #approval#
+		WHERE
+			IDX IN
+		<iterate property="array.idxs" open="(" conjunction="," close=")">
+			#array.idxs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_RECOM_SNS
+		WHERE
+			IDX IN 
+		<iterate property="array.idxs" open="(" conjunction="," close=")">
+			#array.idxs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

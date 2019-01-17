@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="resMenu">
+	<select id="listByTree" parameterClass="paramMap" resultClass="commonMap"> 
+		SELECT
+			A.SEQ
+		    , A.PSEQ
+		    , A.TITLE
+		    , A.CON_TYPE
+		    , A.LIST_TYPE
+		    , A.CON_MANUAL_URL
+		    , A.REG_ID
+		    , A.REG_DATE
+		    , A.UPD_ID
+		    , A.UPD_DATE
+		    , A.SORT
+		    , A.SORT AS ORG_SORT
+		FROM PCN_INFO_RESOURCE_MENU A
+		WHERE PSEQ = #pseq#
+		AND A.DEL_YN != 'Y'
+		<isNotEmpty property="array.con_types">
+			<iterate property="array.con_types" open="AND A.CON_TYPE IN (" conjunction="," close=")">
+				#array.con_types[]#
+			</iterate>
+		</isNotEmpty>
+		ORDER BY SORT
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO
+			PCN_INFO_RESOURCE_MENU
+			( SEQ
+			, PSEQ, TITLE
+			, CON_TYPE, LIST_TYPE
+			, CON_MANUAL_URL, REG_ID
+			, REG_DATE, DEL_YN
+			, SORT)
+		VALUES
+			( (SELECT NVL(MAX(seq),0)+1 FROM PCN_INFO_RESOURCE_MENU)
+			, #pseq#, #title#
+			, #con_type#, #list_type#
+			, #con_manual_url#, #user_id#
+			, SYSDATE, 'N'
+			, (SELECT NVL(MAX(SORT),0)+1 FROM PCN_INFO_RESOURCE_MENU WHERE PSEQ = #pseq# AND DEL_YN = 'N'))
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE
+			PCN_INFO_RESOURCE_MENU
+		SET
+			TITLE = #title#
+		    , CON_TYPE = #con_type#
+		    , LIST_TYPE = #list_type#
+		    , CON_MANUAL_URL = #con_manual_url#
+		    , UPD_ID = #user_id#
+		    , UPD_DATE = SYSDATE
+		WHERE
+		 SEQ = #seq#
+	</update>
+	
+	<update id="delete" parameterClass="paramMap">
+		UPDATE
+			PCN_INFO_RESOURCE_MENU
+		SET
+		    UPD_ID = #user_id#
+		    , UPD_DATE = SYSDATE
+		    , DEL_YN = 'Y'
+		WHERE
+		 SEQ = #seq#
+	</update>
+	
+	<update id="updateMenuSort" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_MENU
+		SET
+			SORT	=	#sort#
+		WHERE
+			SEQ = #seq#
+	</update>
+</sqlMap>

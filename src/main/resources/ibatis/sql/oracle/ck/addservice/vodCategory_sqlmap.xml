@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="vodCategory">
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word" prepend="AND">
+			LOWER(A.VCM_TITLE)		LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="vcm_code" prepend="AND">
+			A.VCM_CODE = #vcm_code#
+		</isNotEmpty>
+		<isNotEmpty property="vcm_up_code" prepend="AND">
+			A.VCM_UP_CODE = #vcm_up_code#
+		</isNotEmpty>
+		<isNotEmpty property="vcm_depth" prepend="AND">
+			A.VCM_DEPTH = #vcm_depth#
+		</isNotEmpty>
+		<isNotEmpty property="vcm_status" prepend="AND">
+			A.VCM_STATUS = #vcm_status#
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			VOD_CAI_MST A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			X.*
+			,(SELECT VCM_TITLE FROM VOD_CAI_MST WHERE VCM_CODE = X.VCM_UP_CODE) VCM_UP_TITLE
+		FROM (
+			SELECT
+				ROWNUM AS RNUM
+				,Z.*
+			FROM (
+				SELECT
+					A.VCM_TITLE
+					,A.VCM_GR_NO
+					,A.VCM_AR_NO
+					,A.VCM_DEPTH
+					,A.VCM_STATUS
+					,A.VCM_CODE
+					,A.VCM_UP_CODE
+					,A.VCM_REG_NAME
+					,A.VCM_UPD_NAME
+					,TO_CHAR(A.VCM_REG_DATE, 'YYYY-MM-DD') VCM_REG_DATE
+					,TO_CHAR(A.VCM_UPD_DATE, 'YYYY-MM-DD') VCM_UPD_DATE
+				FROM
+					VOD_CAI_MST A
+				<include refid="sqlList-1" />
+				ORDER BY
+					A.VCM_CODE DESC
+			) Z
+	<![CDATA[
+			WHERE
+				ROWNUM <= (#page_no# * #list_unit#)
+		) X
+		WHERE
+			X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.VCM_TITLE
+			,A.VCM_GR_NO
+			,A.VCM_AR_NO
+			,A.VCM_DEPTH
+			,A.VCM_STATUS
+			,A.VCM_CODE
+			,A.VCM_UP_CODE
+			,A.VCM_REG_NAME
+			,A.VCM_UPD_NAME
+			,TO_CHAR(A.VCM_REG_DATE, 'YYYY-MM-DD') VCM_REG_DATE
+			,TO_CHAR(A.VCM_UPD_DATE, 'YYYY-MM-DD') VCM_UPD_DATE
+			,(SELECT VCM_TITLE FROM VOD_CAI_MST WHERE VCM_CODE = A.VCM_UP_CODE) VCM_UP_TITLE
+		FROM
+			VOD_CAI_MST A
+		WHERE
+			A.VCM_CODE = #vcm_code#
+		AND ROWNUM = 1
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO VOD_CAI_MST
+		(
+			VCM_CODE
+			,VCM_UP_CODE
+			,VCM_TITLE
+			,VCM_GR_NO
+			,VCM_AR_NO
+			,VCM_DEPTH
+			,VCM_STATUS
+			,VCM_REG_NAME
+			,VCM_UPD_NAME
+			,VCM_REG_DATE
+			,VCM_UPD_DATE
+		)
+		VALUES
+		(
+			#vcm_code#
+			,#vcm_up_code#
+			,#vcm_title#
+			,#vcm_gr_no#
+			,#vcm_ar_no#
+			,#vcm_depth#
+			,#vcm_status#
+			,#vcm_upd_name#
+			,#vcm_upd_name#
+			,SYSDATE
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE VOD_CAI_MST
+		SET
+			VCM_UP_CODE		=	#vcm_up_code#
+			,VCM_TITLE		=	#vcm_title#
+			,VCM_GR_NO		=	#vcm_gr_no#
+			,VCM_AR_NO		=	#vcm_ar_no#
+			,VCM_DEPTH		=	#vcm_depth#
+			,VCM_STATUS		=	#vcm_status#
+			,VCM_UPD_NAME	=	#vcm_upd_name#
+			,VCM_UPD_DATE	=	SYSDATE
+		WHERE
+			VCM_CODE = #vcm_code#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE VOD_CAI_MST
+		SET
+			VCM_STATUS	=	#vcm_status#
+		WHERE
+			VCM_CODE IN
+		<iterate property="array.vcm_codes" open="(" conjunction="," close=")">
+			#array.vcm_codes[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM VOD_CAI_MST
+		WHERE
+			VCM_CODE IN
+		<iterate property="array.vcm_codes" open="(" conjunction="," close=")">
+			#array.vcm_codes[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

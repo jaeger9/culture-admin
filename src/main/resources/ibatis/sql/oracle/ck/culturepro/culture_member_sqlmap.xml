@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="member">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* member.list */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT				
+					SEQ
+					, ID
+					, SOCIAL_CID
+					, CASE WHEN GENDER = 'M' THEN '남' ELSE '여' END AS GENDER
+					, BIRTH
+					, MEMBER_TYPE
+					, case 
+						when MEMBER_TYPE = 'F' Then '페이스북'
+						 when MEMBER_TYPE = 'N' Then '네이버'
+						 when MEMBER_TYPE = 'K' Then '카카오'
+						 when MEMBER_TYPE = 'D' Then '문화포탈'
+						 else '' 
+						end MEMBER_TYPE_NM
+					, DEVICE_TYPE
+					, case 
+						when DEVICE_TYPE = 'I' then '아이폰'
+						when DEVICE_TYPE = 'A' then '안드로이드'
+						else ''
+					end AS DEVICE_TYPE_NM  
+					, culture_alarm /* 문화 공지 */
+					, around_alarm
+					, personal_alarm
+					, email
+					, TO_CHAR(REG_DATE, 'YYYY-MM-DD') join_date
+					, NAME
+					, SOCIAL_INCOMING
+				FROM CULTURE_MEMBER
+				WHERE PUSH_TOKEN IS NOT NULL
+					AND PUSH_TOKEN NOT LIKE 'TEST_USER_PUSH_TOKEN_' || '%'
+					AND SOCIAL_CID IS NOT NULL
+				<isNotEmpty property="del_yn" prepend="AND">
+					DEL_YN = #del_yn#
+				</isNotEmpty>
+				<isNotEmpty property="gender" prepend="AND">
+					GENDER = #gender#
+				</isNotEmpty>
+				<isNotEmpty property="social_incoming" prepend="AND">
+					SOCIAL_INCOMING = #social_incoming#
+				</isNotEmpty>	
+				<isNotEmpty property="email" prepend="AND">
+					EMAIL like '%' || #email# || '%'
+				</isNotEmpty>				
+				<isNotEmpty property="name" prepend="AND">
+					NAME like '%' || #name# || '%'
+				</isNotEmpty>				
+				
+			) R
+		) R
+		WHERE PAGE = #page_no#		
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* member.listCnt */
+			COUNT(1)
+		FROM CULTURE_MEMBER
+		WHERE PUSH_TOKEN IS NOT NULL
+			AND PUSH_TOKEN NOT LIKE 'TEST_USER_PUSH_TOKEN_' || '%'
+			AND SOCIAL_CID IS NOT NULL
+		<isNotEmpty property="del_yn" prepend="AND">
+			DEL_YN = #del_yn#
+		</isNotEmpty>
+		<isNotEmpty property="gender" prepend="AND">
+			GENDER = #gender#
+		</isNotEmpty>
+		<isNotEmpty property="member_type" prepend="AND">
+			MEMBER_TYPE = #member_type#
+		</isNotEmpty>					
+	</select>
+</sqlMap>

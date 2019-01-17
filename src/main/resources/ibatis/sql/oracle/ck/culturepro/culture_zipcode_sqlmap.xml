@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="zipcode_"> <!-- 네임스페이스 같아서 에러나서 여기 변경해야뎀.... -->
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) WHERE RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="sido" prepend="AND">
+			LOWER(A.SIDO) LIKE LOWER('%' || #sido# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="gugun" prepend="AND">
+			LOWER(A.GUGUN) LIKE LOWER('%' || #gugun# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="dong" prepend="AND">
+			LOWER(A.DONG) LIKE LOWER('%' || #dong# || '%')
+		</isNotEmpty>
+		<isEqual property="condition" compareValue="D" prepend="AND">
+		 ( A.DONG like '%동' or A.DONG like '%면' or A.DONG like '%리')
+		</isEqual>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int" remapResults="true">
+		SELECT
+			COUNT(1) CNT
+		FROM
+			ZIP_CDE_TBL A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap" remapResults="true">
+		SELECT
+			DISTINCT 
+			<isEqual property="condition" compareValue="S"> 
+			A.SIDO		SIDO_NAME
+			</isEqual>
+			 <isEqual property="condition" compareValue="G">
+			A.GUGUN		GU_NAME
+			</isEqual>
+			<isEqual property="condition" compareValue="D">
+			A.DONG		DONG_NAME
+			</isEqual>
+		FROM
+			ZIP_CDE_TBL A
+		<include refid="sqlList-1" />
+		ORDER BY
+		 <isEqual property="condition" compareValue="S">
+			A.SIDO
+		</isEqual>
+		 <isEqual property="condition" compareValue="G">
+			 A.GUGUN
+		 </isEqual>
+		 <isEqual property="condition" compareValue="D">
+			 A.DONG
+		 </isEqual>
+	</select>
+
+</sqlMap>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="agentMember">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			<![CDATA[
+			A.AUTH <> 0
+			]]>
+		AND	A.JOIN_CATEGORY		=	B.CODE(+)
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="user_id" prepend="AND">
+					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="name" prepend="AND">
+					LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="email" prepend="AND">
+					LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="join_date_start" prepend="AND"><![CDATA[
+			A.JOIN_DATE >= TO_DATE(#join_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="join_date_end" prepend="AND"><![CDATA[
+			A.JOIN_DATE <= TO_DATE(#join_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_MEMBER A
+			,PCN_COMMON_CODE B
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.USER_ID
+			,A.NAME
+			,A.EMAIL
+			,TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD')	JOIN_DATE
+			,B.NAME								JOIN_CATEGORY_NAME
+		FROM
+			PCN_MEMBER A
+			,PCN_COMMON_CODE B
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.JOIN_DATE DESC NULLS LAST
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.USER_ID
+			,A.PWD
+			,A.PWD_RESULT
+			,A.QUESTION
+			,A.JOIN_DATE
+			,A.MEMBER_CATEGORY
+			,A.IMAGE_NAME
+			,A.JOIN_CATEGORY
+			,A.MEMBER_KEY
+			,A.NAME
+			,A.SEX
+			,TO_CHAR(A.BIRTH, 'YYYY-MM-DD')	BIRTH
+			,A.SOL_LUL
+			,A.TEL
+			,A.HP
+			,A.EMAIL
+			,DECODE(A.NEWSLETTER_YN, 'Y', 'Y', 'N') NEWSLETTER_YN
+			,A.ADDR_CATEGORY
+			,A.ZIP_CODE
+			,A.ADDR
+			,A.ADDR_DETAIL
+			,A.JOB
+			,A.FAVOR_PORTAL
+			,A.JOIN_PATH
+			,A.JOIN_PATH_DESC
+			,A.PUBLISHER
+			,A.AUTH
+			,A.ORG_NM
+			,A.UPDATE_DATE
+			,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.JOIN_CATEGORY)	JOIN_CATEGORY_NAME
+			,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.MEMBER_CATEGORY)	MEMBER_CATEGORY_NAME
+			,(SELECT NAME UCI_ORG FROM UCI_ORG WHERE ORG_CODE = A.PUBLISHER)	CREATOR
+		FROM
+			PCN_MEMBER A
+		WHERE
+			A.USER_ID = #user_id#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_MEMBER (
+			USER_ID
+			,PWD
+			,NAME
+			,TEL
+			,HP
+			,EMAIL
+			<isNotEmpty property="publisher">
+			,PUBLISHER
+			</isNotEmpty>
+			<isNotEmpty property="org_nm">
+			,ORG_NM
+			</isNotEmpty>
+			,AUTH
+			,ADDR_CATEGORY
+			,JOIN_DATE
+			,ID
+		) VALUES (
+			#user_id#
+			,#pwd#
+			,#name#
+			,#tel#
+			,#hp#
+			,#email#
+			<isNotEmpty property="publisher">
+			,#publisher#
+			</isNotEmpty>
+			<isNotEmpty property="org_nm">
+			,#org_nm#
+			</isNotEmpty>
+			,#auth#
+			,63
+			,SYSDATE
+			,PCN_MEMBER_ID_SEQ.NEXTVAL
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_MEMBER
+		SET
+			USER_ID		=	#user_id#
+		<isNotEmpty property="pwd">
+			,PWD		=	#pwd#
+		</isNotEmpty>
+			,NAME		=	#name#
+			,TEL		=	#tel#
+			,HP			=	#hp#
+			,EMAIL		=	#email#
+			,PUBLISHER	=	#publisher#
+			,AUTH		=	#auth#
+			,ORG_NM		=	#org_nm#
+		WHERE
+			USER_ID = #user_id#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_MEMBER
+		WHERE
+			USER_ID IN 
+		<iterate property="array.user_ids" open="(" conjunction="," close=")">
+			#array.user_ids[]#
+		</iterate>
+	</delete>
+</sqlMap>

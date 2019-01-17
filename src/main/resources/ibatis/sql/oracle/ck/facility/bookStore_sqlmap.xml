@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="bookStore">
+
+	<select id="list" parameterClass="java.util.HashMap" resultClass="commonMap">
+		
+		SELECT * FROM(
+			SELECT
+				 SEQ
+				 , TITLE
+				 , ADDRESS
+				 , APPROVAL
+				 , FLOOR((ROW_NUMBER()OVER(ORDER BY SEQ DESC)-1)/$list_unit$ + 1) AS PAGE		  
+			FROM PCN_BOOKSTORE
+			WHERE 1=1
+			<isNotEmpty property="category" prepend="AND">
+				CATE1 = #category#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE  '%' || #title# || '%'
+			</isNotEmpty>
+		)WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">	
+		SELECT COUNT(*) CNT
+		FROM PCN_BOOKSTORE
+			WHERE 1=1
+			<isNotEmpty property="category" prepend="AND">
+				CATE1 = #category#
+			</isNotEmpty>
+			<isNotEmpty property="approval" prepend="AND">
+				APPROVAL = #approval#
+			</isNotEmpty>
+			<isNotEmpty property="title" prepend="AND">
+				TITLE LIKE  '%' || #title# || '%'
+			</isNotEmpty>
+	</select>
+	
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			 SEQ
+			  , TITLE
+			  , ADDRESS
+			  , SIDO
+			  , GUGUN
+			  , GPSY
+			  , GPSX
+			  , BOOKCAFE_YN
+			  , BOOKSTORE_CERT
+			  , TEL
+			  , BUSINESSTIME
+			  , REST
+			  , HOMEPAGE
+			  , APPROVAL
+		FROM 
+			PCN_BOOKSTORE				
+		WHERE 
+			SEQ = #seq#		
+	</select>
+	
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_BOOKSTORE 
+		</selectKey>
+		INSERT INTO PCN_BOOKSTORE
+		(			
+			 SEQ
+			  , TITLE
+			  , ADDRESS
+			  , SIDO
+			  , GUGUN
+			  , GPSY
+			  , GPSX
+			  , BOOKCAFE_YN
+			  , BOOKSTORE_CERT
+			  , TEL
+			  , BUSINESSTIME
+			  , REST
+			  , HOMEPAGE
+			  , APPROVAL
+			  , REG_DATE
+			  , UPD_DATE
+			  , USER_ID
+		)VALUES(
+			#seq#
+			,#title#
+			,#address#
+			,#sido#
+			,#gugun#
+			,#gpsy#
+			,#gpsx#
+			,#bookCafeYn#
+			,#bookStoreCert#
+			,#tel#
+			,#businessTime#
+			,#rest#
+			,#homepage#
+			,'W'
+			,SYSDATE
+			,SYSDATE
+			,#session_admin_id#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_BOOKSTORE SET
+ 				TITLE			=		#title#
+			  , ADDRESS			=		#address#
+			  , SIDO			=		#sido#
+			  , GUGUN			=		#gugun#
+			  , GPSY			=		#gpsy#
+			  , GPSX			=		#gpsx#
+			  , BOOKCAFE_YN		=		#bookCafeYn#
+			  , BOOKSTORE_CERT	=		#bookStoreCert#
+			  , TEL				=		#tel#
+			  , BUSINESSTIME	=		#businessTime#
+			  , REST			=		#rest#
+			  , HOMEPAGE		=		#homepage#
+			  , UPD_DATE		=		SYSDATE
+			  , USER_ID			=		#session_admin_id#
+		WHERE SEQ = #seq#
+	</update>
+	
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE
+		  	PCN_BOOKSTORE
+		SET
+		  	APPROVAL = #updateStatus#
+		WHERE
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update>
+	
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_BOOKSTORE 
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</delete>
+	
+	<delete id="deleteAll" parameterClass="paramMap">
+		DELETE FROM 
+			PCN_BOOKSTORE 
+	</delete>
+	
+	<insert id="insertCvsHistory" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_BOOKSTORE_CVS_HISTORY
+		</selectKey>
+		INSERT INTO PCN_BOOKSTORE_CVS_HISTORY
+		(			
+			 SEQ
+			  , FILE_NM
+			  , REG_DATE
+			  , USER_ID
+		)VALUES(
+			#seq#
+			,#fileName#
+			,SYSDATE
+			,#session_admin_id#
+		)
+	</insert>
+	
+</sqlMap>

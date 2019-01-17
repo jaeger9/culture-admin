@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="resBanner">
+
+	<sql id="sqlPagingBegin">
+		SELECT * FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+			1 = 1
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="page_seq" prepend="AND">
+			A.PSEQ = #page_seq#
+		</isNotEmpty>
+		<isNotEmpty property="search_word" prepend="AND" open="(" close=")">
+				LOWER(A.TITLE)				LIKE LOWER('%' || #search_word# || '%')
+			OR	LOWER(A.CONTENTS)			LIKE LOWER('%' || #search_word# || '%')
+		</isNotEmpty>
+	</sql>
+
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_INFO_RESOURCE_BANNER A
+		<include refid="sqlList-1" />
+	</select>
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.SEQ
+		    , A.PSEQ
+		    , A.TITLE
+		    , TO_CHAR(A.START_DT, 'YYYY.MM.DD') AS START_DT
+		    , TO_CHAR(A.END_DT, 'YYYY.MM.DD') AS END_DT
+		    , A.IMAGE
+		    , A.URL
+		    , A.CONTENTS
+		    , A.APPROVAL
+		    , (SELECT TITLE FROM PCN_INFO_RESOURCE_PAGE B WHERE B.SEQ = A.PSEQ) PAGE_TITLE
+		FROM
+			PCN_INFO_RESOURCE_BANNER A
+		<include refid="sqlList-1" />
+		ORDER BY
+			A.SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+		    , A.PSEQ
+		    , A.TITLE
+		    , TO_CHAR(A.START_DT, 'YYYY-MM-DD') AS START_DT
+		    , TO_CHAR(A.END_DT, 'YYYY-MM-DD') AS END_DT
+		    , A.IMAGE
+		    , A.URL
+		    , A.CONTENTS
+		    , A.APPROVAL
+		    , (SELECT TITLE FROM PCN_INFO_RESOURCE_PAGE B WHERE B.SEQ = A.PSEQ) PAGE_TITLE
+		    , A.REG_ID
+		    , TO_CHAR(A.REG_DATE, 'YYYY.MM.DD') AS REG_DATE
+		FROM PCN_INFO_RESOURCE_BANNER A
+		WHERE
+			A.SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		INSERT INTO PCN_INFO_RESOURCE_BANNER (
+			SEQ
+		    , PSEQ
+		    , TITLE
+		    , START_DT
+		    , END_DT
+		    , IMAGE
+		    , URL
+		    , CONTENTS
+		    , APPROVAL
+		    , REG_ID
+		    , REG_DATE
+		) VALUES (
+			(SELECT NVL(MAX(SEQ),0) + 1 FROM PCN_INFO_RESOURCE_BANNER)
+			,#pseq#
+			,#title#
+			,#start_dt#
+			,#end_dt#
+			,#image#
+			,#url#
+			,#contents#
+			,#approval#
+			,#reg_id#
+			,SYSDATE
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_BANNER
+		SET
+			PSEQ 		= #pseq#
+		    , TITLE 	= #title#
+		    , START_DT	= #start_dt#
+		    , END_DT	= #end_dt#
+		    , IMAGE		= #image#
+		    , URL		= #url#
+		    , CONTENTS	= #contents#
+		    , APPROVAL	= #approval#
+		    , UPD_ID	= #upd_id#
+		    , UPD_DATE	= SYSDATE
+		WHERE
+			SEQ		=	#seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PCN_INFO_RESOURCE_BANNER
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_INFO_RESOURCE_BANNER
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

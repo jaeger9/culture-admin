@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="cultureStory">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<sql id="sqlList-1">
+		WHERE
+				MENU_CD = 1
+	     <isNotEmpty property="code" prepend="AND">
+			A.CODE = #code#
+		</isNotEmpty>
+		<isNotEmpty property="approval" prepend="AND">
+			A.APPROVAL = #approval#
+		</isNotEmpty>
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="title" prepend="AND">
+				LOWER(A.TITLE)			LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="description" prepend="AND">
+				LOWER(A.CONTENT)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty>
+	</sql>
+		
+	<select id="count" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PORTAL_STORY A
+		<include refid="sqlList-1" />
+	</select>
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		STATUS -->
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+			SELECT
+				A.SEQ 
+			  	, A.TITLE 
+			  	, A.MENU_CD 
+			  	, DECODE(A.CODE , 605 , '개인을 변화시키다' , 606 , '공동체를 변화시키다' , 607 , '산업을 변화시키다' , 608 , '국가를 변화시키다' ) AS CODE
+			  	, A.ORIGIN
+			  	, TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
+			  	, A.USER_ID
+			  	, DECODE(A.APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL
+			  	, A.VIEW_CNT
+		FROM
+			PORTAL_STORY A
+		<include refid="sqlList-1" />
+		ORDER BY
+			SEQ DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+		  	, A.TITLE
+		  	, A.CODE
+		  	, A.ORIGIN
+		  	, A.THUMB_URL
+		  	, A.CONTENT
+		  	, A.SUB_TITLE
+		  	, A.APPROVAL
+		FROM
+			PORTAL_STORY A
+		WHERE
+			SEQ = #seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PORTAL_STORY
+		</selectKey>
+		INSERT INTO PORTAL_STORY (
+			SEQ
+			, TITLE
+			, MENU_CD
+			, CODE
+			, ORIGIN
+			, SUB_TITLE
+			, THUMB_URL
+			, REG_DATE
+			, USER_ID
+			, APPROVAL
+			, VIEW_CNT
+			, CONTENT  
+		) VALUES (
+			#seq#
+			, #title#
+			, '1'
+			, #code#
+			, #origin#
+			, #sub_title#
+			, #thumb_url#
+			, SYSDATE
+			, 'admin'
+			, #approval#
+			, 0
+			, #content#  
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PORTAL_STORY
+		SET	
+			TITLE					=#title#
+		  	, CODE				    =#code#
+		  	, ORIGIN				=#origin#
+		  	, THUMB_URL				=#thumb_url#
+		  	, CONTENT				=#content#
+		  	, APPROVAL				=#approval#
+		  	, SUB_TITLE             =#sub_title#
+		WHERE
+			SEQ = #seq#
+	</update>
+
+	<update id="updateApproval" parameterClass="paramMap">
+		UPDATE PORTAL_STORY
+		SET
+			APPROVAL = #approval#
+		WHERE
+			SEQ IN
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PORTAL_STORY
+		WHERE
+			SEQ IN 
+		<iterate property="array.seqs" open="(" conjunction="," close=")">
+			#array.seqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="archiveCategory">
+
+	<sql id="sqlPagingBegin">
+		SELECT X.* FROM (
+			SELECT ROWNUM AS RNUM, Z.* FROM (
+	</sql>
+
+	<sql id="sqlPagingEnd"><![CDATA[
+			) Z WHERE ROWNUM <= (#page_no# * #list_unit#)
+		) X WHERE X.RNUM >= ((#page_no# - 1) * #list_unit# + 1)
+	]]></sql>
+
+	<!-- sql name만 그대로 사용... -->
+	<!-- 예술자료전시관 > 아카이브분류체계관리 -->
+	<select id="getArchiveCategory1DptListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM
+			ARC_CAT_THM A
+	</select>
+	
+	<select id="getArchiveCategory1DptList" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ARC_THM_ID
+			,A.ARC_THM_TITLE
+			,A.THM_CCM_PATH
+		FROM
+			ARC_CAT_THM A
+		ORDER BY 
+			A.THM_DSP_SEQ DESC /* 순번 */
+		<include refid="sqlPagingEnd" />		
+	</select>
+
+	<sql id="sqlList-2">
+		WHERE
+			A.ARC_THM_ID = #arc_thm_id#
+	</sql>
+
+	<select id="getArchiveCategory2DptListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			ARC_CDE_MST A
+		<include refid="sqlList-2" />
+	</select>
+
+	<select id="getArchiveCategory2DptList" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ARC_THM_ID
+			,A.MST_CLASS
+			,A.MST_TITLE
+		FROM
+			ARC_CDE_MST A
+		<include refid="sqlList-2" />
+		ORDER BY
+        	TO_NUMBER(A.MST_CLASS) DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<sql id="sqlList-3">
+		WHERE
+			A.ARC_THM_ID	=	#arc_thm_id#
+		AND	A.MST_CLASS		=	#mst_class#	
+	</sql>
+
+	<select id="getArchiveCategory3DptListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM
+			ARC_CDE_DTL A
+		<include refid="sqlList-3" />
+	</select>
+	
+	<select id="getArchiveCategory3DptList" parameterClass="paramMap" resultClass="commonMap">
+		<include refid="sqlPagingBegin" />
+		SELECT
+			A.ARC_THM_ID
+			,A.MST_CLASS
+			,A.DTL_CODE
+			,A.DTL_CDE_TITLE
+		FROM
+			ARC_CDE_DTL A
+		<include refid="sqlList-3" />
+		ORDER BY
+        	TO_NUMBER(A.DTL_CODE) DESC
+		<include refid="sqlPagingEnd" />
+	</select>
+
+	<select id="getArchiveCategory1DptView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_THM_ID
+			,A.ARC_THM_TITLE
+			,A.THM_DSP_SEQ
+			,A.THM_PERIOD_TYPE
+			,A.THM_ZONE_TYPE
+			,A.THM_EVENT_TYPE
+			,A.THM_SOURCE_TYPE
+			,A.THM_CCM_PATH
+			,A.THM_CCM_LEV1
+			,A.THM_CCM_LEV2
+			,A.THM_CCM_LEV3
+			,A.THM_CCM_LEV4
+		FROM
+			ARC_CAT_THM A
+		WHERE
+			A.ARC_THM_ID = #arc_thm_id#
+	</select>
+	
+	<select id="getArchiveCategory2DptView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_THM_ID
+			,A.MST_CLASS
+			,A.MST_TITLE
+			,A.MST_VALUE_TXT
+			,A.MST_VALUE_NUM
+			,A.MST_DSP_SEQ
+		FROM
+			ARC_CDE_MST A
+		WHERE
+			A.ARC_THM_ID	=	#arc_thm_id#
+		AND	A.MST_CLASS		=	#mst_class#
+	</select>
+	
+	<select id="getArchiveCategory3DptView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.ARC_THM_ID
+			,A.MST_CLASS
+			,A.DTL_CODE
+			,A.DTL_CDE_TITLE
+			,A.DTL_VALUE_TXT
+			,A.DTL_VALUE_NUM
+			,A.DTL_DSP_SEQ
+		FROM
+			ARC_CDE_DTL A
+		WHERE
+			A.ARC_THM_ID	=	#arc_thm_id#
+		AND	A.MST_CLASS		=	#mst_class#
+		AND	A.DTL_CODE		=	#dtl_code#
+	</select>
+
+	<insert id="insertArchiveCategory1Dpt" parameterClass="paramMap">
+		<selectKey keyProperty="arc_thm_id" type="pre" resultClass="int">
+			SELECT NVL(MAX(ARC_THM_ID), 0) + 1 FROM ARC_CAT_THM
+		</selectKey>
+
+		INSERT INTO ARC_CAT_THM (
+			ARC_THM_ID
+			,ARC_THM_TITLE
+			,THM_DSP_SEQ
+			,THM_PERIOD_TYPE
+			,THM_ZONE_TYPE
+			,THM_EVENT_TYPE
+			,THM_SOURCE_TYPE
+			,THM_CCM_PATH
+			,THM_CCM_LEV1
+			,THM_CCM_LEV2
+			,THM_CCM_LEV3
+			,THM_CCM_LEV4
+		) VALUES (
+			#arc_thm_id#
+			,#arc_thm_title#
+			,#thm_dsp_seq#
+			,#thm_period_type#
+			,#thm_zone_type#
+			,#thm_event_type#
+			,#thm_source_type#
+			,#thm_ccm_path#
+			,#thm_ccm_lev1#
+			,#thm_ccm_lev2#
+			,#thm_ccm_lev3#
+			,#thm_ccm_lev4#
+		)
+	</insert>
+	
+	<insert id="insertArchiveCategory2Dpt" parameterClass="paramMap">
+		<selectKey keyProperty="mst_class" type="pre" resultClass="string">
+			SELECT
+				NVL(MAX(MST_CLASS), 0) + 1
+			FROM
+				ARC_CDE_MST
+			WHERE
+				ARC_THM_ID = #arc_thm_id#
+		</selectKey>
+
+		INSERT INTO ARC_CDE_MST (
+			ARC_THM_ID
+			,MST_CLASS
+			,MST_TITLE
+			,MST_VALUE_TXT
+			,MST_VALUE_NUM
+			,MST_DSP_SEQ
+		) VALUES (
+			#arc_thm_id#
+			,#mst_class#
+			,#mst_title#
+			,#mst_value_txt#
+			,NVL(#mst_value_num#, NULL)
+			,NVL(#mst_dsp_seq#, NULL)
+		)
+	</insert>
+	
+	<insert id="insertArchiveCategory3Dpt" parameterClass="paramMap">
+		<selectKey keyProperty="dtl_code" type="pre" resultClass="string">
+			SELECT
+				NVL(MAX(DTL_CODE), 0) + 1
+			FROM
+				ARC_CDE_DTL
+			WHERE
+				ARC_THM_ID	=	#arc_thm_id#
+			AND	MST_CLASS	=	#mst_class#
+		</selectKey>
+
+		INSERT INTO ARC_CDE_DTL (
+			ARC_THM_ID
+			,MST_CLASS
+			,DTL_CODE
+			,DTL_CDE_TITLE
+			,DTL_VALUE_TXT
+			,DTL_VALUE_NUM
+			,DTL_DSP_SEQ
+		) VALUES (
+			#arc_thm_id#
+			,#mst_class#
+			,#dtl_code#
+			,#dtl_cde_title#
+			,#dtl_value_txt#
+			,NVL(#dtl_value_num#, NULL)
+			,NVL(#dtl_dsp_seq#, NULL)
+		)
+	</insert>
+
+	<update id="updateArchiveCategory1Dpt" parameterClass="paramMap">
+		UPDATE ARC_CAT_THM
+		SET
+			ARC_THM_TITLE	=	#arc_thm_title#
+			,THM_DSP_SEQ	=	#thm_dsp_seq#		/* 순번 */
+			,THM_CCM_PATH	=	#thm_ccm_path#
+			,THM_CCM_LEV1	=	#thm_ccm_lev1#
+			,THM_CCM_LEV2	=	#thm_ccm_lev2#
+			,THM_CCM_LEV3	=	#thm_ccm_lev3#
+			,THM_CCM_LEV4	=	#thm_ccm_lev4#
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+	</update>
+
+	<update id="updateArchiveCategory2Dpt" parameterClass="paramMap">
+		UPDATE ARC_CDE_MST
+		SET
+			MST_TITLE		=	#mst_title#
+			,MST_DSP_SEQ	=	#mst_dsp_seq#
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+		AND	MST_CLASS	=	#mst_class#
+	</update>
+	
+	<update id="updateArchiveCategory3Dpt" parameterClass="paramMap">
+		UPDATE ARC_CDE_DTL
+		SET
+			DTL_CDE_TITLE	=	#dtl_cde_title#
+			,DTL_DSP_SEQ	=	#dtl_dsp_seq#
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+		AND	MST_CLASS	=	#mst_class#
+		AND	DTL_CODE	=	#dtl_code#
+	</update>
+	
+	<delete id="deleteArchiveCategory1Dpt" parameterClass="paramMap">
+		DELETE FROM ARC_CAT_THM
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+	</delete>
+	
+	<delete id="deleteArchiveCategory2Dpt" parameterClass="paramMap">
+		DELETE
+			FROM ARC_CDE_MST
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+		AND	MST_CLASS	=	#mst_class#
+	</delete>
+	
+	<delete id="deleteArchiveCategory3Dpt" parameterClass="paramMap">
+		DELETE FROM ARC_CDE_DTL
+		WHERE
+			ARC_THM_ID	=	#arc_thm_id#
+		AND	MST_CLASS	=	#mst_class#
+		AND	DTL_CODE	=	#dtl_code#
+	</delete>
+
+</sqlMap>

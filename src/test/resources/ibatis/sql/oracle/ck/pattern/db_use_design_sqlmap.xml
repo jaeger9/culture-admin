@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="db.design">
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			R.* 
+		FROM
+		(
+			SELECT 
+				<!-- /*+INDEX_ASC(A PWOMUSEC_PK)*/ -->
+				
+				<isEmpty property="sort_type">
+					<!-- FLOOR((ROW_NUMBER()OVER(ORDER BY USEC_UPID ASC) -1)/$list_unit$+1) AS PAGE -->
+					FLOOR((ROW_NUMBER()OVER(ORDER BY USEC_RGDT DESC nulls last) -1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				<isNotEmpty property="sort_type">
+					<isEqual property="sort_type" compareValue="latest">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY USEC_RGDT DESC nulls last) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+					<isEqual property="sort_type" compareValue="hit">
+						FLOOR((ROW_NUMBER()OVER(ORDER BY USEC_RCNT DESC nulls last) -1)/$list_unit$+1) AS PAGE
+					</isEqual>
+				</isNotEmpty>
+				, USEC_UPID
+				, USEC_CONT
+				, USEC_THUM
+				, USEC_FILE
+				, TO_DATE(USEC_RGDT,'YYYY-MM-DD') USEC_RGDT
+				, USEC_TYPE
+				, USEC_RCNT
+			FROM 
+				PWOMUSEC@PATTERN A
+				<!-- PWOMUSEC  -->
+		)  R
+       	WHERE 
+			R.PAGE = #page_no# 
+		
+	</select>
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(*) 
+		FROM 
+			PWOMUSEC@PATTERN
+			<!-- PWOMUSEC -->
+	</select>
+	<select id="viewUse" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			USEC_UPID
+  			, USEC_CONT
+			, USEC_FILE
+			, USEC_RCNT
+			, USEC_RGID
+			, USEC_RGDT
+			, USEC_RGTM
+			, USEC_UTID
+			, USEC_UTDT
+			, USEC_UTTM
+			, USEC_THUM
+			, USEC_TYPE
+		FROM 
+			PWOMUSEC@PATTERN A
+			<!-- PWOMUSEC  -->
+		WHERE 
+			USEC_UPID = #usec_upid#
+	</select>
+	<select id="viewUpct" parameterClass="paramMap" resultClass="java.lang.String">
+		SELECT 
+			UPCT_CTID
+		FROM 
+			PWOMUPCT@PATTERN
+			<!-- PWOMUPCT -->
+		WHERE 
+			UPCT_UPID = #usec_upid#
+	</select>
+	<insert id="insertUse" parameterClass="paramMap">
+		<selectKey resultClass="String" keyProperty="seq">
+			SELECT 
+				LPAD((MAX(USEC_UPID)+1),8,'0') 
+			FROM 
+				PWOMUSEC@PATTERN
+				<!-- PWOMUSEC -->
+		</selectKey>
+		INSERT INTO 
+			PWOMUSEC@PATTERN
+			<!-- PWOMUSEC -->
+		  	(
+			    USEC_UPID,
+			    USEC_CONT,
+			    USEC_FILE,
+			    USEC_THUM,
+			    USEC_TYPE,
+			    USEC_RCNT,
+			    USEC_RGID,
+			    USEC_RGDT,
+			    USEC_RGTM
+		  	) VALUES(
+			    #seq#,
+			    #usec_cont#,
+			    #usec_file#,
+			    #usec_thum#,
+			    #usec_type#,
+			    '0',
+			    #usec_rgid#,
+			    TO_CHAR(SYSDATE, 'yyyymmdd'),
+			    TO_CHAR(SYSDATE, 'hhmmss')
+		  	)
+	</insert>
+	<insert id="insertUpct" parameterClass="paramMap">
+		INSERT INTO 
+			PWOMUPCT@PATTERN(
+			<!-- PWOMUPCT ( -->
+				UPCT_UPID
+				, UPCT_CTID
+			) VALUES (
+				#upct_upid#
+				, #upct_ctid#
+			)
+	</insert>
+	<update id="update" parameterClass="paramMap">
+		UPDATE 
+			PWOMUSEC@PATTERN 
+			<!-- PWOMUSEC -->
+		SET 
+			USEC_CONT = #usec_cont#,
+			<isNotEmpty property="usec_file">
+				USEC_FILE = #usec_file#,
+			</isNotEmpty>
+			<isNotEmpty property="usec_thum">
+				USEC_THUM = #usec_thum#,
+			</isNotEmpty>
+				USEC_TYPE = #usec_type#,
+				USEC_UTID = #usec_utid#,
+				USEC_UTDT=TO_CHAR(SYSDATE, 'yyyymmdd'), 
+				USEC_UTTM=TO_CHAR(SYSDATE, 'hhmmss')
+				WHERE USEC_UPID = #usec_upid#
+	</update>
+	<!-- <update id="statusUpdate" parameterClass="paramMap">
+		
+		UPDATE  
+			PWOMUSEC@PATTERN
+			PWOMUSEC 
+		SET
+			<isNotEmpty property="updateStatus">			
+				APPROVAL	=#updateStatus#			
+			</isNotEmpty>
+		WHERE 
+		<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+			#array.seq[]#
+		</iterate>
+	</update> -->
+	<delete id="deleteUse" parameterClass="paramMap">
+		DELETE FROM 
+			PWOMUSEC@PATTERN
+			<!-- PWOMUSEC  -->
+		WHERE 
+		<iterate property="array.usec_upid" open="USEC_UPID IN (" conjunction="," close=")">
+			#array.usec_upid[]#
+		</iterate>
+	</delete>
+	<delete id="deleteUpct" parameterClass="java.lang.String">
+		DELETE FROM 
+			PWOMUPCT@PATTERN 
+			<!-- PWOMUPCT -->
+		WHERE 
+			UPCT_UPID = #usec_upid#
+	</delete>
+</sqlMap>

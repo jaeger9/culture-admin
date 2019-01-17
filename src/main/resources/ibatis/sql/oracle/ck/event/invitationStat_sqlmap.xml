@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="invitationStat">
+
+	<!-- 등록건수 일별 퍼센트 per_cnt : countByDailyRegdate  -->
+	<select id="countByDailyRegdate" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1) AS COUNT
+		FROM
+			PCN_PERFORM_INVITATION_PERSON A
+		WHERE
+			A.EVENT_SEQ = #event_seq#
+	</select>
+	<select id="listByDailyRegdate" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			AA.REG_DATE
+			,AA.CNT
+			,CAST(ROUND((CAST(AA.CNT AS DECIMAL) / #reg_per_cnt#) * 100, 2) AS NUMERIC(38, 2)) PER
+		FROM
+		(
+			SELECT
+				REG_DATE
+				,COUNT(SEQ) CNT
+			FROM
+			(
+				SELECT
+					SEQ
+					,TO_CHAR(REG_DATE,'YYYY-MM-DD') REG_DATE
+				FROM
+					PCN_PERFORM_INVITATION_PERSON
+				WHERE
+					EVENT_SEQ = #event_seq#
+			) A
+			GROUP BY
+				REG_DATE
+		) AA
+		ORDER BY
+			AA.REG_DATE DESC
+	</select>
+
+	<!-- 일별 신규가입 회원 per_cnt : countByDailyJoinMember -->
+	<select id="countByDailyJoinMember" parameterClass="paramMap" resultClass="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PCN_MEMBER
+		WHERE
+			JOIN_DATE	BETWEEN	TO_DATE(#join_date_start#, 'YYYY-MM-DD')
+						AND		TO_DATE(#join_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+	</select>
+	<select id="listByDailyJoinMember" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			AA.JOIN_DATE
+			,AA.CNT
+			,ROUND((CNT / #member_per_cnt#) * 100, 2) PER
+		FROM
+		(
+			SELECT
+				JOIN_DATE
+				,COUNT(USER_ID) CNT
+			FROM
+			(
+				SELECT
+					TO_DATE(JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE
+					,USER_ID
+				FROM
+					PCN_MEMBER
+				WHERE
+					JOIN_DATE	BETWEEN	TO_DATE(#join_date_start#, 'YYYY-MM-DD')
+								AND		TO_DATE(#join_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			) A
+			GROUP BY
+				JOIN_DATE
+		) AA
+		ORDER BY
+			AA.JOIN_DATE DESC
+	</select>
+
+</sqlMap>

@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culturePush">
+	<!-- 앱 내부 페이지 조회 -->
+	<select id="allList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturePush.allList */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.reg_date DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT 
+					'noti-'||seq as gubun_key
+					, '공지사항' as menu_nm
+					, seq 
+					, title
+					, reg_date
+				FROM CULTURE_NOTICE
+				WHERE approval_yn = 'Y'
+				AND del_yn = 'N'
+				<isNotEmpty property="title">
+					AND title LIKE '%title%'
+				</isNotEmpty>
+				UNION ALL
+				SELECT 
+				  'cal-'||seq as gubun_key
+				  , '문화 캘린더' as menu_nm
+				  , seq
+				  , title
+				  , reg_date
+				FROM culture_cal
+				WHERE approval_yn = 'Y'
+				<isNotEmpty property="title">
+					AND title LIKE '%title%'
+				</isNotEmpty>
+				UNION ALL
+				SELECT 
+				  'news-'||seq as gubun_key
+				  , '문화소식'
+				  , seq
+				  , title
+				  , reg_date
+				FROM CARD_NEWS
+				WHERE app_approval_yn = 'Y'
+				<isNotEmpty property="title">
+					AND title LIKE '%title%'
+				</isNotEmpty>
+				UNION ALL
+				SELECT 
+				  'video-'||seq as gubun_key
+				  , '문화영상'
+				  , seq
+				  , title
+				  , reg_date
+				FROM CULTURE_VIDEO
+				WHERE approval_yn = 'Y'
+				AND del_yn = 'N'
+				<isNotEmpty property="title">
+					AND title LIKE '%title%'
+				</isNotEmpty>
+			) R
+		) R
+		WHERE PAGE = #page_no#
+	</select>
+	
+	<select id="allListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT
+			count(1)
+		FROM (
+			SELECT 
+				1
+			FROM CULTURE_NOTICE
+			WHERE approval_yn = 'Y'
+			AND del_yn = 'N'
+			<isNotEmpty property="title">
+				AND title LIKE '%title%'
+			</isNotEmpty>
+			UNION ALL
+			SELECT 
+			  1
+			FROM culture_cal
+			WHERE approval_yn = 'Y'
+			<isNotEmpty property="title">
+				AND title LIKE '%title%'
+			</isNotEmpty>
+			UNION ALL
+			SELECT 
+			  1
+			FROM CARD_NEWS
+			WHERE app_approval_yn = 'Y'
+			<isNotEmpty property="title">
+				AND title LIKE '%title%'
+			</isNotEmpty>
+			UNION ALL
+			SELECT 
+			 1
+			FROM CULTURE_VIDEO
+			WHERE approval_yn = 'Y'
+			AND del_yn = 'N'
+			<isNotEmpty property="title">
+				AND title LIKE '%title%'
+			</isNotEmpty>
+		) R
+	</select>
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturePush.list */ 
+			R.*
+		FROM (
+			SELECT
+				<isEmpty property="sort_type">
+					FLOOR((ROW_NUMBER()OVER(ORDER BY R.SEQ DESC)-1)/$list_unit$+1) AS PAGE
+				</isEmpty>
+				, R.*
+			FROM (
+				SELECT				
+					SEQ
+					, TITLE
+					, CONTENTS
+					, DEL_YN
+					, REG_ID
+					, TO_CHAR(REG_DATE, 'YYYY-MM-DD hh24:mi:ss') REG_DATE
+					, LINK_TYPE /* I : 내부 , O : 외부 */
+					, IN_LINK 
+					, OUT_LINK
+					, OUT_LINK_TYPE 
+					, SEND_YN 
+					, SEND_TYPE 
+					, SEND_DATE 
+					, CASE WHEN LENGTH(SEND_HOUR) = 1 THEN '0'||SEND_HOUR ELSE SEND_HOUR END AS SEND_HOUR 
+					, SEND_MINUTE 
+				FROM CULTURE_PUSH
+				<dynamic prepend="WHERE">
+					<isNotEmpty property="del_yn" prepend="AND">
+						DEL_YN = #del_yn#
+					</isNotEmpty>
+					<isNotEmpty property="keyword" prepend="AND">
+						<isEqual property="searchGubun" compareValue="">
+							(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%')
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="title">
+							TITLE LIKE '%' || #keyword# || '%'
+						</isEqual>
+						<isEqual property="searchGubun" compareValue="contents">
+							CONTENTS LIKE '%' || #keyword# || '%'
+						</isEqual>
+					</isNotEmpty>
+				</dynamic>
+			) R
+		) R
+		WHERE PAGE = #page_no#		
+	</select>
+	
+	<!-- 카드 뉴스  목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culturePush.listCnt */
+			COUNT(1)
+		FROM CULTURE_PUSH
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="del_yn" prepend="AND">
+				DEL_YN = #del_yn#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TITLE LIKE '%' || #keyword# || '%' OR CONTENTS LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="title">
+					TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="contents">
+					CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	
+	<!-- 영상관리  상세 -->
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT /* culturePush.view */
+			  SEQ
+			, TITLE
+			, CONTENTS
+			, DEL_YN
+			, REG_ID
+			, LINK_TYPE 
+			, IN_LINK 
+			, OUT_LINK
+			, OUT_LINK_TYPE 
+			, SEND_TYPE 
+			, SEND_DATE 
+			, SEND_HOUR 
+			, SEND_MINUTE 
+			, SEND_YN
+		FROM CULTURE_PUSH
+		WHERE SEQ = #seq#
+	</select>
+	
+	<!-- 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT SEQ_CULTURE_PUSH.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT /* culturePush.insert */ 
+		INTO CULTURE_PUSH (
+			SEQ, TITLE, CONTENTS,  DEL_YN, REG_ID, REG_DATE
+			, LINK_TYPE 
+			, IN_LINK 
+			, OUT_LINK
+			, OUT_LINK_TYPE 
+			, SEND_TYPE 
+			, SEND_DATE 
+			, SEND_HOUR 
+			, SEND_MINUTE 
+			, SEND_YN
+		) VALUES(
+			#seq#, #title#, #contents#, #del_yn#, #reg_id#, SYSDATE
+			, #link_type# 
+			, #in_link#
+			, #out_link#
+			, #out_link_type# 
+			, #send_type# 
+			, #send_date# 
+			, #send_hour# 
+			, #send_minute# 
+			, #send_yn#
+		)
+	</insert>
+	
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* culturePush.update */ 
+		CULTURE_PUSH 
+		SET
+			TITLE = #title#
+			, CONTENTS = #contents#
+			, UPD_ID = #upd_id#
+			, UPD_DATE = SYSDATE
+			<isNotEmpty property="link_type">
+				, LINK_TYPE = #link_type# 
+			</isNotEmpty>
+			<isNotEmpty property="in_link">
+				, IN_LINK = #in_link#
+			</isNotEmpty>
+			<isNotEmpty property="out_link">
+				, OUT_LINK = #out_link#
+			</isNotEmpty>
+			<isNotEmpty property="out_link_type">
+				, OUT_LINK_TYPE = #out_link_type# 
+			</isNotEmpty>
+			<isNotEmpty property="send_type">
+				, SEND_TYPE = #send_type#
+			</isNotEmpty>
+			<isNotEmpty property="send_date">
+				, SEND_DATE = #send_date#
+			</isNotEmpty>
+			<isNotEmpty property="send_hour">
+				, SEND_HOUR = #send_hour#
+			</isNotEmpty>
+			<isNotEmpty property="send_minute">
+				, SEND_MINUTE = #send_minute#
+			</isNotEmpty>
+			<isNotEmpty property="send_yn">
+				, SEND_YN = #send_yn#
+			</isNotEmpty>
+		WHERE SEQ = #seq#
+	</update>
+	
+	
+	<update id="updateSend" parameterClass="paramMap">
+		UPDATE /* culturePush.updateSend */ 
+		CULTURE_PUSH 
+		SET
+			  SEND_DATE = #send_date#
+			, SEND_HOUR = #send_hour#
+			, SEND_MINUTE = #send_minute#
+			, SEND_YN = #send_yn#
+		WHERE SEQ = #seq#
+	</update>
+	
+	<!-- PUsh관리 컨텐츠 삭제 -->
+	<delete id="delete" parameterClass="paramMap">
+		DELETE /* culturePush.delete */
+		FROM CULTURE_PUSH
+		WHERE SEQ = #seq#
+	</delete>
+	
+	
+	
+	
+	
+</sqlMap>

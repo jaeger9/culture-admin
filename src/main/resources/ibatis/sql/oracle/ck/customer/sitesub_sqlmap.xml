@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="sitesub">
+
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.SEQ
+			,A.PSEQ
+			,A.SITE_NAME
+			,A.SITE_URL
+		FROM
+			PCN_CUSTOMER_SITESUB A
+		WHERE
+			A.PSEQ = #sub_pseq#
+		ORDER BY
+			A.SEQ
+	</select>
+
+	<select id="exist" parameterClass="paramMap" resultClass="int">
+		SELECT
+		    COUNT(1)
+		FROM
+			PCN_CUSTOMER_SITESUB A
+		WHERE
+			A.SEQ = #sub_seq#
+	</select>
+
+	<insert id="insert" parameterClass="paramMap">
+		<selectKey keyProperty="sub_seq" type="pre" resultClass="int">
+			SELECT NVL(MAX(SEQ), 0) + 1 FROM PCN_CUSTOMER_SITESUB
+		</selectKey>
+
+		INSERT INTO PCN_CUSTOMER_SITESUB (
+			SEQ
+			,PSEQ
+			,SITE_NAME
+			,SITE_URL
+		) VALUES (
+			#sub_seq#
+			,#sub_pseq#
+			,#sub_site_name#
+			,#sub_site_url#
+		)
+	</insert>
+
+	<update id="update" parameterClass="paramMap">
+		UPDATE PCN_CUSTOMER_SITESUB
+		SET
+			SITE_NAME	=	#sub_site_name#
+			,SITE_URL	=	#sub_site_url#
+		WHERE
+			SEQ = #sub_seq#
+	</update>
+
+	<delete id="delete" parameterClass="paramMap">
+		DELETE FROM PCN_CUSTOMER_SITESUB
+		WHERE
+			SEQ IN 
+		<iterate property="array.sub_seqs" open="(" conjunction="," close=")">
+			#array.sub_seqs[]#
+		</iterate>
+	</delete>
+
+	<delete id="deletePseq" parameterClass="paramMap">
+		DELETE FROM PCN_CUSTOMER_SITESUB
+		WHERE
+			PSEQ IN 
+		<iterate property="array.sub_pseqs" open="(" conjunction="," close=")">
+			#array.sub_pseqs[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

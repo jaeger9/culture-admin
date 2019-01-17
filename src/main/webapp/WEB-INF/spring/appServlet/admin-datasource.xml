@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/ibatis/conf/${deploy-mode}.db.properties</value>
+				<!-- <value>classpath:/ibatis/conf/real.db.properties</value> -->
+				<!-- <value>classpath:/ibatis/conf/dev.db.properties</value> -->
+			</list>  
+		</property>
+	</bean>
+
+	<bean id="dataSource-ck"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>${ck.driver}</value>
+		</property>
+		<property name="url">
+			<value>${ck.url}</value>
+		</property>
+		<property name="username">
+			<value>${ck.username}</value>
+		</property>
+		<property name="password">
+			<value>${ck.password}</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-kiiss"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>${kiiss.driver}</value>
+		</property>
+		<property name="url">
+			<value>${kiiss.url}</value>
+		</property>
+		<property name="username">
+			<value>${kiiss.username}</value>
+		</property>
+		<property name="password">
+			<value>${kiiss.password}</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-culture"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>${culture.driver}</value>
+		</property>
+		<property name="url">
+			<value>${culture.url}</value>
+		</property>
+		<property name="username">
+			<value>${culture.username}</value>
+		</property>
+		<property name="password">
+			<value>${culture.password}</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-culdata"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>${culdata.driver}</value>
+		</property>
+		<property name="url">
+			<value>${culdata.url}</value>
+		</property>
+		<property name="username">
+			<value>${culdata.username}</value>
+		</property>
+		<property name="password">
+			<value>${culdata.password}</value>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-ck-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<constructor-arg ref="dataSource-ck" />
+		<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE" />
+				<!-- <property name="margin" value="19"/>  -->
+				<property name="sqlPrefix" value="SQL=>" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-culture-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<constructor-arg ref="dataSource-culture" />
+		<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE" />
+				<!-- <property name="margin" value="19"/>  -->
+				<property name="sqlPrefix" value="SQL=>" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="dataSource-culdata-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<constructor-arg ref="dataSource-culdata" />
+		<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE" />
+				<!-- <property name="margin" value="19"/>  -->
+				<property name="sqlPrefix" value="SQL=>" />
+			</bean>
+		</property>
+	</bean>
+	
+	<alias name="dataSource-ck-proxy" alias="admin.datasource.ck" />
+	<alias name="dataSource-culture-proxy" alias="admin.datasource.culture" />
+	<alias name="dataSource-culdata-proxy" alias="admin.datasource.culdata" />
+	
+</beans>
