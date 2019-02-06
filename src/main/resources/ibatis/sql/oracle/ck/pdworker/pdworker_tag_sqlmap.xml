@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="pdworker.tag">
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM PDWORKER.PCN_MOV_TAGLIB
+		<isNotEmpty property="keyword" prepend="WHERE">
+			TAG_NAME LIKE '%'||#keyword#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * 
+		FROM (
+			SELECT ROWNUM NUM, A.*
+			FROM (
+				SELECT *
+				FROM (
+					SELECT A.SEQ, A.TAG_NAME, A.RECOM_YN, NVL(B.CNT,0) CNT
+					FROM PDWORKER.PCN_MOV_TAGLIB A,(
+						SELECT TAG_SEQ, COUNT(1) CNT
+						FROM PDWORKER.PCN_MOV_COMSTAG A, PDWORKER.COMS_MOVIE_REG B
+						WHERE A.COMS_IDX = B.IDX
+						AND B.STATE = '3'
+						GROUP BY TAG_SEQ
+					) B
+					WHERE A.SEQ = B.TAG_SEQ(+)
+				<isNotEmpty property="keyword">
+					AND TAG_NAME LIKE '%'||#keyword#||'%'
+				</isNotEmpty>
+				) A
+			<isEmpty property="order">
+				ORDER BY CNT DESC
+			</isEmpty>
+			<isEqual property="order" compareValue="abc">
+				ORDER BY TAG_NAME
+			</isEqual>
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			*
+		FROM 
+			PDWORKER.PCN_MOV_TAGLIB
+		WHERE 
+			SEQ = #seq#
+	</select>
+	<select id="recomTagLibList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT 
+			SEQ, TAG_NAME
+		FROM 
+			PDWORKER.PCN_MOV_TAGLIB
+		WHERE 
+			RECOM_YN = 'Y'
+	</select>
+	<select id="culturePdListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1)
+		FROM PDWORKER.COMS_MOVIE_REG A, PDWORKER.PCN_MOV_COMSTAG B
+		WHERE STATE='3'
+		AND A.IDX = B.COMS_IDX
+		AND B.TAG_SEQ = #seq#
+	</select>
+	<select id="culturePdList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			IDX, TITLE, (SELECT SERVICE_NAME FROM PDWORKER.WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME, 
+			(SELECT AREA_NAME FROM PDWORKER.WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, WRITE_DAT, VIEW_CNT
+		FROM (
+			SELECT ROWNUM RN , AA.*
+			FROM (
+				SELECT IDX, TITLE, SERVICE_ID, AREA_ID, WRITE_DAT, VIEW_CNT
+				FROM PDWORKER.COMS_MOVIE_REG A, PDWORKER.PCN_MOV_COMSTAG B
+				WHERE STATE='3'
+				AND A.IDX = B.COMS_IDX
+				AND B.TAG_SEQ = #seq#
+				AND WISH_POST_DATE &gt; '1000-01-01'
+				AND VIEW_CNT &gt;= 0
+				ORDER BY WISH_POST_DATE DESC, IDX DESC
+			) AA
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE RN &gt;= #snum#
+	</select>
+	<select id="culturePdView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			IDX, TITLE, WRITE_DAT, USER_NAME, CO_PRODUCE_NAME, VIEW_CNT, WISH_POST_DATE, VSN, CONTENTS,
+			(SELECT SERVICE_NAME FROM PDWORKER.WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME, 
+			(SELECT AREA_NAME FROM PDWORKER.WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			REPLACE(REPLACE(RUNNING_TIME,' ',''),'.',':') RUNNING_TIME, CID
+		FROM PDWORKER.COMS_MOVIE_REG A
+		WHERE IDX = #idx#
+	</select>
+	<select id="culturePdTags" parameterClass="paramMap" resultClass="commonMap">
+		SELECT TAG_NAME
+		FROM PDWORKER.PCN_MOV_TAGLIB A, PDWORKER.PCN_MOV_COMSTAG B
+		WHERE A.SEQ = B.TAG_SEQ(+)
+		AND B.COMS_IDX = #idx#
+	</select>
+	
+	<select id="culturePdSite" parameterClass="paramMap" resultClass="commonMap">
+		SELECT SITE_URL, SUBSTR(SITE_URL, INSTR(SITE_URL, 'http://')) URL
+		FROM PDWORKER.COMS_MOVIE_SITE
+		WHERE COMS_IDX = #idx#
+	</select>
+	
+	<select id="cmntList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT USER_ID, CONTENTS, WRITE_DAY, WRITER, WRITE_TIME
+		FROM PDWORKER.COMS_UPC_DAT
+		WHERE RE_IDX = #idx#
+		AND DEL_YN = 'N'
+		AND ROOT_TB = 'coms_upc_dat'
+		<!-- USING INDEX COMS_UPC_DAT_IDX01(+) -->
+	</select>
+	<select id="selectedTagInfo" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+		 	TAG_NAME , SEQ
+		FROM 
+		    PDWORKER.PCN_MOV_TAGLIB
+		WHERE
+		   	<iterate property="array.seq" open="SEQ IN (" conjunction="," close=")">
+				#array.seq[]#
+			</iterate>
+	</select>
+	
+	<update id="updateTagLibRecome" parameterClass="paramMap">
+		UPDATE 
+			PDWORKER.PCN_MOV_TAGLIB
+		SET 
+			RECOM_YN = #recomeYn#
+		<dynamic prepend="WHERE">
+			<isEqual property="recomeYn" compareValue="Y">
+				SEQ IN( $seq$ ) 
+			</isEqual>
+		</dynamic>
+		
+	</update>
+	<update id="updateTagName" parameterClass="paramMap">
+		UPDATE
+			PDWORKER.PCN_MOV_TAGLIB
+		SET
+			TAG_NAME = #tag_name#
+		WHERE
+			SEQ = #seq#
+	</update>
+</sqlMap>

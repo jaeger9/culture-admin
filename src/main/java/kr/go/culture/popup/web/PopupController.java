@@ -714,9 +714,9 @@ public class PopupController {
 			//setUccParamMap(paramMap);
 			setPagingNum(paramMap);
 			paramMap.put("culture100", "");
-			
-			model.addAttribute("list", kiissDataBaseService.readForList("content.popup.uccList2", paramMap));
-			model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.uccListCnt2", paramMap));
+			//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
+			model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.uccList2", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.uccListCnt2", paramMap));
 			
 			rtn = "/popup/cultureUcc";
 		}
@@ -743,38 +743,42 @@ public class PopupController {
 			} else if("5".equals(subType)){ //문화직업
 				paramMap.put("job30", "Y");
 				setPagingNum(paramMap);
-				model.addAttribute("list", kiissDataBaseService.readForList("content.popup.uccList2", paramMap));
-				model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.uccListCnt2", paramMap));
+				//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+				model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.uccList2", paramMap));
+				model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.uccListCnt2", paramMap));
 				
 			}
 			else if("0".equals(subType)){ //문화TV
 				paramMap.put("tvReveiw", "Y");
 				setPagingNum(paramMap);
-				model.addAttribute("list", kiissDataBaseService.readForList("content.popup.cultureReviewList", paramMap));
-				model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.cultureReviewListCnt", paramMap));
+				//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+				model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.cultureReviewList", paramMap));
+				model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.cultureReviewListCnt", paramMap));
 			
 			}
 			else if("1".equals(subType)){ //문화예보
 				paramMap.put("forecast", "Y");
 				setPagingNum(paramMap);
-				model.addAttribute("list", kiissDataBaseService.readForList("content.popup.forecastList", paramMap));
-				model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.forecastListCnt", paramMap));
+				//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+				model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.forecastList", paramMap));
+				model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.forecastListCnt", paramMap));
 			
 			}
 			else if("2".equals(subType)){ //인문학강연
 				paramMap.put("humanlecture", "Y");
 				setPagingNum(paramMap);
-				model.addAttribute("list", kiissDataBaseService.readForList("content.popup.humanLectureList", paramMap));
-				model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.humanLectureListCnt", paramMap));
+				//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+				model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.humanLectureList", paramMap));
+				model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.humanLectureListCnt", paramMap));
 			
 			} 
 			else{
 				//setUccParamMap(paramMap);
 				setPagingNum(paramMap);
 				paramMap.put("culture100", "");
-				
-				model.addAttribute("list", kiissDataBaseService.readForList("content.popup.uccList2", paramMap));
-				model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.uccListCnt2", paramMap));
+				//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+				model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.uccList2", paramMap));
+				model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.uccListCnt2", paramMap));
 			}
 			
 			rtn = "/popup/cultureCont";
@@ -796,24 +800,27 @@ public class PopupController {
 		//인문학강연
 		else if("humanLecture".equals(type)){
 			setPagingNum(paramMap);
-			model.addAttribute("list", kiissDataBaseService.readForList("content.popup.humanLectureList", paramMap));
-			model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.humanLectureListCnt", paramMap));
+			//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+			model.addAttribute("list", ckDatabaseService.readForList("pdworkercontent.popup.humanLectureList", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworkercontent.popup.humanLectureListCnt", paramMap));
 			rtn = "/popup/cultureHumanLecture";
 		}
 		
 		//문화예보
 		else if("forecast".equals(type)){
 			setPagingNum(paramMap);
-			model.addAttribute("list", kiissDataBaseService.readForList("content.popup.forecastList", paramMap));
-			model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.forecastListCnt", paramMap));
+			//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+			model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.forecastList", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.forecastListCnt", paramMap));
 			rtn = "/popup/cultureForecast";
 		}
 		
 		//한국문화100
 		else if("culture100".equals(type)){
 			setPagingNum(paramMap);
-			model.addAttribute("list", kiissDataBaseService.readForList("content.popup.culture100List", paramMap));
-			model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.culture100ListCnt", paramMap));
+			//!@# 2019.02.06 PDWORKER로 SQL NAMESPACE 변경
+			model.addAttribute("list", ckDatabaseService.readForList("pdworker.content.popup.culture100List", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworker.content.popup.culture100ListCnt", paramMap));
 			rtn = "/popup/culture100";
 		}
 		

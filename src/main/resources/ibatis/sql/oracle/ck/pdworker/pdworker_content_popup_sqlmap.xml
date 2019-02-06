@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="pdworker.content.popup">
+	<select id="uccList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*,
+			(SELECT SERVICE_NAME FROM WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME,
+			(SELECT AREA_NAME FROM WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			case
+				when AREA_GROUP = '1' then 
+					'/mov/internationalView.do?idx='||IDX 
+		     	when  CULTURE100 = 'Y' then 
+					'/mov/culture100View.do?idx='||IDX 
+		     	else 
+		     		'/mov/culturePdView.do?idx='||IDX 
+			end URL,
+			case 
+				when length(MOVIE_PIC_PATH2_SYSNAME) > 0 then 
+					'/upload/contents/' || MOVIE_PIC_PATH2_SYSNAME
+		     	when  length((select name from tvm_thumbnail where cid = A.cid and delegate = 1)) > 0 then 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and delegate = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and delegate = 1)
+		     	else 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and ncount = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and ncount = 1) 
+			end IMAGE
+		FROM (
+			SELECT 
+				ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+					IDX, TITLE, SERVICE_ID, AREA_ID, MOVIE_PIC_PATH2_SYSNAME, CONTENTS SUMMARY, CID, CULTURE100, AREA_GROUP
+				FROM COMS_MOVIE_REG 
+				WHERE STATE = '3'
+				AND	HUMAN_LECTURE='N'
+				AND DUP = 'Y'
+				<isNotEmpty property="area_group" prepend="AND">
+					AREA_GROUP = #area_group#
+				</isNotEmpty>
+				<isNotEmpty property="culture100" prepend="AND">
+					CULTURE100 = #culture100#
+				</isNotEmpty>
+				<isNotEmpty property="service_id" prepend="AND">
+					SERVICE_ID = #service_id#
+				</isNotEmpty>
+				<isNotEmpty property="area_id" prepend="AND">
+					AREA_ID = #area_id#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%'||#searchKeyword#||'%'
+				</isNotEmpty>
+				ORDER BY IDX DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="uccListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			COMS_MOVIE_REG 
+		WHERE 
+			STATE = '3'
+		AND	HUMAN_LECTURE='N'
+		AND DUP = 'Y'
+		<isNotEmpty property="area_group" prepend="AND">
+			AREA_GROUP = #area_group#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="service_id" prepend="AND">
+			SERVICE_ID = #service_id#
+		</isNotEmpty>
+		<isNotEmpty property="area_id" prepend="AND">
+			AREA_ID = #area_id#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+	</select>
+	<select id="uccList1" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*,
+			(SELECT SERVICE_NAME FROM WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME,
+			(SELECT AREA_NAME FROM WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			case
+				when AREA_GROUP = '1' then 
+					'/mov/internationalView.do?idx='||IDX 
+		     	when  CULTURE100 = 'Y' then 
+					'/mov/culture100View.do?idx='||IDX 
+		     	else 
+		     		'/mov/culturePdView.do?idx='||IDX 
+			end URL,
+			case 
+				when length(MOVIE_PIC_PATH2_SYSNAME) > 0 then 
+					'/upload/contents/' || MOVIE_PIC_PATH2_SYSNAME
+		     	when  length((select name from tvm_thumbnail where cid = A.cid and delegate = 1)) > 0 then 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and delegate = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and delegate = 1)
+		     	else 
+		     		'/upload/videos2/vod/'|| (select uri from tvm_thumbnail where cid = A.cid and ncount = 1)  || '/' || (select name from tvm_thumbnail where cid = A.cid and ncount = 1) 
+			end IMAGE
+		FROM (
+			SELECT 
+				ROWNUM NUM, A.* 
+			FROM (
+				SELECT
+					IDX, TITLE, SERVICE_ID, AREA_ID, MOVIE_PIC_PATH2_SYSNAME, CONTENTS SUMMARY, CID, CULTURE100, AREA_GROUP
+				FROM COMS_MOVIE_REG 
+				WHERE STATE = '3'
+				AND	HUMAN_LECTURE='N'
+				<isNotEmpty property="area_group" prepend="AND">
+					AREA_GROUP = #area_group#
+				</isNotEmpty>
+				<isNotEmpty property="culture100" prepend="AND">
+					CULTURE100 = #culture100#
+				</isNotEmpty>
+				<isNotEmpty property="service_id" prepend="AND">
+					SERVICE_ID = #service_id#
+				</isNotEmpty>
+				<isNotEmpty property="area_id" prepend="AND">
+					AREA_ID = #area_id#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%'||#searchKeyword#||'%'
+				</isNotEmpty>
+				ORDER BY IDX DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="uccListCnt1" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			COMS_MOVIE_REG 
+		WHERE 
+			STATE = '3'
+		AND	HUMAN_LECTURE='N'
+		<isNotEmpty property="area_group" prepend="AND">
+			AREA_GROUP = #area_group#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="service_id" prepend="AND">
+			SERVICE_ID = #service_id#
+		</isNotEmpty>
+		<isNotEmpty property="area_id" prepend="AND">
+			AREA_ID = #area_id#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+	</select>
+	<select id="uccList2" parameterClass="paramMap" resultClass="commonMap">
+		SELECT
+			A.*,
+			(SELECT SERVICE_NAME FROM PDWORKER.WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME,
+			(SELECT AREA_NAME FROM PDWORKER.WS_AREA_CATEGORY WHERE AREA_ID = A.AREA_ID) AREA_NAME, 
+			case
+				when AREA_GROUP = '1' then 
+					'/mov/culturePdView.do?idx='||IDX 
+		     	when  CULTURE100 = 'Y' then 
+					'/mov/culture100View.do?idx='||IDX 
+		     	else 
+		     		'/mov/culturePdView.do?idx='||IDX 
+			end URL,
+			case 
+				when length(MOVIE_PIC_PATH2_SYSNAME) > 0 then 
+					'/upload/contents/' || MOVIE_PIC_PATH2_SYSNAME
+		     	when  length((select name from PDWORKER.tvm_thumbnail where cid = A.cid and delegate = 1)) > 0 then 
+		     		'/upload/videos2/vod/'|| (select uri from PDWORKER.tvm_thumbnail where cid = A.cid and delegate = 1)  || '/' || (select name from PDWORKER.tvm_thumbnail where cid = A.cid and delegate = 1)
+		     	else 
+		     		'/upload/videos2/vod/'|| (select uri from PDWORKER.tvm_thumbnail where cid = A.cid and ncount = 1)  || '/' || (select name from PDWORKER.tvm_thumbnail where cid = A.cid and ncount = 1) 
+			end IMAGE,
+			(SELECT SERVICE_NAME FROM PDWORKER.WS_SERVICE_CATEGORY WHERE SERVICE_ID = A.SERVICE_ID) SERVICE_NAME
+		FROM (
+			SELECT 
+				ROWNUM NUM, A.*
+			FROM (
+				SELECT
+					IDX, TITLE, SERVICE_ID, AREA_ID, MOVIE_PIC_PATH2_SYSNAME, CONTENTS SUMMARY, CID, CULTURE100, AREA_GROUP
+				FROM PDWORKER.COMS_MOVIE_REG 
+				WHERE 
+					STATE = '3'
+					AND SYSDATE	<![CDATA[ >= ]]> WISH_POST_DATE
+					AND DUP = 'Y'
+				<isNotEmpty property="area_group" prepend="AND">
+					AREA_GROUP = #area_group#
+				</isNotEmpty>
+				<isNotEmpty property="culture100" prepend="AND">
+					CULTURE100 = #culture100#
+				</isNotEmpty>
+				<isNotEmpty property="service_id" prepend="AND">
+					SERVICE_ID = #service_id#
+				</isNotEmpty>
+				<isNotEmpty property="job30" prepend="AND">
+					JOB30 = #job30#
+				</isNotEmpty>
+				<isNotEmpty property="area_id" prepend="AND">
+					AREA_ID = #area_id#
+				</isNotEmpty>
+				<isNotEmpty property="searchKeyword" prepend="AND">
+					TITLE LIKE '%'||#searchKeyword#||'%'
+				</isNotEmpty>
+				<isNotEmpty property="searchEtc" prepend="AND">
+					$searchEtc$
+				</isNotEmpty>
+				ORDER BY WRITE_DAT DESC
+			) A
+			WHERE ROWNUM &lt;= #enum#
+		) A
+		WHERE NUM &gt;= #snum#
+	</select>
+	<select id="uccListCnt2" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1)
+		FROM 
+			PDWORKER.COMS_MOVIE_REG 
+		WHERE 
+			STATE = '3'
+			AND SYSDATE	<![CDATA[ >= ]]> WISH_POST_DATE
+			AND DUP = 'Y'
+		<isNotEmpty property="area_group" prepend="AND">
+			AREA_GROUP = #area_group#
+		</isNotEmpty>
+		<isNotEmpty property="culture100" prepend="AND">
+			CULTURE100 = #culture100#
+		</isNotEmpty>
+		<isNotEmpty property="job30" prepend="AND">
+			JOB30 = #job30#
+		</isNotEmpty>
+		<isNotEmpty property="service_id" prepend="AND">
+			SERVICE_ID = #service_id#
+		</isNotEmpty>
+		<isNotEmpty property="area_id" prepend="AND">
+			AREA_ID = #area_id#
+		</isNotEmpty>
+		<isNotEmpty property="searchKeyword" prepend="AND">
+			TITLE LIKE '%'||#searchKeyword#||'%'
+		</isNotEmpty>
+		<isNotEmpty property="searchEtc" prepend="AND">
+			$searchEtc$
+		</isNotEmpty>
+	</select>
+	
+	<select id="humanLectureList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (   
+			SELECT 
+				ROWNUM NUM, A.*
+			FROM (
+				SELECT
+					A.IDX,
+					A.TITLE,
+					CASE 
+	                  WHEN A.MOVIE_PIC_PATH2_SYSNAME IS NOT NULL 
+	                  THEN '/upload/contents/' || A.MOVIE_PIC_PATH2_SYSNAME 
+	                  WHEN B.NAME IS NOT NULL 
+	                  THEN '/upload/videos2/vod/' || B.URI || '/' || B.NAME 
+	                  ELSE '/upload/videos2/vod/' || 
+	                      (SELECT URI || '/' || NAME 
+	                        FROM PDWORKER.TVM_THUMBNAIL 
+	                       WHERE CID = A.CID 
+	                             AND NCOUNT = 1
+	                      ) 
+					END IMAGE
+				FROM PDWORKER.COMS_MOVIE_REG A, 
+		              (SELECT * 
+		                FROM PDWORKER.TVM_THUMBNAIL 
+		               WHERE DELEGATE = 1
+		              ) B 
+		        WHERE A.STATE = '3' 
+		              AND A.CID = B.CID(+) 
+		              AND SYSDATE >= A.WISH_POST_DATE 
+		              AND A.HUMAN_LECTURE = 'Y'
+		        <isNotEmpty property="search_word" prepend="AND">
+					A.TITLE LIKE '%'||#search_word#||'%'
+				</isNotEmpty>
+			) A
+			<![CDATA[
+			WHERE ROWNUM <= #enum#
+		) A
+		WHERE NUM >= #snum#
+		]]> 
+	</select>
+	
+	<select id="humanLectureListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1) CNT
+		FROM PDWORKER.COMS_MOVIE_REG A, 
+              (SELECT * 
+                FROM PDWORKER.TVM_THUMBNAIL 
+               WHERE DELEGATE = 1
+              ) B 
+        WHERE A.STATE = '3' 
+              AND A.CID = B.CID(+) 
+              AND SYSDATE >= A.WISH_POST_DATE 
+              AND A.HUMAN_LECTURE = 'Y'
+        <isNotEmpty property="search_word" prepend="AND">
+			A.TITLE LIKE '%'||#search_word#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="forecastList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (   
+			SELECT 
+				ROWNUM NUM, A.*
+			FROM (
+				SELECT
+					A.IDX,
+					A.TITLE,
+					CASE 
+	                  WHEN A.MOVIE_PIC_PATH2_SYSNAME IS NOT NULL 
+	                  THEN '/upload/contents/' || A.MOVIE_PIC_PATH2_SYSNAME 
+	                  WHEN B.NAME IS NOT NULL 
+	                  THEN '/upload/videos2/vod/' || B.URI || '/' || B.NAME 
+	                  ELSE '/upload/videos2/vod/' || 
+	                      (SELECT URI || '/' || NAME 
+	                        FROM PDWORKER.TVM_THUMBNAIL 
+	                       WHERE CID = A.CID 
+	                             AND NCOUNT = 1
+	                      ) 
+					END IMAGE
+				FROM PDWORKER.COMS_MOVIE_REG A, 
+		              (SELECT * 
+		                FROM PDWORKER.TVM_THUMBNAIL 
+		               WHERE DELEGATE = 1
+		              ) B 
+		        WHERE A.STATE = '3' 
+		              AND A.CID = B.CID(+) 
+		              AND SYSDATE >= A.WISH_POST_DATE 
+		              AND A.FORECAST = 'Y'
+		        <isNotEmpty property="search_word" prepend="AND">
+					A.TITLE LIKE '%'||#search_word#||'%'
+				</isNotEmpty>
+			) A
+			<![CDATA[
+			WHERE ROWNUM <= #enum#
+		) A
+		WHERE NUM >= #snum#
+		]]> 
+	</select>
+	
+	<select id="forecastListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1) CNT
+		FROM PDWORKER.COMS_MOVIE_REG A, 
+              (SELECT * 
+                FROM PDWORKER.TVM_THUMBNAIL 
+               WHERE DELEGATE = 1
+              ) B 
+        WHERE A.STATE = '3' 
+              AND A.CID = B.CID(+) 
+              AND SYSDATE >= A.WISH_POST_DATE 
+              AND A.FORECAST = 'Y'
+        <isNotEmpty property="search_word" prepend="AND">
+			A.TITLE LIKE '%'||#search_word#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="culture100List" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (   
+			SELECT 
+				ROWNUM NUM, A.*
+			FROM (
+				SELECT
+					A.IDX,
+					A.TITLE,
+					CASE 
+	                  WHEN A.MOVIE_PIC_PATH2_SYSNAME IS NOT NULL 
+	                  THEN '/upload/contents/' || A.MOVIE_PIC_PATH2_SYSNAME 
+	                  WHEN B.NAME IS NOT NULL 
+	                  THEN '/upload/videos2/vod/' || B.URI || '/' || B.NAME 
+	                  ELSE '/upload/videos2/vod/' || 
+	                      (SELECT URI || '/' || NAME 
+	                        FROM PDWORKER.TVM_THUMBNAIL 
+	                       WHERE CID = A.CID 
+	                             AND NCOUNT = 1
+	                      ) 
+					END IMAGE
+				FROM PDWORKER.COMS_MOVIE_REG A, 
+		              (SELECT * 
+		                FROM PDWORKER.TVM_THUMBNAIL 
+		               WHERE DELEGATE = 1
+		              ) B 
+		        WHERE A.STATE = '3' 
+		              AND A.CID = B.CID(+) 
+		              AND SYSDATE >= A.WISH_POST_DATE 
+		              AND A.CULTURE100 = 'Y'
+		        <isNotEmpty property="search_word" prepend="AND">
+					A.TITLE LIKE '%'||#search_word#||'%'
+				</isNotEmpty>
+			) A
+			<![CDATA[
+			WHERE ROWNUM <= #enum#
+		) A
+		WHERE NUM >= #snum#
+		]]> 
+	</select>
+	
+	<select id="culture100ListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1) CNT
+		FROM PDWORKER.COMS_MOVIE_REG A, 
+              (SELECT * 
+                FROM PDWORKER.TVM_THUMBNAIL 
+               WHERE DELEGATE = 1
+              ) B 
+        WHERE A.STATE = '3' 
+              AND A.CID = B.CID(+) 
+              AND SYSDATE >= A.WISH_POST_DATE 
+              AND A.CULTURE100 = 'Y'
+        <isNotEmpty property="search_word" prepend="AND">
+			A.TITLE LIKE '%'||#search_word#||'%'
+		</isNotEmpty>
+	</select>
+	
+	<select id="cultureReviewList" parameterClass="paramMap" resultClass="commonMap">
+		SELECT * FROM (   
+			SELECT 
+				ROWNUM NUM, A.*
+			FROM (
+				SELECT
+					A.IDX,
+					A.TITLE,
+					CASE 
+	                  WHEN A.MOVIE_PIC_PATH2_SYSNAME IS NOT NULL 
+	                  THEN '/upload/contents/' || A.MOVIE_PIC_PATH2_SYSNAME 
+	                  WHEN B.NAME IS NOT NULL 
+	                  THEN '/upload/videos2/vod/' || B.URI || '/' || B.NAME 
+	                  ELSE '/upload/videos2/vod/' || 
+	                      (SELECT URI || '/' || NAME 
+	                        FROM PDWORKER.TVM_THUMBNAIL 
+	                       WHERE CID = A.CID 
+	                             AND NCOUNT = 1
+	                      ) 
+					END IMAGE
+				FROM PDWORKER.COMS_MOVIE_REG A, 
+		              (SELECT * 
+		                FROM PDWORKER.TVM_THUMBNAIL 
+		               WHERE DELEGATE = 1
+		              ) B 
+		        WHERE A.STATE = '3' 
+		              AND A.CID = B.CID(+) 
+		              AND SYSDATE >= A.WISH_POST_DATE 
+		              AND A.CULTURE_REVIEW = 'Y'
+		        <isNotEmpty property="search_word" prepend="AND">
+					A.TITLE LIKE '%'||#search_word#||'%'
+				</isNotEmpty>
+			) A
+			<![CDATA[
+			WHERE ROWNUM <= #enum#
+		) A
+		WHERE NUM >= #snum#
+		]]> 
+	</select>
+	
+	<select id="cultureReviewListCnt" parameterClass="paramMap" resultClass="int">
+		SELECT 
+			COUNT(1) CNT
+		FROM PDWORKER.COMS_MOVIE_REG A, 
+              (SELECT * 
+                FROM PDWORKER.TVM_THUMBNAIL 
+               WHERE DELEGATE = 1
+              ) B 
+        WHERE A.STATE = '3' 
+              AND A.CID = B.CID(+) 
+              AND SYSDATE >= A.WISH_POST_DATE 
+              AND A.CULTURE_REVIEW = 'Y'
+        <isNotEmpty property="search_word" prepend="AND">
+			A.TITLE LIKE '%'||#search_word#||'%'
+		</isNotEmpty>
+	</select>
+</sqlMap>
