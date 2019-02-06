@@ -31,8 +31,9 @@
 	<dependencies>
 		<!-- mail -->
 		<dependency>
-			<groupId>com.sun.mail</groupId>
-			<artifactId>javax.mail</artifactId>
+<!-- 			<groupId>com.sun.mail</groupId> -->
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
 			<version>1.5.2</version>
 		</dependency>
 		<dependency>
@@ -344,7 +345,7 @@
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
 					<wtpversion>2.0</wtpversion>
-					<wtpContextName>ROOT</wtpContextName>
+					<wtpContextName>/</wtpContextName>
 				</configuration>
 			</plugin>
 			<plugin>
