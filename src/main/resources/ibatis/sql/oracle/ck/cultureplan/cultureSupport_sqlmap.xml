@@ -25,9 +25,9 @@
 				<![CDATA[
 				(
 					CASE
-						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= APPLY_START_DT
-						 AND TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <= APPLY_END_DT		THEN 'I'
-						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <  APPLY_START_DT	THEN 'S'
+						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= TO_DATE(APPLY_START_DT,'YYYY-MM-DD')
+						 AND TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <= TO_DATE(APPLY_END_DT,'YYYY-MM-DD')	THEN 'I'
+						WHEN TO_DATE(TO_CHAR(SYSDATE, 'yyyy-mm-dd'), 'yyyy-mm-dd') <  TO_DATE(APPLY_START_DT,'YYYY-MM-DD')	THEN 'S'
 						ELSE 'E'
 					END
 				)		STATUS
