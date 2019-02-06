@@ -77,7 +77,7 @@
 				,Z.*,
 				(	
 					select count(*) from PCN_PERFORM_INVITATION_PERSON 
-	            	where (USER_ID=Z.USER_ID and win_yn='Y') AND ( to_char(add_months(SYSDATE,-3),'YYYY-MM-dd') <![CDATA[<]]>  reg_date  and reg_date <![CDATA[<=]]> SYSDATE )
+	            	where (USER_ID=Z.USER_ID and win_yn='Y') AND ( add_months(SYSDATE,-3) <![CDATA[<]]>  reg_date  and reg_date <![CDATA[<=]]> SYSDATE )
 	            )
 	            AS win_cnt,
 	            (select max(reg_date) from PCN_PERFORM_INVITATION_PERSON where USER_ID=Z.USER_ID and win_yn='Y') 
