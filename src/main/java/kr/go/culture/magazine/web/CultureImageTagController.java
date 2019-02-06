@@ -7,6 +7,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import kr.go.culture.common.domain.ParamMap;
+import kr.go.culture.common.service.CkDatabaseService;
 import kr.go.culture.common.service.KiissDataBaseService;
 
 import org.slf4j.Logger;
@@ -22,8 +23,12 @@ public class CultureImageTagController {
 
 	private static final Logger logger = LoggerFactory.getLogger(CultureImageTagController.class);
 
-	@Resource(name="KiissDataBaseService")
-	KiissDataBaseService kiissDataBaseService;
+//	@Resource(name="KiissDataBaseService")
+//	KiissDataBaseService kiissDataBaseService;
+	
+	@Resource(name = "CkDatabaseService")
+	private CkDatabaseService kiissDataBaseService;
+	
 
 	@RequestMapping("list.do")
 	public String list(HttpServletRequest request, ModelMap model)
@@ -33,14 +38,14 @@ public class CultureImageTagController {
 		
 		model.addAttribute("paramMap", paramMap);
 		setPagingNum(paramMap);
-		
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
 		model.addAttribute("count", (Integer) kiissDataBaseService.readForObject(
-				"tag.listCnt", paramMap));
+				"pdworker.tag.listCnt", paramMap));
 
 		model.addAttribute("list",
-				kiissDataBaseService.readForList("tag.list", paramMap));
+				kiissDataBaseService.readForList("pdworker.tag.list", paramMap));
 		model.addAttribute("recomTagLibList",
-				kiissDataBaseService.readForList("tag.recomTagLibList", paramMap));
+				kiissDataBaseService.readForList("pdworker.tag.recomTagLibList", paramMap));
 		
 		
 		return "/magazine/tag/list";
@@ -53,14 +58,14 @@ public class CultureImageTagController {
 		
 		setPagingNum(paramMap);
 		model.addAttribute("paramMap", paramMap);
-		
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
 		model.addAttribute("count", (Integer) kiissDataBaseService.readForObject(
-				"tag.culturePdListCnt", paramMap));
+				"pdworker.tag.culturePdListCnt", paramMap));
 
 		model.addAttribute("list",
-				kiissDataBaseService.readForList("tag.culturePdList", paramMap));
+				kiissDataBaseService.readForList("pdworker.tag.culturePdList", paramMap));
 		model.addAttribute("tagView",
-				kiissDataBaseService.readForObject("tag.view", paramMap));
+				kiissDataBaseService.readForObject("pdworker.tag.view", paramMap));
 		
 		
 		return "/magazine/tag/pdList";
@@ -72,16 +77,17 @@ public class CultureImageTagController {
 		ParamMap paramMap = new ParamMap(request);
 		
 		model.addAttribute("paramMap", paramMap);
-
+		
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
 		model.addAttribute("view",
-				kiissDataBaseService.readForObject("tag.culturePdView", paramMap));
+				kiissDataBaseService.readForObject("pdworker.tag.culturePdView", paramMap));
 		
 		model.addAttribute("tags",
-				kiissDataBaseService.readForList("tag.culturePdTags", paramMap));
+				kiissDataBaseService.readForList("pdworker.tag.culturePdTags", paramMap));
 		model.addAttribute("site",
-				kiissDataBaseService.readForObject("tag.culturePdSite", paramMap));
+				kiissDataBaseService.readForObject("pdworker.tag.culturePdSite", paramMap));
 		model.addAttribute("cmntList",
-				kiissDataBaseService.readForObject("tag.cmntList", paramMap));
+				kiissDataBaseService.readForObject("pdworker.tag.cmntList", paramMap));
 		
 		return "/magazine/tag/pdView";
 	}
@@ -91,19 +97,19 @@ public class CultureImageTagController {
 		ParamMap paramMap = new ParamMap(request);
 		
 		paramMap.putArray("seq", paramMap.getArray("seq[]"));
-		
-		return kiissDataBaseService.readForList("tag.selectedTagInfo", paramMap);
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
+		return kiissDataBaseService.readForList("pdworker.tag.selectedTagInfo", paramMap);
 	}
 	
 	@RequestMapping("distribute.do") 
 	public String distribute(HttpServletRequest request, ModelMap model) throws Exception  {
 		ParamMap paramMap = new ParamMap(request);
-		
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
 		paramMap.put("recomeYn", "N");
-		kiissDataBaseService.save("tag.updateTagLibRecome" , paramMap);
+		kiissDataBaseService.save("pdworker.tag.updateTagLibRecome" , paramMap);
 		
 		paramMap.put("recomeYn", "Y");
-		kiissDataBaseService.save("tag.updateTagLibRecome" , paramMap);
+		kiissDataBaseService.save("pdworker.tag.updateTagLibRecome" , paramMap);
 		
 //		updateTagLibRecome
 		return "redirect:/magazine/tag/list.do";
@@ -114,8 +120,8 @@ public class CultureImageTagController {
 		
 		ParamMap paramMap = new ParamMap(request);
 		HashMap<String , String> rData = new HashMap<String , String>();
-		
-		kiissDataBaseService.save("tag.updateTagName" , paramMap);
+		//!@# 2019.02.06  PDWORKER로 SQL NAMESPACE 변경
+		kiissDataBaseService.save("pdworker.tag.updateTagName" , paramMap);
 		
 		rData.put("success", "Y");
 		
