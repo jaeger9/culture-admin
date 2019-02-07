@@ -12,7 +12,7 @@
 				IMG_URL , 
 				UCI ,
 				PLACE, 
-				TO_CHAR(TO_DATE(START_DATE), 'yyyy-mm-dd') ||' ~ '|| TO_CHAR(TO_DATE(END_DATE),'yyyy-mm-dd') PERIOD,
+				TO_CHAR(TO_DATE(START_DATE,'yyyy-mm-dd'), 'yyyy-mm-dd') ||' ~ '|| TO_CHAR(TO_DATE(END_DATE,'yyyy-mm-dd'),'yyyy-mm-dd') PERIOD,
 				REG_DATE REG_DATE2, TO_CHAR(REG_DATE, 'yyyy-mm-dd') REG_DATE ,
 		        DISCOUNT ,
 		        DECODE ( APPROVAL , 'Y' , '승인' , 'N' , '미승인' , '대기') AS APPROVAL ,
