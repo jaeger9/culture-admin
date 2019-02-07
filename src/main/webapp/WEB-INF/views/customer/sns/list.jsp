@@ -231,9 +231,12 @@ $(function () {
 			<col style="width:8%" />
 			<col style="width:15%" />
 			<col />
-			<col style="width:8%" />
-			<col style="width:8%" />
-			<col style="width:8%" />
+			<col style="width:5%" />
+			<col style="width:5%" />
+			<col style="width:5%" />
+			<col style="width:5%" />
+			<col style="width:5%" />
+			<col style="width:5%" />
 			<col style="width:12%" />
 			<col style="width:6%" />
 		</colgroup>
@@ -243,9 +246,12 @@ $(function () {
 				<th scope="col">번호</th>
 				<th scope="col">구분</th>
 				<th scope="col">기관명</th>
+				<th scope="col">H</th>
 				<th scope="col">B</th>
 				<th scope="col">T</th>
+				<th scope="col">I</th>
 				<th scope="col">F</th>
+				<th scope="col">Y</th>
 				<th scope="col">등록일</th>
 				<th scope="col">승인<br />여부</th>
 			</tr>
@@ -253,7 +259,7 @@ $(function () {
 		<tbody>
 			<c:if test="${empty list }">
 			<tr>
-				<td colspan="9">검색된 결과가 없습니다.</td>
+				<td colspan="12">검색된 결과가 없습니다.</td>
 			</tr>
 			</c:if>
 
@@ -274,18 +280,33 @@ $(function () {
 					</a>
 				</td>
 				<td>
+					<c:if test="${not empty item.organ_url }">
+						<a href="${item.organ_url }" target="_blank">클릭</a>
+					</c:if>
+				</td>
+				<td>
 					<c:if test="${not empty item.blog_url }">
-						<a href="${item.blog_url }" target="_blank">바로가기</a>
+						<a href="${item.blog_url }" target="_blank">클릭</a>
 					</c:if>
 				</td>
-				<td>
+					<td>
 					<c:if test="${not empty item.twitter_url }">
-						<a href="${item.twitter_url }" target="_blank">바로가기</a>
+						<a href="${item.twitter_url }" target="_blank">클릭</a>
 					</c:if>
 				</td>
 				<td>
+					<c:if test="${not empty item.instagram_url }">
+						<a href="${item.instagram_url }" target="_blank">클릭</a>
+					</c:if>
+				</td>
+					<td>
 					<c:if test="${not empty item.face_url }">
-						<a href="${item.face_url }" target="_blank">바로가기</a>
+						<a href="${item.face_url }" target="_blank">클릭</a>
+					</c:if>
+				</td>
+				<td>
+					<c:if test="${not empty item.youtube_url }">
+						<a href="${item.youtube_url }" target="_blank">클릭</a>
 					</c:if>
 				</td>
 				<td>

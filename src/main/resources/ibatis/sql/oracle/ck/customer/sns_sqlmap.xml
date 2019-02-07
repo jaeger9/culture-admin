@@ -56,6 +56,9 @@
 			,A.FACE_URL
 			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
 			,DECODE(A.APPROVAL, 'W', 'W', 'N', 'N', 'Y') APPROVAL
+			,A.ORGAN_URL
+			,A.YOUTUBE_URL
+			,A.INSTAGRAM_URL
 		FROM
 			PCN_RECOM_SNS A
 		<include refid="sqlList-1" />
@@ -80,6 +83,8 @@
 			,A.ORGAN_URL
 			,TO_CHAR(A.REG_DATE, 'YYYY-MM-DD') REG_DATE
 			,DECODE(A.APPROVAL, 'W', 'W', 'N', 'N', 'Y') APPROVAL
+			,A.INSTAGRAM_URL
+			,A.YOUTUBE_URL
 		FROM
 			PCN_RECOM_SNS A
 		WHERE
@@ -105,6 +110,8 @@
 			,IMG_URL
 			,ORGAN_URL
 			,SORT
+			,INSTAGRAM_URL
+			,YOUTUBE_URL
 			<!-- ,PUBLISHER -->
 		) VALUES (
 			#idx#
@@ -121,6 +128,8 @@
 			,#img_url#
 			,#organ_url#
 			,#sort#
+			,#instagram_url#
+			,#youtube_url#
 			<!-- ,#publisher# -->
 		)
 	</insert>
@@ -140,6 +149,8 @@
 			,IMG_URL		=	#img_url#
 			,ORGAN_URL      =   #organ_url#	
 			,SORT			=   #sort#	
+			,INSTAGRAM_URL	=	#instagram_url#
+			,YOUTUBE_URL	=	#youtube_url#
 			<!-- ,PUBLISHER		=	#publisher# -->
 		WHERE
 			IDX = #idx#

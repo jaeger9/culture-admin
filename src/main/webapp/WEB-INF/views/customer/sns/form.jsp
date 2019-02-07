@@ -18,7 +18,6 @@ var callback = {
 };
 
 $(function () {
-
 	// 에디터 HTML 적용
 	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
 	// nhn.husky.EZCreator.createInIFrame( oEditorsOption );
@@ -205,11 +204,25 @@ $(function () {
 					</td>
 				</tr>
 				<tr>
+					<th scope="row">인스타그램 URL</th>
+					<td colspan="3">
+						<input type="text" name="instagram_url" value="${view.instagram_url }" style="width:670px" />
+					</td>
+				</tr>
+				<tr>
 					<th scope="row">페이스북 URL</th>
 					<td colspan="3">
 						<input type="text" name="face_url" value="${view.face_url }" style="width:670px" />
 					</td>
 				</tr>
+				<tr>
+					<th scope="row">유투브 URL</th>
+					<td colspan="3">
+						<input type="text" name="youtube_url" value="${view.youtube_url }" style="width:670px" />
+					</td>
+				</tr>
+			
+				
 				<tr>
 					<th scope="row">썸네일 이미지</th>
 					<td colspan="3">
