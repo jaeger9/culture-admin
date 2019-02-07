@@ -495,12 +495,14 @@ $(function () {
         		if (!confirm('수정하시겠습니까?')) {
         			return false;
         		}
+        		action="update";
         		frm.attr('action' ,'/magazine/webzine/update.do');
         		frm.submit();
         	} else if($(this).html() == '삭제') {
         		if (!confirm('삭제 하시겠습니까?')) {
         			return false;
         		}
+        		action = "delete";
         		frm.attr('action' ,'/magazine/webzine/delete.do');
         		frm.submit();
         	} else if($(this).html() == '등록') {
@@ -509,7 +511,6 @@ $(function () {
         		}
         		action = "insert";
         		frm.attr('action' ,'/magazine/webzine/insert.do');
-        		action = "delete";
         		frm.submit();
         	} else if($(this).html() == '목록') {
         		console.log('목록');
