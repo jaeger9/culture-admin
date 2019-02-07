@@ -112,17 +112,17 @@ $(function () {
 		<caption>게시판 글 목록</caption>
 		<colgroup>
 			<col style="width:8%" />
-			<col style="width:15%" />
-			<col />
+ 			<col style="width:15%" />
+ 			<col />
 			<col style="width:15%" />
 			<col style="width:12%" />
 		</colgroup>
 		<thead>
 			<tr>
 				<th scope="col">번호</th>
-				<th scope="col">구분</th>
-				<th scope="col">포인트 적립 및 사용 내역</th>
-				<th scope="col">포인트</th>
+ 				<th scope="col">아이디</th>
+				<th scope="col">마일리지 적립 및 사용 내역</th>
+				<th scope="col">마일리지</th>
 				<th scope="col">적립/사용일</th>
 			</tr>
 		</thead>
@@ -138,17 +138,17 @@ $(function () {
 				<td>
 					<fmt:formatNumber value="${count - (paramMap.page_no - 1) * paramMap.list_unit - status.index  }" pattern="###,###" />
 				</td>
-				<td>
-					${item.category1 }
-				</td>
+	 			<td>
+					${item.user_id }
+				</td> 
 				<td class="subject">
-					${item.category2 }
+					&nbsp;&nbsp;${item.policy_name }
 				</td>
 				<td>
-					<fmt:formatNumber value="${item.point }" pattern="###,###" />P
+					<fmt:formatNumber value="${item.mileage_point }" pattern="###,###" />P
 				</td>
 				<td>
-					${item.reg_date }
+					${item.insert_date }
 				</td>
 			</tr>
 			</c:forEach>

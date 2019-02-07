@@ -86,6 +86,16 @@ function excelDown2() {
 					</td>
 				</tr>
 				<%-- <tr>
+					<th scope="row">권한</th>
+					<td>
+						<select name="role_user">
+							<c:forEach items="${userRoleList }" var="item">
+								<option>${item.value}</option>
+							</c:forEach>
+						</select>
+					</td>
+				</tr> --%>
+				<%-- <tr>
 					<th scope="row">그래픽인증서비스<br/>가입여부</th>
 					<td>
 						<select name="grp_cer_check">
@@ -95,7 +105,7 @@ function excelDown2() {
 						</select>
 					</td>
 				</tr> --%>
-				<tr>
+				<%-- <tr>
 					<th scope="row">2단계 인증<br/>사용여부</th>
 					<td>
 						<select name="sec_cer_check">
@@ -104,7 +114,7 @@ function excelDown2() {
 							<option value="N"	${paramMap.sec_cer_check eq 'N'	? 'selected="selected"' : ''}>N</option>
 						</select>
 					</td>
-				</tr>
+				</tr> --%>
 				<tr>
 					<th scope="row">검색어</th>
 					<td>
@@ -156,7 +166,7 @@ function excelDown2() {
 				<th scope="col">아이디</th>
 				<th scope="col">이름</th>
 				<th scope="col">이메일</th>
-				<th scope="col">포인트</th>
+				<th scope="col">마일리지</th>
 				<th scope="col">가입구분</th>
 				<th scope="col">가입일</th>
 			</tr>

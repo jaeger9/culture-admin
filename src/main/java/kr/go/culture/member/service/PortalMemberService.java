@@ -61,6 +61,12 @@ public class PortalMemberService {
 
 		tmpMap.put("common_code_type", "EMAIL");
 		model.addAttribute("mailList", service.readForList("common.codeList", tmpMap));
+		
+		tmpMap.put("common_code_type", "USER_ROLE");
+		model.addAttribute("userRoleList", service.readForList("common.codeList", tmpMap));
+
+		
+		
 
 	}
 

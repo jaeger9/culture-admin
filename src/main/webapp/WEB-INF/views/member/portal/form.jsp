@@ -207,12 +207,22 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			</td>
 		</tr>
 		<tr>
+			<th scope="row">권한</th>
+			<td colspan="3">
+				<select name="userRole">
+					<c:forEach items="${userRoleList }" var="item">
+						<option value="${item.value }" <c:if test="${view.role eq item.value}">selected</c:if>>${item.name}</option>
+					</c:forEach>
+				</select>
+			</td>
+		</tr>
+<%-- 이쪽에 권한추가		<tr>
 			<th scope="row">2단계 인증 사용 여부</th>
 			<td colspan="3">
 				<label><input type="radio" name="sec_cer_flag" value="Y" ${view.sec_cer_flag eq 'Y' ? 'checked="checked"' : '' } ${view.sec_cer_flag ne 'Y' ? 'disabled="disabled"' : '' }/> 사용</label>
 				<label><input type="radio" name="sec_cer_flag" value="N" ${view.sec_cer_flag ne 'Y' ? 'checked="checked"' : '' } /> 미사용</label>
 			</td>
-		</tr>
+		</tr> --%>
 		<tr>
 			<th scope="row">개인정보</br>재동의 여부</th>
 			<td>

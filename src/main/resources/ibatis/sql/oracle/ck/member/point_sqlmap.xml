@@ -19,51 +19,55 @@
 			<isEqual property="search_type" compareValue="all" prepend="AND">
 				(
 					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
-				OR	LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
-				OR	LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(C.NAME)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(C.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
 				)
 			</isEqual>
 			<isEqual property="search_type" compareValue="user_id" prepend="AND">
 					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
 			<isEqual property="search_type" compareValue="name" prepend="AND">
-					LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+					LOWER(C.NAME)		LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
 			<isEqual property="search_type" compareValue="email" prepend="AND">
-					LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+					LOWER(C.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
 		</isNotEmpty>
 
 		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
-			A.REG_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+			A.INSERT_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
 		]]></isNotEmpty>
 		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
-			A.REG_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			A.INSERT_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
 		]]></isNotEmpty>
 	</sql>
 
 	<select id="count" parameterClass="paramMap" resultClass="int">
-		SELECT
-			COUNT(1) AS COUNT
-		FROM
-			PCN_CUSTOMER_POINT A
+		SELECT COUNT(1)
+		FROM MILDB.MILEAGE_LOG A LEFT OUTER JOIN MILDB.MILEAGE_POLICY B ON A.MILEAGE_CODE = B.POLICY_CODE
+		LEFT OUTER JOIN PCN_MEMBER C
+            		ON A.USER_ID = C.USER_ID
 		<include refid="sqlList-1" />
 	</select>
 
 	<select id="list" parameterClass="paramMap" resultClass="commonMap">
 		<include refid="sqlPagingBegin" />
-		SELECT
-			(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.CATEGORY1) CATEGORY1
-			,
-				(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.CATEGORY2)
+		
+		SELECT A.MILEAGE_SEQ,A.MILEAGE_YEAR,A.USER_ID,A.MILEAGE_CODE,A.MILEAGE_POINT,A.MILEAGE_DATE,A.MILEAGE_JAVA,A.INSERT_ID,
+		TO_CHAR(A.INSERT_DATE,'YYYY-MM-DD') INSERT_DATE ,A.UPDATE_ID,TO_CHAR(A.UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE ,
+			B.POLICY_NAME, C.NAME, C.EMAIL
+		FROM MILDB.MILEAGE_LOG A LEFT OUTER JOIN MILDB.MILEAGE_POLICY B ON A.MILEAGE_CODE = B.POLICY_CODE
+		LEFT OUTER JOIN PCN_MEMBER C
+            		ON A.USER_ID = C.USER_ID
+			<!-- 				(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.CATEGORY2)
 			||	(SELECT ' ' || GIFT_CNT || '매' || ' ('|| DECODE(STATUS, 'W', '대기', 'Y', '승인', '미승인') || ')' FROM PCN_CUSTOMER_GIFT WHERE SEQ = A.PSEQ) CATEGORY2
 			,A.POINT
 			,TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
 		FROM
-			PCN_CUSTOMER_POINT A
+			PCN_CUSTOMER_POINT A -->
 		<include refid="sqlList-1" />
 		ORDER BY
-			A.REG_DATE DESC NULLS LAST
+			A.INSERT_DATE DESC NULLS LAST
 		<include refid="sqlPagingEnd" />
 	</select>
 
