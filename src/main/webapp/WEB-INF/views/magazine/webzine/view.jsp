@@ -13,7 +13,7 @@ var metaType = "";
 
 var cultureIssIndex = 0; 		//문화이슈
 var cultureRecomIndex = 0; 		//문화공감
-var columnIndex = 0; 			//칼럼
+//var columnIndex = 0; 			//칼럼
 var relayticketIndex = 0; 		//릴레이티켓
 var eventIndex = 0;				//이벤트
 var performIndex = 0;			//공연/전시
@@ -345,9 +345,9 @@ $(function () {
 	
 	frm.submit(function(){
 		//DB NOT NULL 기준 체크
-		// if(action != 'insert'){
-		// 	return true;
-		// }
+		 if(action != 'insert'){
+		 	return true;
+		 }
 
 		if($("input[name='agency_name']").val() == '') {
 			alert("기관/업체명을 입력하세요.");
@@ -403,16 +403,18 @@ $(function () {
 		    return false;
 		}
 		
-		if(columnIndex == 0) {
+	/* 	if(columnIndex == 0) {
 		    alert("칼럼 선택하세요");
 		    return false;
-		}
+		} */
 		
-		if(eventIndex == 0) {
+		/* if(eventIndex == 0) {
 		    alert("이벤트 선택하세요");
 		    return false;
 		}
-		
+		 */
+		 
+		 
 		if(performIndex == 0) {
 		    alert("공연/전시 선택하세요");
 		    return false;
@@ -461,10 +463,10 @@ $(function () {
 			}else if($(this).html() == '문화공감 선택') {
 				cultureRecomIndex = $(this).attr('index');
 				window.open('/popup/culturerecom.do', 'webzinePopup', 'scrollbars=yes,width=600,height=630');
-			} else if($(this).html() == '칼럼 선택') {
+			}/*  else if($(this).html() == '칼럼 선택') {
 				columnIndex = $(this).attr('index');
 				window.open('/popup/portalcolumn.do', 'webzinePopup', 'scrollbars=yes,width=600,height=630');
-			} else if($(this).html() == '릴레이티켓 선택') {
+			}  */else if($(this).html() == '릴레이티켓 선택') {
 				relayticketIndex = $(this).attr('index');
 				window.open('/popup/relayticket.do', 'webzinePopup', 'scrollbars=yes,width=600,height=630');
 			} else if($(this).html() == '이벤트 선택') {
