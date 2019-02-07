@@ -27,7 +27,7 @@
 		</property>
 	</bean>
 	
-	<bean id="sqlMapClient-kiiss" 
+<!-- 	<bean id="sqlMapClient-kiiss" 
 		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
 		<property name="configLocations">
 			<value>classpath:/ibatis/conf/ibatis-cubrid-config.xml</value>
@@ -41,7 +41,7 @@
 		<property name="lobHandler" >
 			<ref bean="lobHandler" />
 		</property>
-	</bean>
+	</bean> -->
 	<bean id="sqlMapClient-culture" 
 		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
 		

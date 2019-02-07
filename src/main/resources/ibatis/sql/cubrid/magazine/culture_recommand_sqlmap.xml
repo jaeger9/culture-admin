@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Cubrid Deleted
+ <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
 <sqlMap namespace="culture.recommand">
 	<select id="vodList" parameterClass="paramMap" resultClass="commonMap">
@@ -15,9 +17,9 @@
 				WHERE STATE = '3'
 				
 				<isNotEmpty property="area_group" prepend="AND">
-					<!-- <isEqual property="area_group" compareValue="total">
+					<isEqual property="area_group" compareValue="total">
 						(AREA_GROUP ='0' or AREA_GROUP ='1')
-					</isEqual> -->
+					</isEqual>
 					<isEqual property="area_group" compareValue="0">
 						AREA_GROUP ='0'
 					</isEqual>
@@ -140,7 +142,7 @@
 	</select>
 	
 	
-	<!-- 추천 항목 조회 -->
+	추천 항목 조회
 	<select id="recomVodList" parameterClass="paramMap" resultClass="commonMap">
 		 
 		SELECT
@@ -226,7 +228,7 @@
 	</select>
 	
 	
-	<!-- 문화 이슈 컨텐츠 삭제 -->
+	문화 이슈 컨텐츠 삭제
 	<delete id="recomDelete" parameterClass="paramMap">
 		DELETE 
 		FROM
@@ -243,4 +245,4 @@
 		IDX IN ($rec_mov_idx$)
 	</update>
 	
-</sqlMap>
+</sqlMap> -->

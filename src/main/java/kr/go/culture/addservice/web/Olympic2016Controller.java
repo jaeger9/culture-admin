@@ -5,15 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.go.culture.common.domain.CommonModel;
@@ -23,14 +17,15 @@ import kr.go.culture.common.service.KiissDataBaseService;
 import kr.go.culture.common.util.DateUtil;
 import net.sf.json.JSONObject;
 
-@Controller
-@RequestMapping(value="/addservice/2016Olympic")
+//@Controller
+//@RequestMapping(value="/addservice/2016Olympic")
+@Deprecated
 public class Olympic2016Controller {
 	
-	@Resource(name = "KiissDataBaseService")
+	//@Resource(name = "KiissDataBaseService")
 	private KiissDataBaseService kiissDataBaseService;
 	
-	@Autowired
+	//@Autowired
 	private CkDatabaseService ckService;
 	
 	/** 
@@ -40,7 +35,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/vodList.do")
+	//@RequestMapping("/vodList.do")
 	public String pollList(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		
@@ -59,7 +54,7 @@ public class Olympic2016Controller {
 		return "addservice/2016Olympic/vodList";
 	}
 	
-	@RequestMapping("olympicPopup.do")
+	//@RequestMapping("olympicPopup.do")
 	public String olympicPopup(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		
@@ -82,7 +77,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/representVodUpdate.do")
+	//@RequestMapping("/representVodUpdate.do")
 	public String representVodUpdate(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 
@@ -108,8 +103,8 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/approval.do", method = RequestMethod.POST)
-	@ResponseBody
+	//@RequestMapping(value = "/approval.do", method = RequestMethod.POST)
+	//@ResponseBody
 	public JSONObject approval(String[] seqs, String[] data_yn, String approval, ModelMap model) throws Exception {
 		JSONObject jo = new JSONObject();
 
@@ -148,7 +143,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/commentEntry.do")
+	//@RequestMapping("/commentEntry.do")
 	public String commentEntry(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		modelMap.addAttribute("paramMap", paramMap);
@@ -166,7 +161,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/commentExcelDown.do")
+	//@RequestMapping("/commentExcelDown.do")
 	public String commentExcelDown(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);		
 		String[] headerArr = {"순번", "성명", "휴대폰번호", "공유 URL", "응원메시지", "등록일"};
@@ -186,7 +181,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value="/commentWinnerPopup.do", method=RequestMethod.GET)
+	//@RequestMapping(value="/commentWinnerPopup.do", method=RequestMethod.GET)
 	public String commentWinnerPopup(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 
@@ -204,7 +199,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/commentWinnerExcelDown.do")
+	//@RequestMapping("/commentWinnerExcelDown.do")
 	public String commentWinnerExcelDown(HttpServletRequest request, ModelMap modelMap) throws Exception {
 		ParamMap paramMap = new ParamMap(request);		
 		String[] headerArr = {"순번", "성명", "휴대폰번호", "공유 URL", "응원메시지", "등록일"};
@@ -225,7 +220,7 @@ public class Olympic2016Controller {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	@RequestMapping(value="/commentWinnerPopup.do", method=RequestMethod.POST)
+	//@RequestMapping(value="/commentWinnerPopup.do", method=RequestMethod.POST)
 	public String commentWinnerPopupPost(HttpServletRequest request, RedirectAttributes redirectAttributes) throws Exception {
 		ParamMap paramMap = new ParamMap(request);	
 		
@@ -251,7 +246,7 @@ public class Olympic2016Controller {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value="/commentWinnerDelete.do", method=RequestMethod.POST)
+	//@RequestMapping(value="/commentWinnerDelete.do", method=RequestMethod.POST)
 	public String commentWinnerDelete(HttpServletRequest request) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 

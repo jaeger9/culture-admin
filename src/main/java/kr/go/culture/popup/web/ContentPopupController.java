@@ -26,8 +26,8 @@ public class ContentPopupController {
 	@Resource(name = "CkDatabaseService")
 	private CkDatabaseService ckDatabaseService;
 	
-	@Resource(name = "KiissDataBaseService")
-	private KiissDataBaseService kiissDataBaseService;
+	//@Resource(name = "KiissDataBaseService")
+	//private KiissDataBaseService kiissDataBaseService;
 	
 	@Resource(name = "CultureDatabaseService")
 	private CultureDatabaseService cultureDatabaseService;
@@ -71,8 +71,8 @@ public class ContentPopupController {
 				model.addAttribute("sub_menu_type", request.getParameter("sub_menu_type").toString());
 			}
 			
-			model.addAttribute("list", kiissDataBaseService.readForList("culture.recommand.vodList", paramMap));
-			model.addAttribute("count", kiissDataBaseService.readForObject("culture.recommand.vodListCnt", paramMap));
+			model.addAttribute("list", ckDatabaseService.readForList("culture.recommand.vodList", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("culture.recommand.vodListCnt", paramMap));
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -155,8 +155,8 @@ public class ContentPopupController {
 		
 		model.addAttribute("paramMap", paramMap);
 		
-		model.addAttribute("list", kiissDataBaseService.readForList("content.popup.uccList", paramMap));
-		model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.uccListCnt", paramMap));
+		model.addAttribute("list", ckDatabaseService.readForList("content.popup.uccList", paramMap));
+		model.addAttribute("count", ckDatabaseService.readForObject("content.popup.uccListCnt", paramMap));
 
 		return "/popup/ucc";
 	}
@@ -169,8 +169,8 @@ public class ContentPopupController {
 		
 		model.addAttribute("paramMap", paramMap);
 		
-		model.addAttribute("list", kiissDataBaseService.readForList("content.popup.uccList1", paramMap));
-		model.addAttribute("count", kiissDataBaseService.readForObject("content.popup.uccListCnt1", paramMap));
+		model.addAttribute("list", ckDatabaseService.readForList("content.popup.uccList1", paramMap));
+		model.addAttribute("count", ckDatabaseService.readForObject("content.popup.uccListCnt1", paramMap));
 
 		return "/popup/ucc1";
 	}

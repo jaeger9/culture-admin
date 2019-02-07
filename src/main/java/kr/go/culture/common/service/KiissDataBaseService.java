@@ -2,17 +2,13 @@ package kr.go.culture.common.service;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import kr.go.culture.common.dao.KiissDAO;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service("KiissDataBaseService")
+//@Service("KiissDataBaseService")
+@Deprecated
 public class KiissDataBaseService {
 
-	@Resource(name = "KiissDAO")
+	//@Resource(name = "KiissDAO")
 	private KiissDAO dao;
 	
 	public int save(String strMapID, Object object) throws Exception {

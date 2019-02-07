@@ -35,7 +35,9 @@
 		</property>
 	</bean>
 	
-	<bean id="dataSource-kiiss"
+<!--
+Cubrid Deleted
+ 	<bean id="dataSource-kiiss"
 		class="org.apache.commons.dbcp.BasicDataSource">
 		<property name="driverClassName">
 			<value>${kiiss.driver}</value>
@@ -49,7 +51,7 @@
 		<property name="password">
 			<value>${kiiss.password}</value>
 		</property>
-	</bean>
+	</bean> -->
 	
 	<bean id="dataSource-culture"
 		class="org.apache.commons.dbcp.BasicDataSource">

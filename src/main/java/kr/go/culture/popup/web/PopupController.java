@@ -58,8 +58,8 @@ public class PopupController {
 	@Resource(name = "FileService")
 	private FileService fileService;
 
-	@Resource(name = "KiissDataBaseService")
-	private KiissDataBaseService kiissDataBaseService;
+	//@Resource(name = "KiissDataBaseService")
+	//private KiissDataBaseService kiissDataBaseService;
 
 	@Resource(name = "CkDatabaseService")
 	private CkDatabaseService ckDatabaseService;

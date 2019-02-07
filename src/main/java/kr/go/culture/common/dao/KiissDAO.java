@@ -2,20 +2,16 @@ package kr.go.culture.common.dao;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import com.ibatis.sqlmap.client.SqlMapClient;
 
-@Repository("KiissDAO")
+//@Repository("KiissDAO")
+@Deprecated
 public class KiissDAO implements CommonDAO {
 
 	private SqlMapClient sqlMapClient = null;
 
-	@Autowired
-	@Resource(name="sqlMapClient-kiiss")
+	//@Autowired
+	//@Resource(name="sqlMapClient-kiiss")
 	public void setSqlMapClient(SqlMapClient sqlMapClient) {
 		this.sqlMapClient = sqlMapClient;
 	}
