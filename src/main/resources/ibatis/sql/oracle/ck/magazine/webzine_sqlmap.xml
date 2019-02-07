@@ -37,21 +37,25 @@
 			PCN_CUSTOMER_NEWS_MAIN_CTL
 	</select>
 	<select id="view" parameterClass="paramMap" resultClass="commonMap">
-		SELECT 
+		SELECT /* webzine_sqlmap.view */
 			SEQ
   			, NUMBERS
 			, TITLE
 			, TO_CHAR(REG_DATE,'YYYY-MM-DD') || ' ' ||DECODE(TO_CHAR(REG_DATE,'D'),'1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '토') || '요일' AS REG_DATE
-		FROM 
+			, NVL(TEMPLATE_TYPE,'D') AS TEMPLATE_TYPE
+		    , PHONE
+		    , AGENCY_NAME
+		FROM
 			PCN_CUSTOMER_NEWS_MAIN_CTL
 		WHERE 
 			SEQ = #seq#
 	</select>
 	<!-- 회차 , 발송일 때문에 하는듯... -->
 	<select id="emptyView" resultClass="commonMap">
-		SELECT 
+		SELECT /* webzine_sqlmap.emptyView */
 			(SELECT NVL(MAX(SEQ),0)+1 FROM PCN_CUSTOMER_NEWS_MAIN_CTL) NUMBERS, 
-			TO_CHAR(SYSDATE,'YYYY-MM-DD')||' '||DECODE(TO_CHAR(SYSDATE,'D'),'1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '토')||'요일' REG_DATE
+			TO_CHAR(SYSDATE,'YYYY-MM-DD')||' '||DECODE(TO_CHAR(SYSDATE,'D'),'1', '일', '2', '월', '3', '화', '4', '수', '5', '목', '6', '금', '토')||'요일' REG_DATE,
+			'D' AS TEMPLATE_TYPE
 		FROM 
 			DUAL
 	</select>
@@ -90,26 +94,30 @@
 		<selectKey resultClass="int" keyProperty="seq">
    			SELECT NVL(MAX(SEQ), 0)+1 FROM PCN_CUSTOMER_NEWS_MAIN_CTL
    		</selectKey>
-		INSERT
+		INSERT /* webzine_sqlmap.insert */
 		  INTO PCN_CUSTOMER_NEWS_MAIN_CTL
 		  (
 		    	SEQ
 		    	, NUMBERS
 		   	 	, TITLE
-		    	<!-- , TEMPLATE_TYPE -->
+		    	, TEMPLATE_TYPE
 		    	, SEND_DATE
 		    	, APPROVAL_YN
 		    	, REG_DATE
+				, PHONE
+				, AGENCY_NAME
 		  )
 		  VALUES
 		  (
 		    	#seq#
 		    	, #numbers#
 		    	, #title#
-		    	<!-- , #template_type# -->
+		    	, #template_type#
 		    	, ''
 		    	, 'N'
 		    	, SYSDATE
+				, #phone#
+				, #agency_name#
 		  )
 	</insert>
 	<insert id="insertSub" parameterClass="java.util.HashMap">
@@ -139,14 +147,16 @@
 		  	)
 	</insert>
 	<update id="update" parameterClass="paramMap">
-		UPDATE 
+		UPDATE /* webzine_sqlmap.update */
 			PCN_CUSTOMER_NEWS_MAIN_CTL
    		SET 
    			NUMBERS = #numbers#, 
    			TITLE = #title#, 
    			TEMPLATE_TYPE = #template_type#, 
    			SEND_DATE = #send_date#,
-   			UPD_DATE = SYSDATE
+   			UPD_DATE = SYSDATE,
+			AGENCY_NAME = #agency_name#,
+			PHONE = #phone#
    		WHERE 
    			SEQ = #seq#
 	</update>

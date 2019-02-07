@@ -3,6 +3,8 @@ package kr.go.culture.magazine.web;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -78,11 +80,35 @@ public class WebzineController {
 		
 		model.addAttribute("paramMap", paramMap);
 
-		if (paramMap.containsKey("seq")) { 
-			model.addAttribute("view", ckDatabaseService.readForObject(
-					"webzine.view", paramMap));
-			model.addAttribute("subList", ckDatabaseService.readForList(
-					"webzine.subList", paramMap));
+		paramMap.put("common_code_type", "PHONE");
+		model.addAttribute("phoneList", ckDatabaseService.readForList("common.codeListSort", paramMap));
+
+		paramMap.put("common_code_type", "TEMPLATE_TYPE");
+		model.addAttribute("templateTypeList", ckDatabaseService.readForList("common.codeListSort", paramMap));
+
+
+		if (paramMap.containsKey("seq")) {
+
+			Map viewMap = new HashMap();
+
+			viewMap = (Map) ckDatabaseService.readForObject("webzine.view", paramMap);
+
+			String phone1 = "";
+			String phone2 = "";
+			String phone3 = "";
+
+			if(viewMap.get("phone") != null) {
+				phone1 = String.valueOf(viewMap.get("phone")).split("-")[0];
+				phone2 = String.valueOf(viewMap.get("phone")).split("-")[1];
+				phone3 = String.valueOf(viewMap.get("phone")).split("-")[2];
+			}
+
+			viewMap.put("phone1",phone1);
+			viewMap.put("phone2",phone2);
+			viewMap.put("phone3",phone3);
+			System.out.println("viewMap = " + viewMap);
+			model.addAttribute("view", viewMap);
+			model.addAttribute("subList", ckDatabaseService.readForList("webzine.subList", paramMap));
 			
 			paramMap.put("menu_cd", "9");
 			
@@ -126,7 +152,9 @@ public class WebzineController {
 	public String insert(HttpServletRequest request, ModelMap model ,  @RequestParam("uploadFile") MultipartFile multi,  @RequestParam("uploadFileEvent") MultipartFile multiEvent)
 			throws Exception {
 		ParamMap paramMap = new ParamMap(request);
+		String phone = paramMap.getString("phone1")+"-"+paramMap.getString("phone2")+"-"+paramMap.getString("phone3");
 
+		paramMap.put("phone",phone);
 		try {
 			
 			webzineInsertService.insert(paramMap , multi, multiEvent);
@@ -148,7 +176,9 @@ public class WebzineController {
 	public String update(HttpServletRequest request, ModelMap model ,  @RequestParam("uploadFile") MultipartFile multi,  @RequestParam("uploadFileEvent") MultipartFile multiEvent)
 			throws Exception {
 		ParamMap paramMap = new ParamMap(request);
+		String phone = paramMap.getString("phone1")+"-"+paramMap.getString("phone2")+"-"+paramMap.getString("phone3");
 
+		paramMap.put("phone",phone);
 		try {
 			
 			webzineUpdateService.update(paramMap , multi, multiEvent);

@@ -345,9 +345,41 @@ $(function () {
 	
 	frm.submit(function(){
 		//DB NOT NULL 기준 체크
-		if(action != 'insert'){
-			return true;
+		// if(action != 'insert'){
+		// 	return true;
+		// }
+
+		if($("input[name='agency_name']").val() == '') {
+			alert("기관/업체명을 입력하세요.");
+			$("input[name='agency_name']").focus();
+			return false;
 		}
+
+		if ( $("input[name='phone2']").val() == "" ){
+			alert("연락처를 입력하여 주세요.");
+			$("input[name='phone2']").focus();
+			return false;
+		}
+
+		if ( $("input[name='phone3']").val() == "" ){
+
+			alert("연락처를 입력하여 주세요.");
+			$("input[name='phone3']").focus();
+			return false;
+		}
+
+		if(isNaN($("input[name='phone2']").val())){
+			alert('연락처는 숫자만 입력 가능합니다');
+			$("input[name='phone2']").focus();
+			return false;
+		}
+
+		if(isNaN($("input[name='phone3']").val())){
+			alert('연락처는 숫자만 입력 가능합니다');
+			$("input[name='phone3']").focus();
+			return false;
+		}
+
 
 		if(title.val() == '') {
 		    alert("제목 입력하세요");
@@ -549,6 +581,32 @@ function setVal(data){
 							<th scope="row">발송일</th>
 							<td>
 								${view.reg_date}${emptyView.reg_date}
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">기관/업체명</th>
+							<td><input type="text" name="agency_name" maxlength="60" value="<c:out value="${view.agency_name}"/>"/></td>
+							<th scope="row">웹진유형</th>
+							<td>
+								<select name="template_type">
+									<c:forEach items="${templateTypeList }" var="templateTypeList" varStatus="status">
+									<option value="<c:out value="${templateTypeList.value}"/>" <c:if test="${templateTypeList.value eq view.template_type}">selected="selected"</c:if> ><c:out value="${templateTypeList.name}"/></option>
+									</c:forEach>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">담당자연락처</th>
+							<td colspan="3">
+								<select name="phone1">
+									<c:forEach items="${phoneList }" var="phoneList" varStatus="status">
+										<option value="<c:out value="${phoneList.value}"/>" <c:if test="${phoneList.value eq view.phone1}">selected="selected"</c:if> ><c:out value="${phoneList.name}"/></option>
+									</c:forEach>
+								</select>
+								-
+								<input type="text" name="phone2" maxlength="4" style="width:50px" value="<c:out value="${view.phone2}"/>"/>
+								-
+								<input type="text" name="phone3" maxlength="4" style="width:50px" value="<c:out value="${view.phone3}"/>"/>
 							</td>
 						</tr>
 						<tr>
