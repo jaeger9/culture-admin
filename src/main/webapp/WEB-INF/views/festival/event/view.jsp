@@ -149,7 +149,7 @@ $(function () {
 	//공연상 선택
 	$('span.btn.whiteS a').each(function(){
 	  	$(this).click(function(){
-	  		if( $(this).html() == '우편번호찾기'){
+	  		if( $(this).html() == '우편번호찾기test'){
 	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
 	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
 	    	}
