@@ -85,16 +85,22 @@ function excelDown2() {
 						<input type="text" name="join_date_end" value="${paramMap.join_date_end }" />
 					</td>
 				</tr>
-				<%-- <tr>
+				 <tr>
 					<th scope="row">권한</th>
 					<td>
-						<select name="role_user">
+						<select name="role">
+							<option value="all">전체</option>
 							<c:forEach items="${userRoleList }" var="item">
-								<option>${item.value}</option>
+								<option 
+								value="${item.value }"
+								<c:if test="${param.role eq item.value }">
+									selected
+								</c:if>
+								>${item.name}</option>
 							</c:forEach>
 						</select>
 					</td>
-				</tr> --%>
+				</tr> 
 				<%-- <tr>
 					<th scope="row">그래픽인증서비스<br/>가입여부</th>
 					<td>
@@ -158,6 +164,7 @@ function excelDown2() {
 			<col />
 			<col style="width:10%" />
 			<col style="width:10%" />
+			<col style="width:10%" />
 			<col style="width:12%" />
 		</colgroup>
 		<thead>
@@ -168,6 +175,7 @@ function excelDown2() {
 				<th scope="col">이메일</th>
 				<th scope="col">마일리지</th>
 				<th scope="col">가입구분</th>
+				<th scope="col">권한</th>
 				<th scope="col">가입일</th>
 			</tr>
 		</thead>
@@ -203,6 +211,9 @@ function excelDown2() {
 				</td>
 				<td>
 					<c:out value="${item.join_category_name }" default="-" />
+				</td>
+				<td>
+					<c:out value="${item.role }" />
 				</td>
 				<td>
 					<c:out value="${item.join_date }" default="-" />

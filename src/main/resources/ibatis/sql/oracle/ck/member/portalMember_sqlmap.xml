@@ -4,13 +4,16 @@
 
 	<sql id="sqlPagingBegin">
 		SELECT
-			USER_ID, NAME, EMAIL, TO_CHAR(JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE, 
-			GRP_CER_FLAG, SEC_CER_FLAG, JOIN_CATEGORY_NAME, POINT
+		USER_ID, NAME, EMAIL, TO_CHAR(JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE,
+		GRP_CER_FLAG, SEC_CER_FLAG, JOIN_CATEGORY_NAME,
+		NVL(
+		decode(sign(point),-1,0,point),0) POINT,
+		(SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE=ROLE) ROLE
 		FROM (
-			SELECT ROWNUM RNUM, T.*
-			FROM (
-				SELECT Z.* 
-				FROM (
+		SELECT ROWNUM RNUM, T.*
+		FROM (
+		SELECT Z.*
+		FROM (
 	</sql>
 
 	<sql id="sqlPagingEnd"><![CDATA[
@@ -23,25 +26,36 @@
 
 	<sql id="sqlList-1">
 		WHERE
-			A.PUBLISHER IS NULL
-		AND	A.JOIN_CATEGORY		=	B.CODE(+)
-		AND	A.USER_ID			=	C.USER_ID(+)
+		A.PUBLISHER IS NULL
+		AND A.JOIN_CATEGORY = B.CODE(+)
+		AND A.USER_ID = C.USER_ID(+)
+		<isNotEmpty property="role">
+			<isNotEqual property="role" compareValue="all">
+				AND A.ROLE = #role#
+			</isNotEqual>
+		</isNotEmpty>
 		<isNotEmpty property="search_word">
-			<isEqual property="search_type" compareValue="all" prepend="AND">
+			<isEqual property="search_type" compareValue="all"
+				prepend="AND">
 				(
-					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
-				OR	LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
-				OR	LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+				LOWER(A.USER_ID) LIKE LOWER('%' || #search_word# || '%')
+				OR LOWER(A.NAME) LIKE
+				LOWER('%' || #search_word# || '%')
+				OR LOWER(A.EMAIL) LIKE LOWER('%'
+				|| #search_word# || '%')
 				)
 			</isEqual>
-			<isEqual property="search_type" compareValue="user_id" prepend="AND">
-					LOWER(A.USER_ID)	LIKE LOWER('%' || #search_word# || '%')
+			<isEqual property="search_type" compareValue="user_id"
+				prepend="AND">
+				LOWER(A.USER_ID) LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
-			<isEqual property="search_type" compareValue="name" prepend="AND">
-					LOWER(A.NAME)		LIKE LOWER('%' || #search_word# || '%')
+			<isEqual property="search_type" compareValue="name"
+				prepend="AND">
+				LOWER(A.NAME) LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
-			<isEqual property="search_type" compareValue="email" prepend="AND">
-					LOWER(A.EMAIL)		LIKE LOWER('%' || #search_word# || '%')
+			<isEqual property="search_type" compareValue="email"
+				prepend="AND">
+				LOWER(A.EMAIL) LIKE LOWER('%' || #search_word# || '%')
 			</isEqual>
 		</isNotEmpty>
 
@@ -51,241 +65,305 @@
 		<isNotEmpty property="join_date_end" prepend="AND"><![CDATA[
 			A.JOIN_DATE <= TO_DATE(#join_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
 		]]></isNotEmpty>
-		
-		
-		
-		<isEqual property="sec_cer_check" compareValue="Y" prepend="AND">
-				NVL(A.SEC_CER_FLAG, 'N') = 'Y'
+
+
+
+		<isEqual property="sec_cer_check" compareValue="Y"
+			prepend="AND">
+			NVL(A.SEC_CER_FLAG, 'N') = 'Y'
 		</isEqual>
-		<isEqual property="sec_cer_check" compareValue="N" prepend="AND">
-				NVL(A.SEC_CER_FLAG, 'N') = 'N'
+		<isEqual property="sec_cer_check" compareValue="N"
+			prepend="AND">
+			NVL(A.SEC_CER_FLAG, 'N') = 'N'
 		</isEqual>
-		
+
 	</sql>
 
 	<select id="count" parameterClass="paramMap" resultClass="int">
-		select count(*) 
+		select count(*)
 		from
 		(
-			(
-				SELECT
-					A.USER_ID
-					,A.NAME
-					,A.EMAIL
-					,TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD')	JOIN_DATE
-					,B.NAME								JOIN_CATEGORY_NAME
-					,NVL(C.POINT, 0)					POINT
-					,GRP_CER_FLAG
-					,SEC_CER_FLAG
-				FROM
-					PCN_MEMBER A
-					,PCN_COMMON_CODE B
-					,(SELECT USER_ID, SUM(POINT) AS POINT FROM PCN_CUSTOMER_POINT GROUP by USER_ID) C
-				<include refid="sqlList-1" />
-			)
-			
-			minus
-			
-			(
-				SELECT A.USER_ID ,
-                       A.NAME ,
-                       A.EMAIL ,
-                       TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE ,
-                       B.NAME JOIN_CATEGORY_NAME ,
-                       NVL(C.POINT, 0) POINT ,
-                       GRP_CER_FLAG, 
-                       SEC_CER_FLAG 
-                  FROM PCN_MEMBER A ,
-                       PCN_COMMON_CODE B ,
-                       (SELECT USER_ID, 
-                              SUM(POINT) AS POINT 
-                         FROM PCN_CUSTOMER_POINT 
-                        GROUP BY USER_ID
-                       ) C 
-                 WHERE A.AUTH <![CDATA[<>]]> 0
-                       AND A.JOIN_CATEGORY = B.CODE(+) 
-                       AND A.USER_ID = C.USER_ID(+)       
-			)
-		
+		(
+		SELECT
+		A.USER_ID
+		,A.NAME
+		,A.EMAIL
+		,TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE
+		,B.NAME JOIN_CATEGORY_NAME
+		,NVL(C.POINT, 0) POINT
+		,GRP_CER_FLAG
+		,SEC_CER_FLAG
+		FROM
+		PCN_MEMBER A
+		,PCN_COMMON_CODE B
+		,(SELECT USER_ID, SUM(POINT) AS POINT FROM PCN_CUSTOMER_POINT GROUP by
+		USER_ID) C
+		<include refid="sqlList-1" />
 		)
-		
+
+		minus
+
+		(
+		SELECT A.USER_ID ,
+		A.NAME ,
+		A.EMAIL ,
+		TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD') JOIN_DATE ,
+		B.NAME JOIN_CATEGORY_NAME ,
+		NVL(C.POINT, 0) POINT ,
+		GRP_CER_FLAG,
+		SEC_CER_FLAG
+		FROM PCN_MEMBER A ,
+		PCN_COMMON_CODE B ,
+		(SELECT USER_ID,
+		SUM(POINT) AS POINT
+		FROM PCN_CUSTOMER_POINT
+		GROUP BY USER_ID
+		) C
+		WHERE A.AUTH <![CDATA[<>]]>
+		0
+		AND A.JOIN_CATEGORY = B.CODE(+)
+		AND A.USER_ID = C.USER_ID(+)
+		)
+
+		)
+
 	</select>
 
-	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
-	<select id="list" parameterClass="paramMap" resultClass="commonMap">
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1 APPROVAL -->
+	<select id="list" parameterClass="paramMap"
+		resultClass="commonMap">
 		<include refid="sqlPagingBegin" />
 		(
-			SELECT
-				A.USER_ID, A.NAME, A.EMAIL, A.JOIN_DATE, GRP_CER_FLAG, SEC_CER_FLAG,
-				B.NAME JOIN_CATEGORY_NAME, 
-				NVL(C.POINT, 0) POINT
-			FROM
-				PCN_MEMBER A, 
-				PCN_COMMON_CODE B, 
-				(SELECT USER_ID, SUM(MILEAGE_POINT) AS POINT FROM MILDB.MILEAGE_LOG
-				 WHERE TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')
-				 GROUP by USER_ID) C
-			<include refid="sqlList-1" />
+		SELECT
+		A.USER_ID, A.NAME, A.EMAIL, A.JOIN_DATE, GRP_CER_FLAG, SEC_CER_FLAG,
+		B.NAME JOIN_CATEGORY_NAME,
+		NVL(C.POINT, 0) POINT, A.ROLE
+		FROM
+		PCN_MEMBER A,
+		PCN_COMMON_CODE B,
+		(SELECT USER_ID, SUM(MILEAGE_POINT) AS POINT FROM MILDB.MILEAGE_LOG
+		WHERE TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')
+		GROUP by USER_ID) C
+		<include refid="sqlList-1" />
 		)
-		minus		
+		minus
 		(
-			SELECT 
-				A.USER_ID, A.NAME, A.EMAIL, A.JOIN_DATE, GRP_CER_FLAG, SEC_CER_FLAG, 
-				B.NAME JOIN_CATEGORY_NAME, 
-				NVL(C.POINT, 0) POINT 
-            FROM 
-            	PCN_MEMBER A,
-            	PCN_COMMON_CODE B ,
-            	(SELECT USER_ID, SUM(MILEAGE_POINT) AS POINT FROM MILDB.MILEAGE_LOG 
-            	 WHERE TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')
-            	GROUP by USER_ID) C 
-            WHERE A.AUTH <![CDATA[<>]]> 0
-            AND A.JOIN_CATEGORY = B.CODE(+) 
-            AND A.USER_ID = C.USER_ID(+) 
+		SELECT
+		A.USER_ID, A.NAME, A.EMAIL, A.JOIN_DATE, GRP_CER_FLAG, SEC_CER_FLAG,
+		B.NAME JOIN_CATEGORY_NAME,
+		NVL(C.POINT, 0) POINT, A.ROLE
+		FROM
+		PCN_MEMBER A,
+		PCN_COMMON_CODE B ,
+		(SELECT USER_ID, SUM(MILEAGE_POINT) AS POINT FROM MILDB.MILEAGE_LOG
+		WHERE TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')
+		GROUP by USER_ID) C
+		WHERE A.AUTH <![CDATA[<>]]>
+		0
+		AND A.JOIN_CATEGORY = B.CODE(+)
+		AND A.USER_ID = C.USER_ID(+)
 		)
 		<include refid="sqlPagingEnd" />
 		ORDER BY JOIN_DATE DESC NULLS LAST
 	</select>
 
-	<select id="view" parameterClass="paramMap" resultClass="commonMap">
+	<select id="view" parameterClass="paramMap"
+		resultClass="commonMap">
 		SELECT
-			 A.USER_ID
-			,A.PWD
-			,A.PWD_RESULT
-			,A.QUESTION
-			,A.JOIN_DATE
-			,A.MEMBER_CATEGORY
-			,A.IMAGE_NAME
-			,A.JOIN_CATEGORY
-			,A.MEMBER_KEY
-			,A.NAME
-			,A.SEX
-			,A.BIRTH_YEAR
-			,A.HP
-			,A.EMAIL
-			,DECODE(A.NEWSLETTER_YN, 'Y', 'Y', 'N') NEWSLETTER_YN
-			,A.PUBLISHER
-			,A.UPDATE_DATE
-			,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.JOIN_CATEGORY)	JOIN_CATEGORY_NAME
-			,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.MEMBER_CATEGORY)	MEMBER_CATEGORY_NAME
-			,(SELECT NAME UCI_ORG FROM UCI_ORG WHERE ORG_CODE = A.PUBLISHER)	CREATOR
-			,A.GRP_CER_FLAG
-			,A.SEC_CER_FLAG
-			,A.FAIL_CNT
-			,TO_CHAR(A.PWD_CHG_DATE, 'YYYY-MM-DD') PWD_CHG_DATE
-			,TO_CHAR(A.LOGIN_DATE, 'YYYY-MM-DD') LOGIN_DATE
-			,TO_CHAR(A.LOGOUT_DATE, 'YYYY-MM-DD') LOGOUT_DATE
-			,A.PRIVATE_AGREEMENT_YN PRIVATE_AGREEMENT_YN
-			,TO_CHAR(A.PRIVATE_AGREEMENT_DATE, 'YYYY-MM-DD') PRIVATE_AGREEMENT_DATE
-			,ADDR_SIDO
-			,A.ROLE
+		USER_ID,
+		PWD,
+		PWD_RESULT,
+		QUESTION,
+		JOIN_DATE,
+		MEMBER_CATEGORY,
+		IMAGE_NAME,
+		JOIN_CATEGORY,
+		MEMBER_KEY,
+		NAME,
+		SEX,
+		BIRTH_YEAR,
+		HP,
+		EMAIL,
+		NEWSLETTER_YN,
+		PUBLISHER,
+		UPDATE_DATE,
+		JOIN_CATEGORY_NAME,
+		MEMBER_CATEGORY_NAME,
+		CREATOR,
+		GRP_CER_FLAG,
+		SEC_CER_FLAG,
+		FAIL_CNT,
+		PWD_CHG_DATE,
+		LOGIN_DATE,
+		LOGOUT_DATE,
+		PRIVATE_AGREEMENT_YN,
+		PRIVATE_AGREEMENT_DATE,
+		ADDR_SIDO,
+		ROLE,
+		NVL(
+		decode(sign(point),-1,0,point),0) POINT
+		FROM(
+		SELECT
+		A.USER_ID
+		,A.PWD
+		,A.PWD_RESULT
+		,A.QUESTION
+		,A.JOIN_DATE
+		,A.MEMBER_CATEGORY
+		,A.IMAGE_NAME
+		,A.JOIN_CATEGORY
+		,A.MEMBER_KEY
+		,A.NAME
+		,A.SEX
+		,A.BIRTH_YEAR
+		,A.HP
+		,A.EMAIL
+		,DECODE(A.NEWSLETTER_YN, 'Y', 'Y', 'N') NEWSLETTER_YN
+		,A.PUBLISHER
+		,A.UPDATE_DATE
+		,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.JOIN_CATEGORY)
+		JOIN_CATEGORY_NAME
+		,(SELECT NAME FROM PCN_COMMON_CODE WHERE CODE = A.MEMBER_CATEGORY)
+		MEMBER_CATEGORY_NAME
+		,(SELECT NAME UCI_ORG FROM UCI_ORG WHERE ORG_CODE = A.PUBLISHER) CREATOR
+		,A.GRP_CER_FLAG
+		,A.SEC_CER_FLAG
+		,A.FAIL_CNT
+		,TO_CHAR(A.PWD_CHG_DATE, 'YYYY-MM-DD') PWD_CHG_DATE
+		,TO_CHAR(A.LOGIN_DATE, 'YYYY-MM-DD') LOGIN_DATE
+		,TO_CHAR(A.LOGOUT_DATE, 'YYYY-MM-DD') LOGOUT_DATE
+		,A.PRIVATE_AGREEMENT_YN PRIVATE_AGREEMENT_YN
+		,TO_CHAR(A.PRIVATE_AGREEMENT_DATE, 'YYYY-MM-DD') PRIVATE_AGREEMENT_DATE
+		,ADDR_SIDO
+		,A.ROLE
+		,(SELECT
+                SUM(MILEAGE_POINT) 
+            FROM
+                MILDB.MILEAGE_LOG 
+            WHERE
+                USER_ID= #user_id# ) POINT   
 		FROM
-			PCN_MEMBER A
+		PCN_MEMBER A
 		WHERE
-			A.USER_ID = #user_id#
-		AND	A.PUBLISHER IS NULL
+		A.USER_ID = #user_id#
+		AND A.PUBLISHER IS NULL
+		)
 	</select>
 
 	<update id="update" parameterClass="paramMap">
 		UPDATE PCN_MEMBER
 		SET
-			HP				=	#hp#
-			,EMAIL			=	#email#
-			,NEWSLETTER_YN	=	#newsletter_yn#
-			,GRP_CER_FLAG   =   #grp_cer_flag#
-			,SEC_CER_FLAG	=	#sec_cer_flag#
-			,ADDR_SIDO		=	#addr_sido#
-			,ROLE			=   #userRole#
+		HP = #hp#
+		,EMAIL = #email#
+		,NEWSLETTER_YN = #newsletter_yn#
+		,GRP_CER_FLAG = #grp_cer_flag#
+		,SEC_CER_FLAG = #sec_cer_flag#
+		,ADDR_SIDO = #addr_sido#
+		,ROLE = #userRole#
 		WHERE
-			USER_ID = #user_id#
-		AND	PUBLISHER IS NULL
+		USER_ID = #user_id#
+		AND PUBLISHER IS NULL
 	</update>
-	
+
 	<update id="mailDateUpdate" parameterClass="paramMap">
 		UPDATE PCN_MEMBER
 		SET
-			DORMANCY_MAIL_DATE=SYSDATE
+		DORMANCY_MAIL_DATE=SYSDATE
 		WHERE
-			USER_ID = #user_id#
-		
+		USER_ID = #user_id#
+
 	</update>
 
 	<!-- /*+INDEX_DESC(A PCN_MEMBER_IDX01) */ -->
-	<select id="listByLetterExcel" resultClass="java.util.LinkedHashMap">
+	<select id="listByLetterExcel"
+		resultClass="java.util.LinkedHashMap">
 		SELECT
-			ROWNUM "num", "user_id", "name", "email"
+		ROWNUM "num", "user_id", "name", "email"
 		FROM(
-			SELECT
-				NVL(A.USER_ID,'-') "user_id"
-				,NVL(A.NAME, '-')	"name"
-				,NVL(A.EMAIL, '-')	"email"
-			FROM
-				PCN_MEMBER A
-			WHERE
-				A.PUBLISHER IS NULL
-			AND	A.NEWSLETTER_YN = 'Y'
-			ORDER BY
-				A.JOIN_DATE DESC NULLS LAST
-			)
+		SELECT
+		NVL(A.USER_ID,'-') "user_id"
+		,NVL(A.NAME, '-') "name"
+		,NVL(A.EMAIL, '-') "email"
+		FROM
+		PCN_MEMBER A
+		WHERE
+		A.PUBLISHER IS NULL
+		AND A.NEWSLETTER_YN = 'Y'
+		ORDER BY
+		A.JOIN_DATE DESC NULLS LAST
+		)
 	</select>
 
-	<select id="listByMemberExcel" resultClass="java.util.LinkedHashMap">
+	<select id="listByMemberExcel"
+		resultClass="java.util.LinkedHashMap">
 		SELECT
-			ROWNUM "num", 
-		       "user_id", 
-		       "join_date", 
-		       "join_category" ,
-		       "name",
-		       "sex",
-		       "birth_year",
-		       "hp",
-		       "email",
-		       "newsletter_yn",
-			   "addr_sido",
-		       "point"
-		    FROM(
-		      SELECT
-		          A.USER_ID "user_id"
-		          ,NVL(TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD'),'-')  "join_date"
-		          ,NVL(B.NAME,'-') "join_category"
-		          ,NVL(A.NAME, '-') "name"
-		          ,NVL(DECODE(A.SEX, 'M', '남성', '여성'),'-') "sex"
-		          ,NVL(A.BIRTH_YEAR, '-') "birth_year"
-		          ,NVL(A.HP,'-') "hp"
-		          ,NVL(A.EMAIL,'-') "email"
-		          ,NVL(DECODE(A.NEWSLETTER_YN, 'Y', '수신', '미수신'),'-') "newsletter_yn"
-		          ,NVL(A.ADDR_SIDO, '-') "addr_sido"
-		          ,NVL(C.POINT, 0) "point"
-		      FROM
-		          PCN_MEMBER A
-		          ,PCN_COMMON_CODE B
-		          ,(SELECT
-                        USER_ID,
-                        SUM(MILEAGE_POINT) AS POINT 
-                    FROM
-                        MILDB.MILEAGE_LOG                
-                    WHERE
-                        TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')              
-                    GROUP by
-                        USER_ID) C
-		      WHERE
-		          A.PUBLISHER IS NULL
-		        AND	A.JOIN_CATEGORY	=	B.CODE(+)
-		        AND	A.USER_ID		=	C.USER_ID(+)
-		      ORDER BY
-		          A.JOIN_DATE DESC NULLS LAST
-		      )
+		ROWNUM "num",
+		"user_id",
+		"join_date",
+		"join_category" ,
+		"name",
+		"sex",
+		"birth_year",
+		"hp",
+		"email",
+		"newsletter_yn",
+		"addr_sido",
+		"point",
+		(SELECT NAME FROM PCN_COMMON_CODE WHERE VALUE= ROLE) ROLE
+		FROM(
+		SELECT
+		A.USER_ID "user_id"
+		,NVL(TO_CHAR(A.JOIN_DATE, 'YYYY-MM-DD'),'-') "join_date"
+		,NVL(B.NAME,'-') "join_category"
+		,NVL(A.NAME, '-') "name"
+		,NVL(DECODE(A.SEX, 'M', '남성', '여성'),'-') "sex"
+		,NVL(A.BIRTH_YEAR, '-') "birth_year"
+		,NVL(A.HP,'-') "hp"
+		,NVL(A.EMAIL,'-') "email"
+		,NVL(DECODE(A.NEWSLETTER_YN, 'Y', '수신', '미수신'),'-') "newsletter_yn"
+		,NVL(A.ADDR_SIDO, '-') "addr_sido"
+		,NVL(
+		decode(sign(point),-1,0,point),0) "point"
+		,A.ROLE
+		FROM
+		PCN_MEMBER A
+		,PCN_COMMON_CODE B
+		,(SELECT
+		USER_ID,
+		SUM(MILEAGE_POINT) AS POINT
+		FROM
+		MILDB.MILEAGE_LOG
+		WHERE
+		TO_CHAR(MILEAGE_DATE,'YYYY') >= TO_CHAR(SYSDATE,'YYYY')
+		GROUP by
+		USER_ID) C
+		WHERE
+		A.PUBLISHER IS NULL
+		AND A.JOIN_CATEGORY = B.CODE(+)
+		AND A.USER_ID = C.USER_ID(+)
+		ORDER BY
+		A.JOIN_DATE DESC NULLS LAST
+		)
 	</select>
-	
-	<select id="countByUserId" parameterClass="string" resultClass="int">
+
+	<select id="countByUserId" parameterClass="string"
+		resultClass="int">
 		SELECT COUNT(1) FROM PCN_MEMBER WHERE USER_ID = #value#
 	</select>
-	
-	
-	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1		APPROVAL -->
-	<select id="dormancyList" parameterClass="paramMap" resultClass="commonMap">
-		SELECT USER_ID,NAME,EMAIL,DORMANCY_ACNT_YN  FROM TABLE(get_dormancy_info)
+
+
+	<!-- ,TRUNC(A.END_DT - SYSDATE) + 1 APPROVAL -->
+	<select id="dormancyList" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT USER_ID,NAME,EMAIL,DORMANCY_ACNT_YN FROM
+		TABLE(get_dormancy_info)
 	</select>
 
-	
+	<select id="userRoleList" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT NAME,VALUE FROM PCN_COMMON_CODE WHERE TYPE=
+		#role_value# AND PCODE &lt;&gt; 0
+	</select>
+
+
 </sqlMap>

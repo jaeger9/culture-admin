@@ -41,6 +41,39 @@
 			A.INSERT_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
 		]]></isNotEmpty>
 	</sql>
+	
+	<sql id="sqlList-policy">
+		WHERE
+			1 = 1
+		<isNotEmpty property="search_word">
+			<isEqual property="search_type" compareValue="all" prepend="AND">
+				(
+					LOWER(POLICY_CODE)	LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(POLICY_NAME)		LIKE LOWER('%' || #search_word# || '%')
+				OR	LOWER(POLICY_TYPE)		LIKE LOWER('%' || #search_word# || '%')
+				)
+			</isEqual>
+			<isEqual property="search_type" compareValue="policy_code" prepend="AND">
+					LOWER(POLICY_CODE)	LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="policy_name" prepend="AND">
+					LOWER(POLICY_NAME)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+			<isEqual property="search_type" compareValue="policy_type" prepend="AND">
+					LOWER(POLICY_TYPE)		LIKE LOWER('%' || #search_word# || '%')
+			</isEqual>
+		</isNotEmpty>
+
+		<!-- <isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
+			A.INSERT_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+		]]></isNotEmpty>
+		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
+			A.INSERT_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+		]]></isNotEmpty> -->
+		ORDER BY POLICY_CODE DESC
+	</sql>
+	
+	
 
 	<select id="count" parameterClass="paramMap" resultClass="int">
 		SELECT COUNT(1)
@@ -70,5 +103,69 @@
 			A.INSERT_DATE DESC NULLS LAST
 		<include refid="sqlPagingEnd" />
 	</select>
+	
+	<select id="policyView" parameterClass="paramMap" resultClass="commonMap">
+		SELECT POLICY_CODE,
+				POLICY_NAME,
+				POLICY_TYPE,
+				POLICY_POINT,
+				INSERT_ID,
+				INSERT_DATE,
+				UPDATE_ID,
+				TO_CHAR(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE FROM MILDB.MILEAGE_POLICY
+			WHERE POLICY_CODE = #policy_code# 
+	</select>
+	
+	
+	<select id="policyCount" parameterClass="paramMap" resultClass="int">
+		SELECT COUNT(1) FROM MILDB.MILEAGE_POLICY
+		<include refid="sqlList-policy" />
+	</select>
+	
+	<select id="policyList" parameterClass="paramMap" resultClass="commonMap">
+	<include refid="sqlPagingBegin"></include>
+		SELECT POLICY_CODE,
+				POLICY_NAME,
+				POLICY_TYPE,
+				POLICY_POINT,
+				INSERT_ID,
+				INSERT_DATE,
+				UPDATE_ID,
+				TO_CHAR(UPDATE_DATE,'YYYY-MM-DD') UPDATE_DATE FROM MILDB.MILEAGE_POLICY
+		<include refid="sqlList-policy" />
+			<include refid="sqlPagingEnd"></include>
+		
+	</select>
+	
+	<update id="policyUpdate" parameterClass="paramMap">
+		UPDATE MILDB.MILEAGE_POLICY
+			SET POLICY_NAME = #policy_name#,
+				POLICY_TYPE = #policy_type#,
+				POLICY_POINT = #policy_point#,
+				UPDATE_ID = #session_admin_id#,
+				UPDATE_DATE = SYSDATE
+			WHERE 
+				POLICY_CODE = #policy_code#
+	</update>
+	
+	<insert id="policyInsert" parameterClass="paramMap">
+		INSERT INTO MILDB.MILEAGE_POLICY(POLICY_CODE,POLICY_NAME,POLICY_TYPE,POLICY_POINT,INSERT_ID,INSERT_DATE,UPDATE_ID,UPDATE_DATE)
+			 VALUES(
+			 (SELECT NVL(MAX(POLICY_CODE),0)+1 FROM MILDB.MILEAGE_POLICY)
+			 ,#policy_name#,#policy_type#,#policy_point#,#session_admin_id#,SYSDATE,#session_admin_id#,SYSDATE)
+	</insert>
+	<select id="policyCountForMax" resultClass="int">
+	  	SELECT NVL(MAX(POLICY_CODE)+1,0) AS COUNT FROM MILDB.MILEAGE_POLICY
+	</select>
+	
+	<delete id="policyDelete" parameterClass="paramMap">
+		DELETE FROM MILDB.MILEAGE_POLICY
+		WHERE
+			POLICY_CODE IN 
+		<iterate property="array.policyCodes" open="(" conjunction="," close=")">
+			#array.policyCodes[]#
+		</iterate>
+	</delete>
+	
 
 </sqlMap>

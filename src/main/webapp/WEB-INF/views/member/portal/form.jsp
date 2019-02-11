@@ -208,12 +208,16 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		</tr>
 		<tr>
 			<th scope="row">권한</th>
-			<td colspan="3">
+			<td >
 				<select name="userRole">
 					<c:forEach items="${userRoleList }" var="item">
 						<option value="${item.value }" <c:if test="${view.role eq item.value}">selected</c:if>>${item.name}</option>
 					</c:forEach>
 				</select>
+			</td>
+			<th scope="row">마일리지</th>
+			<td>
+				${view.point } P
 			</td>
 		</tr>
 <%-- 이쪽에 권한추가		<tr>

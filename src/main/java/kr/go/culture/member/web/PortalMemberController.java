@@ -39,6 +39,10 @@ public class PortalMemberController {
 		ParamMap paramMap = new ParamMap(request);
 
 		model.addAttribute("paramMap", paramMap);
+		
+		ParamMap tmpMap = new ParamMap();
+		tmpMap.put("role_value", "USER_ROLE");
+		model.addAttribute("userRoleList",service.readForList("portalMember.userRoleList",tmpMap));
 		model.addAttribute("count", (Integer) service.readForObject("portalMember.count", paramMap));
 		model.addAttribute("list", service.readForList("portalMember.list", paramMap));
 
@@ -116,7 +120,7 @@ public class PortalMemberController {
 	@RequestMapping("/memberExcel.do")
 	public String memberExcel(ModelMap model) throws Exception {
 
-		String[] headerArr = {"번호", "아이디", "가입일", "가입구분", "이름", "성별", "출생년도", "휴대전화번호", "이메일", "뉴스레터 수신여부", "거주지역" ,"마일리지(P)"};
+		String[] headerArr = {"번호", "아이디", "가입일", "가입구분", "이름", "성별", "출생년도", "휴대전화번호", "이메일", "뉴스레터 수신여부", "거주지역" ,"마일리지(P)","권한"};
 		
 		List<LinkedHashMap<String, Object>> list = service.readForLinkedList("portalMember.listByMemberExcel", null);
 				
