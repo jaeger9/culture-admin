@@ -345,16 +345,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<colgroup>
 						<col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
 					<tbody>
-						<tr>
-							<th scope="row">승인여부</th>
-							<td colspan="3">
-								<div class="inputBox">
-									<label><input type="radio" name="approval" value="W"/> 대기</label>
-									<label><input type="radio" name="approval" value="Y"/> 승인</label>
-									<label><input type="radio" name="approval" value="N"/> 미승인</label>
-								</div>
-							</td>
-						</tr>
+						
 						<tr>
 							<th scope="row">장르</th>
 								<td colspan="3">
@@ -462,6 +453,16 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<c:if test="${not empty view }">
 									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
 								</c:if>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">승인여부</th>
+							<td colspan="3">
+								<div class="inputBox">
+									<label><input type="radio" name="approval" value="W"/> 대기</label>
+									<label><input type="radio" name="approval" value="Y"/> 승인</label>
+									<label><input type="radio" name="approval" value="N"/> 미승인</label>
+								</div>
 							</td>
 						</tr>
 							<tr>
