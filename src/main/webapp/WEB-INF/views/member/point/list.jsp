@@ -67,7 +67,7 @@ $(function () {
 			</colgroup>
 			<tbody>
 				<tr>
-					<th scope="row">등록일</th>
+					<th scope="row">적립/사용일</th>
 					<td>
 						<input type="text" name="reg_date_start" value="${paramMap.reg_date_start }" />
 						<span>~</span>

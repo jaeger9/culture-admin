@@ -35,10 +35,10 @@
 		</isNotEmpty>
 
 		<isNotEmpty property="reg_date_start" prepend="AND"><![CDATA[
-			A.INSERT_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
+			A.MILEAGE_DATE >= TO_DATE(#reg_date_start#, 'YYYY-MM-DD')
 		]]></isNotEmpty>
 		<isNotEmpty property="reg_date_end" prepend="AND"><![CDATA[
-			A.INSERT_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+			A.MILEAGE_DATE <= TO_DATE(#reg_date_end# || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
 		]]></isNotEmpty>
 	</sql>
 	
@@ -100,7 +100,7 @@
 			PCN_CUSTOMER_POINT A -->
 		<include refid="sqlList-1" />
 		ORDER BY
-			A.INSERT_DATE DESC NULLS LAST
+			A.MILEAGE_DATE DESC NULLS LAST
 		<include refid="sqlPagingEnd" />
 	</select>
 	
