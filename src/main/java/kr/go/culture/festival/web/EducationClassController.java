@@ -47,9 +47,11 @@ public class EducationClassController {
 
 		model.addAttribute("paramMap", paramMap);
 		
-		if (paramMap.containsKey("seq"))
+		if (paramMap.containsKey("seq")) {
 			model.addAttribute("view",
 					ckDatabaseService.readForObject("education.class.view", paramMap));
+			model.addAttribute("genreList", ckDatabaseService.readForList("common.codeList", paramMap));
+		}
 
 		return "/festival/education/class/view";
 	}

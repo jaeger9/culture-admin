@@ -357,6 +357,38 @@
 			ZIP_YN					=#zip_yn#						,
 			TOP_YN					=#top_yn#						,
 			APPROVAL				=#approval#						,
+			<isNotEmpty property="styurl1">		
+			styurl1=#styurl1#,
+			</isNotEmpty>
+			<isEqual property="imagedelete_styurl1" compareValue="Y">
+				<isEmpty property="styurl1">
+						styurl1 = null,
+					</isEmpty>
+			</isEqual>
+			<isNotEmpty property="styurl2">		
+			styurl2=#styurl2#,
+			</isNotEmpty>
+			<isEqual property="imagedelete_styurl2" compareValue="Y">
+				<isEmpty property="styurl2">
+						styurl2 = null,
+					</isEmpty>
+			</isEqual>
+			<isNotEmpty property="styurl3">		
+			styurl3=#styurl3#,
+			</isNotEmpty>
+			<isEqual property="imagedelete_styurl3" compareValue="Y">
+				<isEmpty property="styurl3">
+						styurl3 = null,
+					</isEmpty>
+			</isEqual>
+			<isNotEmpty property="styurl4">		
+			styurl4=#styurl4#,
+			</isNotEmpty>
+			<isEqual property="imagedelete_styurl4" compareValue="Y">
+				<isEmpty property="styurl4">
+						styurl4 = null,
+				</isEmpty>
+			</isEqual>
 			<isNotEmpty property="file_sysname">		
 			 	REFERENCE_IDENTIFIER_ORG = #file_sysname#,
 			</isNotEmpty>	
@@ -374,11 +406,7 @@
 			grade=#grade#,
 			support=#support#,
 			prfcast=#prfcast#,
-			etc_desc=#etc_desc#,
-			styurl1=#styurl1#,
-			styurl2=#styurl2#,
-			styurl3=#styurl3#,
-			styurl4=#styurl4#
+			etc_desc=#etc_desc#
 		WHERE 
 			UCI = #uci#
 	</update>

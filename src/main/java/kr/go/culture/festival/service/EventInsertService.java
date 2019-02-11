@@ -20,10 +20,10 @@ public class EventInsertService {
 	private FileService fileService;
 
 	@Transactional(value = "ckTransactionManager", rollbackFor = { Exception.class })
-	public void insert(ParamMap paramMap, MultipartFile multi) throws Exception {
+	public void insert(ParamMap paramMap, MultipartFile multi, String sys_filename) throws Exception {
 
 		String fileName = fileService.writeFile(multi, "show");
-		paramMap.put("file_sysname", fileName);
+		paramMap.put(sys_filename, fileName);
 
 		ckDataBaseService.save("festival.event.insert", paramMap);
 

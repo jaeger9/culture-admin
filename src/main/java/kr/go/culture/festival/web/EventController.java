@@ -98,7 +98,13 @@ public class EventController {
 	}
 	
 	@RequestMapping("insert.do")
-	public String insert(HttpServletRequest request , ModelMap model ,  @RequestParam("uploadFile") MultipartFile multi) throws Exception { 
+	public String insert(HttpServletRequest request , ModelMap model ,  @RequestParam("uploadFile") MultipartFile multi,
+			@RequestParam("styurl1") MultipartFile styurl1,
+			@RequestParam("styurl2") MultipartFile styurl2,
+			@RequestParam("styurl3") MultipartFile styurl3,
+			@RequestParam("styurl4") MultipartFile styurl4
+
+			) throws Exception { 
 	
 		ParamMap paramMap = new ParamMap(request);
 		paramMap.put("creator", request.getSession().getAttribute("admin_id"));
@@ -106,7 +112,12 @@ public class EventController {
 			//이것도 어디 밖아두고 써라 나중에..
 			paramMap.put("type", "50");
 			
-			eventInsertService.insert(paramMap, multi);
+			eventInsertService.insert(paramMap, multi,"file_sysname");
+			eventInsertService.insert(paramMap, styurl1,"styurl1");
+			eventInsertService.insert(paramMap, styurl2,"styurl2");
+			eventInsertService.insert(paramMap, styurl3,"styurl3");
+			eventInsertService.insert(paramMap, styurl4,"styurl4");
+			
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -119,7 +130,11 @@ public class EventController {
 	}
 	
 	@RequestMapping("update.do")
-	public String update(HttpServletRequest request , ModelMap model ,@RequestParam("uploadFile") MultipartFile multi) throws Exception { 
+	public String update(HttpServletRequest request , ModelMap model ,@RequestParam("uploadFile") MultipartFile multi,
+			@RequestParam("styurl1") MultipartFile styurl1,
+			@RequestParam("styurl2") MultipartFile styurl2,
+			@RequestParam("styurl3") MultipartFile styurl3,
+			@RequestParam("styurl4") MultipartFile styurl4) throws Exception { 
 	
 		ParamMap paramMap = new ParamMap(request);
 		
@@ -128,6 +143,21 @@ public class EventController {
 			if (paramMap.containsKey("imagedelete")) {
 				fileService.deleteFile("show", paramMap.getString("file_delete"));
 			}
+			if (paramMap.containsKey("imagedelete_styurl1")) {
+				fileService.deleteFile("show", paramMap.getString("file_delete_styurl1"));
+			}
+			if (paramMap.containsKey("imagedelete_styurl2")) {
+				fileService.deleteFile("show", paramMap.getString("file_delete_styurl2"));
+			}
+			if (paramMap.containsKey("imagedelete_styurl3")) {
+				fileService.deleteFile("show", paramMap.getString("file_delete_styurl3"));
+			}
+			if (paramMap.containsKey("imagedelete_styurl4")) {
+				fileService.deleteFile("show", paramMap.getString("file_delete_styurl4"));
+			}
+			
+
+
 			
 			//FestivalMobileUpdateService.Mupdate(paramMap);
 			if ("Y".equals(paramMap.getString("mobile_yn"))) {
@@ -136,7 +166,11 @@ public class EventController {
 				FestivalMobileUpdateService.MdescUpdate(paramMap);
 			}
 			
-			eventUpdateService.update(paramMap, multi);
+			eventUpdateService.update(paramMap, multi,"file_sysname");
+			eventUpdateService.update(paramMap, styurl1,"styurl1");
+			eventUpdateService.update(paramMap, styurl2,"styurl2");
+			eventUpdateService.update(paramMap, styurl3,"styurl3");
+			eventUpdateService.update(paramMap, styurl4,"styurl4");
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());

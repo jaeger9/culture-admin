@@ -12,6 +12,18 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
  <script type="text/javascript">
+ 
+//미리보기 팝업
+	function viewPop(){
+		var preTitle = $("#title").val();
+
+		if(preTitle == ''){
+			alert('제목을 입력해주세요.');
+		}else{
+			var win = window.open("/culture/prePerformView.do", "PopupWin", "width=1220,height=800");
+		}
+	}
+ 
 var action = "";
 
 var callback = {
@@ -367,7 +379,7 @@ $(function () {
  --%>						</td>
 					</tr>
 						<tr>
-						<th scope="row">홈페이지 URL</th>
+						<th scope="row">URL</th>
 						<td colspan="3">
 							<input type="text" name="url" style="width:500px" value="${view.url}" /><span class="btn whiteS"><a href="#url">미리보기</a></span>
 						</td>

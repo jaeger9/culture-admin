@@ -76,6 +76,29 @@ var callback = {
 				}
 			});
 		}
+	},
+	place : function (res) {
+		/*
+			JSON.stringify(res) = {
+				"cateType"	:	"F"
+				,"orgCode"	:	"NLKF02"
+				,"orgId"	:	86
+				,"category"	:	"도서"
+				,"name"		:	"국립중앙도서관"
+			}
+		*/
+		if (res == null) {
+			return false;
+		}
+		
+		$('input[name=venue]').val(res.cul_name);
+		$('input[name=location]').val(res.cul_addr);
+	},
+	culturegroup : function(res){
+	if(res==null){
+		return false;
+	}
+	$('input[name=rights]').val(res.title);
 	}
 };
 
@@ -121,6 +144,12 @@ $(function () {
 		});
 	});
 	
+	$('input[name^=styurl]').on('change',function(){
+		var className=$(this).attr("name");
+		$('.'+className).val($(this).val());
+	});
+	
+	
 	//radio check
 	if('${view.genre}')$('input:radio[name="genre"][value="${view.genre}"]').prop('checked', 'checked');
 	if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
@@ -149,7 +178,11 @@ $(function () {
 	//공연상 선택
 	$('span.btn.whiteS a').each(function(){
 	  	$(this).click(function(){
-	  		if( $(this).html() == '우편번호찾기test'){
+	  		if( $(this).data('org') == 'venue'){
+	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+	    	} else if($(this).data('org') == 'rights'){
+	      		window.open('/popup/culturegroup.do', 'culturegroupPopup', 'scrollbars=yes,width=600,height=630');
+	    	} else if( $(this).html() == '우편번호찾기'){
 	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
 	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
 	    	}
@@ -334,14 +367,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<tr>
 						<th scope="row">장소</th>
 						<td colspan="3">
-							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url">선택</a></span><span class="btn whiteS"><a href="#url">장소등록</a></span>
+							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
 							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">주최</th>
 						<td colspan="3">
-							<input type="text" name="venue" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url">선택</a></span><span class="btn whiteS"><a href="#url">주최등록</a></span>
+							<input type="text" name="rights" style="width:500px" value="${view.rights}"/><!-- <span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span> -->
 <%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
  --%>						</td>
 					</tr>
@@ -375,11 +408,17 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					<tr>
+						<th scope="row">공식홈페이지</th>
+						<td colspan="3">
+							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row">URL</th>
 						<td colspan="3">
 							<input type="text" name="url" style="width:670px" value="${view.url}" />
 						</td>
-					</tr>
+					</tr> 
 					<tr>
 						<th scope="row">요청사항</th>
 						<td colspan="3">
@@ -387,7 +426,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					
-				<%-- 	<tr>
+				 	<tr>
 						<th scope="row">지역</th>
 						<td>
 							<select title="출처 선택" name="location">
@@ -400,7 +439,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<td>
 							<input type="text" name="venue" style="width:250px" value="${view.venue}"/>
 						</td>
-					</tr> --%>
+					</tr> 
 					<%-- <tr>
 						<th scope="row">주소</th>
 						<td colspan="3">
@@ -419,18 +458,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</div>
 						</td>
 					</tr> --%>
-					<tr>
-						<th scope="row">주최/주관</th>
-						<td colspan="3">
-							<input type="text" name="rights" style="width:670px" value="${view.rights}" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">공식홈페이지</th>
-						<td colspan="3">
-							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
-						</td>
-					</tr>
 					
 					<!-- 이쪽부터 상세정보 -->
 					<tr>
@@ -484,27 +511,68 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<tr>
 						<th scope="row">소개이미지1</th>
 						<td colspan="3">
-							<input type="text" name="styurl1" style="width:670px" value="${view.styurl1}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl1" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px;">
+									<input type="text" title="" class="inputText styurl styurl1" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl1}">
+											<input type="hidden" name="file_delete_styurl1" value="${view.styurl1}" />
+											<label><input style="width:13px"  type="checkbox" name="imagedelete_styurl1" value="Y" /> <strong>삭제</strong>  ${view.styurl1}</label>
+									</c:if>
+								</div>
+								
+							</div>
 						</td>
 					</tr>
-					<tr>
+						<tr>
 						<th scope="row">소개이미지2</th>
 						<td colspan="3">
-							<input type="text" name="styurl2" style="width:670px" value="${view.styurl2}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl2" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl2" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl2}">
+											<input type="hidden" name="file_delete_styurl2" value="${view.styurl2}" />
+											<label><input style="width:13px" type="checkbox" name="imagedelete_styurl2" value="Y" /> <strong>삭제</strong>  ${view.styurl2}</label>
+								</c:if>
+								</div>
+							</div>
+						</td>
+					</tr>
+						<tr>
+						<th scope="row">소개이미지3</th>
+						<td colspan="3">
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl3" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl3" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl3}">
+											<input type="hidden" name="file_delete_styurl3" value="${view.styurl3}" />
+											<label><input style="width:13px" type="checkbox" name="imagedelete_styurl3" value="Y" /> <strong>삭제</strong>  ${view.styurl3}</label>
+									</c:if>
+								</div>
+							</div>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">소개이미지3</th>
-						<td colspan="3">
-							<input type="text" name="styurl3" style="width:670px" value="${view.styurl3}" />
-						</td>
-					</tr><tr>
 						<th scope="row">소개이미지4</th>
 						<td colspan="3">
-							<input type="text" name="styurl4" style="width:670px" value="${view.styurl4}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl4" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl4" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+								<c:if test="${!empty view.styurl4}">
+									<input type="hidden" name="file_delete_styurl4" value="${view.styurl4}" />
+									<label><input style="width:13px" type="checkbox" name="imagedelete_styurl4" value="Y" /> <strong>삭제</strong>  ${view.styurl4}</label>
+								</c:if>
+																</div>
+							</div>
 						</td>
 					</tr>
-					
 					
 					
 					

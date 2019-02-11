@@ -36,7 +36,22 @@ var callback = {
 
 
 $(function () {
-
+	
+	$('input[name=free_yn_before]').change(function(){		
+		changeNote1($(this));
+	})
+	
+	changeNote1 = function(ele) {
+		checked = ele.val();				
+		if(checked == 'Y') {
+			$('#anoN').prop('checked', '');
+		} else if(checked == 'N') {
+			$('#anoY').prop('checked', '');
+		}
+	
+		$('#free_yn').val(checked);
+	}
+	
 	var frm = $('form[name=frm]');
 	var start_dt = frm.find('input[name=start_dt]');
 	var end_dt = frm.find('input[name=end_dt]');
@@ -319,6 +334,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 </head>
 <body>
 	<form name="frm" method="post" action="/festival/education/class/insert.do" enctype="multipart/form-data">
+		<input type="hidden" name="free_yn" id="free_yn"/>
 		<c:if test='${not empty view.seq}'>
 			<input type="hidden" name="seq" value="${view.seq}"/>
 		</c:if>
@@ -343,9 +359,8 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							<th scope="row">장르</th>
 								<td colspan="3">
 									<select title="장르" name="genre">
-										<c:forEach items="${genreList}" var="list" varStatus="status">
-											<option value="${list.value}">${list.name}</option>	
-										</c:forEach>
+										<option value="1">교육</option>
+										<option value="2">체험</option>
 									</select>
 								</td>
 							</th>
@@ -371,7 +386,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">교육기관 </br>주소</th>
+							<th scope="row">장소(주소)</th>
 							<td colspan="3">
 								<div class="inputBox">
 									<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
@@ -400,12 +415,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
 							</td>
 						</tr>
-						<tr>
-							<th scope="row">작성자</th>
-							<td colspan="3">
-								<input type="hidden" name="user_id" value="${empty view.user_id ? sessionScope.admin_id : view.user_id }">${empty view.user_id ? sessionScope.admin_id : view.user_id }
-							</td>
-						</tr>
+					
 						<tr>
 							<th scope="row">강사</th>
 							<td colspan="3">
@@ -415,15 +425,16 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<tr>
 							<th scope="row">수강료</th>
 							<td colspan="3">		
-							<input type="checkbox" id="anoY" name="free_yn" value="Y">
+							<input type="checkbox" id="anoY" value="Y" name="free_yn_before" <c:if test="${view.free_yn eq 'Y' }">checked</c:if>/>
 							<label for="anoY">유료</label>
-							<input type="checkbox" id="anoN" name="free_yn" value="N">
+							<input type="checkbox" id="anoN" value="N" name="free_yn_before" <c:if test="${view.free_yn eq 'N' }">checked</c:if> />
 							<label for="anoN">무료</label>
+							<br/>
 							<input type="text" name="charge" style="width:400px" value="${view.charge }" />
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">문의처</th>
+							<th scope="row">문의</th>
 							<td colspan="3">
 								<%-- <select title="지역번호 선택하세요" name="tel1" style="width:70px">
 									<c:forEach items="${areaTelNumList }" var="areaTelNumList" varStatus="status">
@@ -438,7 +449,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">홈페이지</th>
+							<th scope="row">홈페이지 URL</th>
 							<td colspan="3">
 								<%-- 
 								<c:if test="${empty view or empty view.home_page }">
@@ -451,6 +462,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<c:if test="${not empty view }">
 									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
 								</c:if>
+							</td>
+						</tr>
+							<tr>
+							<th scope="row">작성자</th>
+							<td colspan="3">
+								<input type="hidden" name="user_id" value="${empty view.user_id ? sessionScope.admin_id : view.user_id }">${empty view.user_id ? sessionScope.admin_id : view.user_id }
 							</td>
 						</tr>
 						

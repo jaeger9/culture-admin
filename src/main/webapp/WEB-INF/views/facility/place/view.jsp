@@ -80,6 +80,12 @@ $(function () {
 	});
 	
 	var frm = $('form[name=frm]');
+	var addr1=frm.find('input[name=addr1]');
+	
+	$("input[name=cul_addr]").on("change",function(){
+		addr1.val(frm.find("input[name=cul_addr]").val());
+		console.log(addr1.val()+" addr1change");
+	});
 	
 	var reg_date_start = frm.find('input[name=reg_start]');
 	var reg_date_end = frm.find('input[name=reg_end]');
@@ -92,6 +98,8 @@ $(function () {
 	var rental_pay_option			=frm.find('input[name=rental_pay_option]');
 	var rental_approval				=frm.find('input[name=rental_approval]');
 	var apply_url					=frm.find('input[name=apply_url]');
+	addr1.val(frm.find("input[name=cul_addr]").val());
+	console.log(addr1.val()+" addr1init");
 	/* var cul_place			=frm.find('input[name=cul_place]');
 	var cul_place2			=frm.find('input[name=cul_place2]');
 	var cul_gps_x			=frm.find('input[name=cul_gps_x]');
@@ -547,6 +555,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							<div class="inputBox">
 								<input type="text" name="cul_addr" style="width:670px" value="${view.new_addr }" readonly="readonly"/>
 								<input type="text" name="cul_addr2" style="width:670px" value="${view.new_addr2 }" />
+								<input type="hidden" name="addr1"/>
 							</div>
 						</td>
 					</tr>

@@ -178,8 +178,8 @@
 			, TEL            
 			, AUTO_YN        
 			, PERIOD         
-			, START_DT       
-			, END_DT         
+			, TO_CHAR(START_DT,'YYYY-MM-DD') START_DT       
+			, TO_CHAR(END_DT,'YYYY-MM-DD') END_DT         
 			, VENUE          
 			, ZIP_YN         
 			, ZIP_CODE       
