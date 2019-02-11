@@ -147,6 +147,7 @@ $(function () {
 			return true;
 		}
 		
+		/*
 		if(title.val() == '') {
 		    alert("제목 입력하세요");
 		    title.focus();
@@ -228,7 +229,7 @@ $(function () {
 			reference.focus();
 			return false;
 		}
-		 
+		 */
 		return true;
 	});
 	
