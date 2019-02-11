@@ -113,6 +113,7 @@ $(function () {
 		<colgroup>
 			<col style="width:8%" />
  			<col style="width:15%" />
+ 			<col style="width:10%" />
  			<col />
 			<col style="width:15%" />
 			<col style="width:12%" />
@@ -121,6 +122,7 @@ $(function () {
 			<tr>
 				<th scope="col">번호</th>
  				<th scope="col">아이디</th>
+ 				<th scope="col">이름</th>
 				<th scope="col">마일리지 적립 및 사용 내역</th>
 				<th scope="col">마일리지</th>
 				<th scope="col">적립/사용일</th>
@@ -141,6 +143,9 @@ $(function () {
 	 			<td>
 					${item.user_id }
 				</td> 
+				<td>
+					${item.name }
+				</td>
 				<td class="subject">
 					&nbsp;&nbsp;${item.policy_name }
 				</td>
