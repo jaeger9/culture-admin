@@ -340,9 +340,28 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
+							<th scope="row">장르</th>
+								<td colspan="3">
+									<select title="장르" name="genre">
+										<c:forEach items="${genreList}" var="list" varStatus="status">
+											<option value="${list.value}">${list.name}</option>	
+										</c:forEach>
+									</select>
+								</td>
+							</th>
+						</tr>
+						<tr>
 							<th scope="row">교육 프로그램명</th>
 							<td colspan="3">
 								<input type="text" name="title" id="title" style="width:670px"  value="${view.title }">
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">교육/체험기간</th>
+							<td colspan="3">
+								<input type="text" name="start_dt" value="${view.start_dt}" />
+								<span>~</span>
+								<input type="text" name="end_dt" value="${view.end_dt}" />
 							</td>
 						</tr>
 						<tr>
@@ -352,9 +371,86 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
+							<th scope="row">교육기관 </br>주소</th>
+							<td colspan="3">
+								<div class="inputBox">
+									<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
+									<span class="btn whiteS"><a href="#url" addrType="academy">우편번호찾기</a></span>
+									<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
+									<div style="display:none">
+										<label><input type="radio" value="63" name="zip_yn" checked/>지번주소</label>
+										<label><input type="radio" value="64" name="zip_yn"/>도로명주소</label>
+									</div>
+								</div>
+								<div class="inputBox">
+									<input type="text" name="addr1" style="width:670px" value="${view.addr1 }" readonly="readonly"/>
+									<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
+								</div>
+								<div class="inputBox">
+									<input type="hidden" name="gps_lat" style="width:150px" value="${view.gps_lat }" />
+									<input type="hidden" name="gps_lng" style="width:150px" value="${view.gps_lng }" />
+									
+									<input type="hidden" name="location" style="width:150px" value="${view.location }" />
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">교육장소</th>
+							<td colspan="3">
+								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
+							</td>
+						</tr>
+						<tr>
 							<th scope="row">작성자</th>
 							<td colspan="3">
 								<input type="hidden" name="user_id" value="${empty view.user_id ? sessionScope.admin_id : view.user_id }">${empty view.user_id ? sessionScope.admin_id : view.user_id }
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">강사</th>
+							<td colspan="3">
+								<input type="text" name="instructor" style="width:670px" value="${view.instructor }" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">수강료</th>
+							<td colspan="3">		
+							<input type="checkbox" id="anoY" name="free_yn" value="Y">
+							<label for="anoY">유료</label>
+							<input type="checkbox" id="anoN" name="free_yn" value="N">
+							<label for="anoN">무료</label>
+							<input type="text" name="charge" style="width:400px" value="${view.charge }" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">문의처</th>
+							<td colspan="3">
+								<%-- <select title="지역번호 선택하세요" name="tel1" style="width:70px">
+									<c:forEach items="${areaTelNumList }" var="areaTelNumList" varStatus="status">
+										<option value="${areaTelNumList.value}">${areaTelNumList.name}</option>
+									</c:forEach>
+								</select>
+								-
+								<input type="text" maxlength="4" name="tel2" style="width:100px" value="${view.tel2}"/>
+								-
+								<input type="text" maxlength="4" name="tel3" style="width:100px" value="${view.tel3}"/> --%>
+								<input type="text" name="tel" style="width:100px" value="${view.tel}"/>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">홈페이지</th>
+							<td colspan="3">
+								<%-- 
+								<c:if test="${empty view or empty view.home_page }">
+									<c:set target="${view }" property="home_page" value="http://" />
+								</c:if>
+								 --%>
+								 <c:if test="${empty view }">
+									<input type="text" name="home_page" style="width:670px"  value="http://">
+								</c:if>
+								<c:if test="${not empty view }">
+									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
+								</c:if>
 							</td>
 						</tr>
 						
@@ -402,90 +498,9 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								</div>
 							</td>
 						</tr>
-						
-						
-						<tr>
-							<th scope="row">교육 기간</th>
-							<td colspan="3">
-								<input type="text" name="start_dt" value="${view.start_dt}" />
-								<span>~</span>
-								<input type="text" name="end_dt" value="${view.end_dt}" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">교육 장소</th>
-							<td colspan="3">
-								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">강사</th>
-							<td colspan="3">
-								<input type="text" name="instructor" style="width:670px" value="${view.instructor }" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">수강료</th>
-							<td colspan="3">		
-								<input type="text" name="charge" style="width:400px" value="${view.charge }" />
-							</td>
 						</tr>
 						
-						<tr>
-							<th scope="row">홈페이지</th>
-							<td colspan="3">
-								<%-- 
-								<c:if test="${empty view or empty view.home_page }">
-									<c:set target="${view }" property="home_page" value="http://" />
-								</c:if>
-								 --%>
-								 <c:if test="${empty view }">
-									<input type="text" name="home_page" style="width:670px"  value="http://">
-								</c:if>
-								<c:if test="${not empty view }">
-									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
-								</c:if>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">문의처</th>
-							<td colspan="3">
-								<%-- <select title="지역번호 선택하세요" name="tel1" style="width:70px">
-									<c:forEach items="${areaTelNumList }" var="areaTelNumList" varStatus="status">
-										<option value="${areaTelNumList.value}">${areaTelNumList.name}</option>
-									</c:forEach>
-								</select>
-								-
-								<input type="text" maxlength="4" name="tel2" style="width:100px" value="${view.tel2}"/>
-								-
-								<input type="text" maxlength="4" name="tel3" style="width:100px" value="${view.tel3}"/> --%>
-								<input type="text" name="tel" style="width:100px" value="${view.tel}"/>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">교육기관 </br>주소</th>
-							<td colspan="3">
-								<div class="inputBox">
-									<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
-									<span class="btn whiteS"><a href="#url" addrType="academy">우편번호찾기</a></span>
-									<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
-									<div style="display:none">
-										<label><input type="radio" value="63" name="zip_yn" checked/>지번주소</label>
-										<label><input type="radio" value="64" name="zip_yn"/>도로명주소</label>
-									</div>
-								</div>
-								<div class="inputBox">
-									<input type="text" name="addr1" style="width:670px" value="${view.addr1 }" readonly="readonly"/>
-									<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
-								</div>
-								<div class="inputBox">
-									<input type="hidden" name="gps_lat" style="width:150px" value="${view.gps_lat }" />
-									<input type="hidden" name="gps_lng" style="width:150px" value="${view.gps_lng }" />
-									
-									<input type="hidden" name="location" style="width:150px" value="${view.location }" />
-								</div>
-							</td>
-						</tr>
+					
 					</tbody>
 				</table>
 			</div>
@@ -493,7 +508,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		
 		<div class="sTitBar">
 			<h4>
-				<label>내용</label>
+				<label>상세정보</label>
 			</h4>
 		</div>
 		

@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="media">
+
+	<!-- 카드 뉴스 목록 -->
+	<select id="list" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* media.list */
+		R.*
+		FROM (
+		SELECT
+		<isEmpty property="sort_type">
+			FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE DESC)-1)/$list_unit$+1) AS PAGE
+		</isEmpty>
+		<isNotEmpty property="sort_type">
+			<isEqual property="sort_type" compareValue="latest">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE
+				DESC)-1)/$list_unit$+1) AS PAGE
+			</isEqual>
+			<isEqual property="sort_type" compareValue="hit">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1)
+				AS PAGE
+			</isEqual>
+			<isEqual property="sort_type" compareValue="app_hit">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.APP_VIEW_CNT
+				DESC)-1)/$list_unit$+1) AS PAGE
+			</isEqual>
+		</isNotEmpty>
+		, R.*
+		FROM (
+		SELECT
+		VIDEO_SEQ
+		,VIDEO_ORG
+		,VIDEO_HP1
+		,VIDEO_HP2
+		,VIDEO_HP3
+		,VIDEO_TITLE
+		,VIDEO_USER_ID
+		,VIDEO_APPROVAL_STATE
+		,VIDEO_APPROVAL_DATE
+		,VIDEO_APPROVAL_USER_ID
+		,DECODE(VIDEO_APPROVAL_STATE,'Y','승인','N','미승인','대기') VIDEO_APPROVAL_STATE_NAME
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		UPDATE_USER_ID
+		FROM PCN_VIDEO
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="video_approval_state" prepend="AND">
+				VIDEO_APPROVAL_STATE = #video_approval_state#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(VIDEO_TITLE LIKE '%' || #keyword# || '%' OR VIDEO_CONTENTS LIKE '%' || #keyword#
+					|| '%' OR VIDEO_ORG LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_title">
+					VIDEO_TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_contents">
+					VIDEO_CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_org">
+					VIDEO_ORG LIKE '%' || #keyword# || '%'
+				</isEqual>
+
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+		) R
+		) R
+		WHERE PAGE = #page_no#
+	</select>
+
+	<!-- 카드 뉴스 목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* media.listCnt */
+		COUNT(1)
+		FROM PCN_VIDEO
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="video_approval_state" prepend="AND">
+				VIDEO_APPROVAL_STATE = #video_approval_state#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(VIDEO_TITLE LIKE
+					'%' || #keyword# || '%' OR VIDEO_CONTENTS LIKE '%' || #keyword# || '%'
+					OR VIDEO_ORG LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_title">
+					VIDEO_TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_org">
+					VIDEO_ORG LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="video_contents">
+					VIDEO_CONTENTS LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN
+					TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND
+					TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					INSERT_DATE
+					BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<!-- 카드 뉴스 상세 -->
+	<select id="view" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* media.view */
+		VIDEO_SEQ
+		,VIDEO_ORG
+		,VIDEO_HP1
+		,VIDEO_HP2
+		,VIDEO_HP3
+		,VIDEO_TITLE
+		,VIDEO_URL
+		,VIDEO_COMMENT
+		,VIDEO_CONTENTS
+		,VIDEO_USER_ID
+		,VIDEO_APPROVAL_STATE
+		,VIDEO_APPROVAL_DATE
+		,VIDEO_APPROVAL_USER_ID
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		,UPDATE_USER_ID
+		FROM PCN_VIDEO
+		WHERE VIDEO_SEQ = #video_seq#
+	</select>
+
+	<!-- 카드 뉴스 상세 파일 목록 -->
+	<select id="listFile" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* media.fileList */
+		PCN_VIDEO_SEQ, SEQ_NUM, FILE_NAME, DESCRIPTION, REG_ID, TO_CHAR(REG_DATE,
+		'YYYY-MM-DD') REG_DATE
+		FROM PCN_VIDEO_FILE
+		WHERE PCN_VIDEO_SEQ
+		= #seq#
+		ORDER BY SEQ_NUM ASC
+	</select>
+
+	<!-- 카드 뉴스 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT /* media.insert
+		*/
+		INTO PCN_VIDEO (
+		VIDEO_SEQ
+		,VIDEO_ORG
+		,VIDEO_HP1
+		,VIDEO_HP2
+		,VIDEO_HP3
+		,VIDEO_TITLE
+		,VIDEO_URL
+		,VIDEO_COMMENT
+		,VIDEO_CONTENTS
+		,VIDEO_USER_ID
+		,VIDEO_APPROVAL_STATE
+		,VIDEO_APPROVAL_DATE
+		,VIDEO_APPROVAL_USER_ID
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		,UPDATE_USER_ID
+		) VALUES(
+			(SELECT NVL(MAX(VIDEO_SEQ),0)+1 FROM PCN_VIDEO)
+			,#video_org#
+			,#video_hp1#
+			,#video_hp2#
+			,#video_hp3#
+			,#video_title#
+			,#video_url#
+			,#video_comment#
+			,#video_contents#
+			,#reg_id#
+			,#video_approval_state#
+			,sysdate
+			,#video_approval_user_id#
+			,sysdate
+			,#reg_id#
+			,sysdate
+			,#reg_id#
+		)
+	</insert>
+
+	<!-- 카드 뉴스 등록 파일 -->
+	<insert id="insertFile" parameterClass="java.util.HashMap">
+		INSERT /*
+		media.insertFile */
+		INTO PCN_VIDEO_FILE (
+		VIDEO_SEQ
+		VIDEO_ORG
+		VIDEO_HP1
+		VIDEO_HP2
+		VIDEO_HP3
+		VIDEO_TITLE
+		VIDEO_USER_ID
+		VIDEO_APPROVAL_STATE
+		VIDEO_APPROVAL_DATE
+		VIDEO_APPROVAL_USER_ID
+		INSERT_DATE
+		INSERT_USER_ID
+		UPDATE_DATE
+		UPDATE_USER_ID
+		) VALUES (
+		 (SELECT NVL(MAX(PCN_VIDEO_FILE),0)+1 FROM PCN_VIDEO_FILE)
+		,#video_org#
+		,#video_hp1#
+		,#video_hp2#
+		,#video_hp3#
+		,#video_title#
+		,#video_user_id#
+		,#video_approval_state#
+		,#video_approval_date#
+		,#video_approval_user_id#
+		,sysdate
+		,#insert_user_id#
+		,sysdate
+		,#update_user_id#
+		)
+	</insert>
+
+	<!-- 카드 뉴스 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* media.update
+		*/
+		PCN_VIDEO SET
+		VIDEO_ORG = #video_org#
+		,VIDEO_HP1 = #video_hp1#
+		,VIDEO_HP2 = #video_hp2#
+		,VIDEO_HP3 = #video_hp3#
+		,VIDEO_URL = #video_url#
+		,VIDEO_TITLE = #video_title#
+		,VIDEO_COMMENT = #video_comment#
+		,VIDEO_CONTENTS = #video_contents#
+		,VIDEO_USER_ID = #video_user_id#
+		,VIDEO_APPROVAL_STATE = #video_approval_state#
+		,VIDEO_APPROVAL_DATE = #video_approval_date#
+		,UPDATE_DATE = sysdate
+		,UPDATE_USER_ID = #upd_id# 
+		WHERE video_seq = #video_seq#
+		
+	</update>
+
+	<!-- 카드 뉴스 파일 삭제 -->
+	<update id="deleteFile" parameterClass="paramMap">
+		DELETE /*
+		media.deleteFile */
+		FROM PCN_VIDEO_FILE
+		WHERE
+		VIDEO_SEQ = #seq#
+	</update>
+
+	<!-- 카드 뉴스 상태 변경 -->
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE /* media.statusUpdate */
+		PCN_VIDEO SET
+		<isNotEmpty property="updateStatus">
+			VIDEO_APPROVAL_STATE = #updateStatus#,
+		</isNotEmpty>
+		UPDATE_USER_ID = #upd_id#,
+		UPDATE_DATE = SYSDATE
+		WHERE VIDEO_SEQ IN
+		<iterate property="array.video_seq" open="(" conjunction=","
+			close=")">
+			#array.video_seq[]#
+		</iterate>
+	</update>
+
+	<!-- 카드 뉴스 삭제 -->
+	<delete id="delete" parameterClass="paramMap">
+	
+		DELETE /* media.delete */
+		FROM
+		PCN_VIDEO
+		WHERE VIDEO_SEQ IN
+		<iterate property="array.video_seq" open="(" conjunction=","
+			close=")">
+			#array.video_seq[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

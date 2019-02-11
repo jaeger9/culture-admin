@@ -87,11 +87,20 @@ public class ShowController {
 	}
 
 	@RequestMapping("insert.do")
-	public String insert(HttpServletRequest request, ModelMap model, @RequestParam("uploadFile") MultipartFile multi) throws Exception {
+	public String insert(HttpServletRequest request, ModelMap model, @RequestParam("uploadFile") MultipartFile multi,
+			@RequestParam("styurl1") MultipartFile styurl1,
+			@RequestParam("styurl2") MultipartFile styurl2,
+			@RequestParam("styurl3") MultipartFile styurl3,
+			@RequestParam("styurl4") MultipartFile styurl4) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		paramMap.put("type", "06");
 
-		showInsertService.insert(paramMap, multi);
+		showInsertService.insert(paramMap, multi,"file_sysname");
+		showInsertService.insert(paramMap, styurl1,"styurl1");
+		showInsertService.insert(paramMap, styurl2,"styurl2");
+		showInsertService.insert(paramMap, styurl3,"styurl3");
+		showInsertService.insert(paramMap, styurl4,"styurl4");
+		
 
 		SessionMessage.insert(request);
 
@@ -99,12 +108,28 @@ public class ShowController {
 	}
 
 	@RequestMapping("update.do")
-	public String update(HttpServletRequest request, ModelMap model, @RequestParam("uploadFile") MultipartFile multi) throws Exception {
+	public String update(HttpServletRequest request, ModelMap model, @RequestParam("uploadFile") MultipartFile multi,
+			@RequestParam("styurl1") MultipartFile styurl1,
+			@RequestParam("styurl2") MultipartFile styurl2,
+			@RequestParam("styurl3") MultipartFile styurl3,
+			@RequestParam("styurl4") MultipartFile styurl4) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		
 		//이미지 삭제기능 추가
 		if (paramMap.containsKey("imagedelete")) {
 			fileService.deleteFile("show", paramMap.getString("file_delete"));
+		}
+		if (paramMap.containsKey("imagedelete_styurl1")) {
+			fileService.deleteFile("show", paramMap.getString("file_delete_styurl1"));
+		}
+		if (paramMap.containsKey("imagedelete_styurl2")) {
+			fileService.deleteFile("show", paramMap.getString("file_delete_styurl2"));
+		}
+		if (paramMap.containsKey("imagedelete_styurl3")) {
+			fileService.deleteFile("show", paramMap.getString("file_delete_styurl3"));
+		}
+		if (paramMap.containsKey("imagedelete_styurl4")) {
+			fileService.deleteFile("show", paramMap.getString("file_delete_styurl4"));
 		}
 		
 		/** 추가**/
@@ -118,7 +143,11 @@ public class ShowController {
 			MobileUpdateService.MdescUpdate(paramMap);
 		}
 		
-		showUpdateService.update(paramMap, multi);
+		showUpdateService.update(paramMap, multi,"file_sysname");
+		showUpdateService.update(paramMap, styurl1,"styurl1");
+		showUpdateService.update(paramMap, styurl2,"styurl2");
+		showUpdateService.update(paramMap, styurl3,"styurl3");
+		showUpdateService.update(paramMap, styurl4,"styurl4");
 
 		SessionMessage.update(request);
 

@@ -21,9 +21,9 @@ public class ShowUpdateService {
 	private FileService fileService;
 
 	@Transactional(value = "ckTransactionManager", rollbackFor = { Exception.class })
-	public void update(ParamMap paramMap, MultipartFile multi) throws Exception {
+	public void update(ParamMap paramMap, MultipartFile multi, String sys_filename) throws Exception {
 		String fileName = fileService.writeFile(multi, "show");
-		paramMap.put("file_sysname", fileName);
+		paramMap.put(sys_filename, fileName);
 
 		ckDataBaseService.save("show.update", paramMap);
 		

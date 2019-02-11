@@ -237,6 +237,17 @@
 			, A.MDESCRIPTION
 			, WEB_ACCESSIBILITY_FILE
 			, WEB_ACCESSIBILITY_FILE_ORG
+			,TIME					,
+			use_trgt,
+			use_fee,
+			grade,
+			support,
+			prfcast,
+			etc_desc,
+			styurl1,
+			styurl2,
+			styurl3,
+			styurl4
 		FROM 
 			PCN_RDF_METADATA A
 		WHERE 
@@ -271,7 +282,18 @@
 			PUBLISHER				,
 			APPROVAL		        ,
 			GENRE					,
-			NOTE1
+			NOTE1					,
+			TIME					,
+			use_trgt,
+			use_fee,
+			grade,
+			support,
+			prfcast,
+			etc_desc,
+			styurl1,
+			styurl2,
+			styurl3,
+			styurl4
 		) VALUES(
 			'G706'|| FN_CURRENT_TIME_MILLIS() ,
 			EVENT_FASTIVAL_SEQ.NEXTVAL  ,
@@ -299,7 +321,18 @@
 			#publisher#				,
 			#approval#              ,
 			#genre#					,
-			#note1#
+			#note1#,
+			#time#					,
+			#use_trgt#,
+			#use_fee#,
+			#grade#,
+			#support#,
+			#prfcast#,
+			#etc_desc#,
+			#styurl1#,
+			#styurl2#,
+			#styurl3#,
+			#styurl4#
 		)
 	
 	</insert>
@@ -334,7 +367,18 @@
 			</isEqual>					
 			REFERENCE_IDENTIFIER 	= #reference_identifier#		,
 			NOTE1					=#note1#                        ,
-			GENRE                   =#genre#
+			GENRE                   =#genre#,
+			TIME=#time#					,
+			use_trgt=#use_trgt#,
+			use_fee=#use_fee#,
+			grade=#grade#,
+			support=#support#,
+			prfcast=#prfcast#,
+			etc_desc=#etc_desc#,
+			styurl1=#styurl1#,
+			styurl2=#styurl2#,
+			styurl3=#styurl3#,
+			styurl4=#styurl4#
 		WHERE 
 			UCI = #uci#
 	</update>

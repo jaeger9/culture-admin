@@ -324,6 +324,34 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					<tr>
+						<th scope="row">기간</th>
+						<td colspan="3">
+							<input type="text" name="reg_start" value="${view.reg_start }" />
+							<span>~</span>
+							<input type="text" name="reg_end" value="${view.reg_end }" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">장소</th>
+						<td colspan="3">
+							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url">선택</a></span><span class="btn whiteS"><a href="#url">장소등록</a></span>
+							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주최</th>
+						<td colspan="3">
+							<input type="text" name="venue" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url">선택</a></span><span class="btn whiteS"><a href="#url">주최등록</a></span>
+<%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
+ --%>						</td>
+					</tr>
+					<tr>
+						<th scope="row">문의</th>
+						<td colspan="3">
+							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row">썸네일 이미지</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -347,14 +375,19 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">기간</th>
+						<th scope="row">URL</th>
 						<td colspan="3">
-							<input type="text" name="reg_start" value="${view.reg_start }" />
-							<span>~</span>
-							<input type="text" name="reg_end" value="${view.reg_end }" />
+							<input type="text" name="url" style="width:670px" value="${view.url}" />
 						</td>
 					</tr>
 					<tr>
+						<th scope="row">요청사항</th>
+						<td colspan="3">
+							<input type="text" name="request" style="width:670px" value="${view.request}" />
+						</td>
+					</tr>
+					
+				<%-- 	<tr>
 						<th scope="row">지역</th>
 						<td>
 							<select title="출처 선택" name="location">
@@ -363,12 +396,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								</c:forEach>
 							</select>
 						</td>
-							<th scope="row">장소</th>
+						<th scope="row">장소</th>
 						<td>
 							<input type="text" name="venue" style="width:250px" value="${view.venue}"/>
 						</td>
-					</tr>
-					<tr>
+					</tr> --%>
+					<%-- <tr>
 						<th scope="row">주소</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -385,7 +418,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
 							</div>
 						</td>
-					</tr>
+					</tr> --%>
 					<tr>
 						<th scope="row">주최/주관</th>
 						<td colspan="3">
@@ -398,24 +431,86 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
 						</td>
 					</tr>
+					
+					<!-- 이쪽부터 상세정보 -->
 					<tr>
-						<th scope="row">문의</th>
+						<th scope="row">시간</th>
 						<td colspan="3">
-							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+							<input type="text" name="time" style="width:670px" value="${view.time}" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">URL</th>
+						<th scope="row">이용대상</th>
 						<td colspan="3">
-							<input type="text" name="url" style="width:670px" value="${view.url}" />
+							<input type="text" name="use_trgt" style="width:670px" value="${view.use_trgt}" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">요청사항</th>
+						<th scope="row">이용요금</th>
 						<td colspan="3">
-							<input type="text" name="request" style="width:670px" value="${view.request}" />
+							<input type="text" name="use_fee" style="width:670px" value="${view.use_fee}" />
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">연령</th>
+						<td colspan="3">
+							<input type="text" name="grade" style="width:670px" value="${view.grade}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주관 및 후원</th>
+						<td colspan="3">
+							<input type="text" name="support" style="width:670px" value="${view.support}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">출연자 정보</th>
+						<td colspan="3">
+							<input type="text" name="prfcast" style="width:670px" value="${view.prfcast}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">기타 내용</th>
+						<td colspan="3">
+							<input type="text" name="etc_desc" style="width:670px" value="${view.etc_desc}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">제작진</th>
+						<td colspan="3">
+							<input type="text" name="prfcrew" style="width:670px" value="${view.prfcrew}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">소개이미지1</th>
+						<td colspan="3">
+							<input type="text" name="styurl1" style="width:670px" value="${view.styurl1}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">소개이미지2</th>
+						<td colspan="3">
+							<input type="text" name="styurl2" style="width:670px" value="${view.styurl2}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">소개이미지3</th>
+						<td colspan="3">
+							<input type="text" name="styurl3" style="width:670px" value="${view.styurl3}" />
+						</td>
+					</tr><tr>
+						<th scope="row">소개이미지4</th>
+						<td colspan="3">
+							<input type="text" name="styurl4" style="width:670px" value="${view.styurl4}" />
+						</td>
+					</tr>
+					
+					
+					
+					
+					
+					
+					<!-- 이쪽부터 상세정보 끝 -->
 					<tr>
 						<th scope="row">승인여부</th>
 						<td colspan="3">
@@ -456,7 +551,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	
 		<div class="sTitBar">
 			<h4>
-				<label>내용</label>
+				<label>프로그램 소개</label>
 			</h4>
 		</div>
 		

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="culturemedia">
+
+	<!-- 카드 뉴스 목록 -->
+	<select id="list" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* culturemedia.list */
+		R.*
+		FROM (
+		SELECT
+		<isEmpty property="sort_type">
+			FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE DESC)-1)/$list_unit$+1) AS PAGE
+		</isEmpty>
+		<isNotEmpty property="sort_type">
+			<isEqual property="sort_type" compareValue="latest">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE
+				DESC)-1)/$list_unit$+1) AS PAGE
+			</isEqual>
+			<isEqual property="sort_type" compareValue="hit">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1)
+				AS PAGE
+			</isEqual>
+			<isEqual property="sort_type" compareValue="app_hit">
+				FLOOR((ROW_NUMBER()OVER(ORDER BY R.APP_VIEW_CNT
+				DESC)-1)/$list_unit$+1) AS PAGE
+			</isEqual>
+		</isNotEmpty>
+		, R.*
+		FROM (
+		SELECT
+		TV_SEQ
+		,TV_ORG
+		,TV_HP1
+		,TV_HP2
+		,TV_HP3
+		,TV_TITLE
+		,TV_DATE
+		,TV_REQUEST
+		,TV_USER_ID
+		,TV_APPROVAL_STATE
+		,TV_APPROVAL_DATE
+		,TV_APPROVAL_USER_ID
+		,DECODE(TV_APPROVAL_STATE,'Y','승인','N','미승인','대기') TV_APPROVAL_STATE_NAME
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		UPDATE_USER_ID
+		FROM PCN_CULTURE_TV
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="tv_approval_state" prepend="AND">
+				TV_APPROVAL_STATE = #tv_approval_state#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TV_TITLE LIKE '%' || #keyword# || '%' OR TV_REQUEST LIKE '%' || #keyword#
+					|| '%' OR TV_ORG LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_title">
+					TV_TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_request">
+					TV_REQUEST LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_org">
+					TV_ORG LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_request">
+					TV_REQUEST LIKE '%' || #keyword# || '%'
+				</isEqual>
+
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+		) R
+		) R
+		WHERE PAGE = #page_no#
+	</select>
+
+	<!-- 카드 뉴스 목록 카운트 -->
+	<select id="listCnt" parameterClass="paramMap" resultClass="int">
+		SELECT /* culturemedia.listCnt */
+		COUNT(1)
+		FROM PCN_CULTURE_TV
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="tv_approval_state" prepend="AND">
+				TV_APPROVAL_STATE = #tv_approval_state#
+			</isNotEmpty>
+			<isNotEmpty property="keyword" prepend="AND">
+				<isEqual property="searchGubun" compareValue="">
+					(TV_TITLE LIKE
+					'%' || #keyword# || '%' OR TV_REQUEST LIKE '%' || #keyword# || '%'
+					OR TV_ORG LIKE '%' || #keyword# || '%')
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_title">
+					TV_TITLE LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_request">
+					TV_REQUEST LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_org">
+					TV_ORG LIKE '%' || #keyword# || '%'
+				</isEqual>
+				<isEqual property="searchGubun" compareValue="tv_request">
+					TV_REQUEST LIKE '%' || #keyword# || '%'
+				</isEqual>
+			</isNotEmpty>
+			<isNotEmpty property="reg_start">
+				<isEmpty property="reg_end" prepend="AND">
+					INSERT_DATE BETWEEN
+					TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss') AND
+					TO_DATE('$reg_start$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isEmpty>
+				<isNotEmpty property="reg_end" prepend="AND">
+					INSERT_DATE
+					BETWEEN TO_DATE(#reg_start# || '00:00:00','yyyy-mm-dd hh24:mi:ss')
+					AND TO_DATE('$reg_end$ 23:59:59','yyyy-mm-dd hh24:mi:ss')
+				</isNotEmpty>
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<!-- 카드 뉴스 상세 -->
+	<select id="view" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* culturemedia.view */
+		TV_SEQ
+		,TV_ORG
+		,TV_HP1
+		,TV_HP2
+		,TV_HP3
+		,TV_TITLE
+		,TV_DATE
+		,TV_REQUEST
+		,TV_USER_ID
+		,TV_APPROVAL_STATE
+		,TV_APPROVAL_DATE
+		,TV_APPROVAL_USER_ID
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		,UPDATE_USER_ID
+		FROM PCN_CULTURE_TV
+		WHERE TV_SEQ = #tv_seq#
+	</select>
+
+	<!-- 카드 뉴스 상세 파일 목록 -->
+	<select id="listFile" parameterClass="paramMap"
+		resultClass="commonMap">
+		SELECT /* culturemedia.fileList */
+		PCN_CULTURE_TV_SEQ, SEQ_NUM, FILE_NAME, DESCRIPTION, REG_ID, TO_CHAR(REG_DATE,
+		'YYYY-MM-DD') REG_DATE
+		FROM PCN_CULTURE_TV_FILE
+		WHERE PCN_CULTURE_TV_SEQ
+		= #seq#
+		ORDER BY SEQ_NUM ASC
+	</select>
+
+	<!-- 카드 뉴스 등록 -->
+	<insert id="insert" parameterClass="paramMap">
+		INSERT /* culturemedia.insert
+		*/
+		INTO PCN_CULTURE_TV (
+		TV_SEQ
+		,TV_ORG
+		,TV_HP1
+		,TV_HP2
+		,TV_HP3
+		,TV_TITLE
+		,TV_DATE
+		,TV_REQUEST
+		,TV_USER_ID
+		,TV_APPROVAL_STATE
+		,TV_APPROVAL_DATE
+		,TV_APPROVAL_USER_ID
+		,INSERT_DATE
+		,INSERT_USER_ID
+		,UPDATE_DATE
+		,UPDATE_USER_ID
+		) VALUES(
+			(SELECT NVL(MAX(TV_SEQ),0)+1 FROM PCN_CULTURE_TV)
+			,#tv_org#
+			,#tv_hp1#
+			,#tv_hp2#
+			,#tv_hp3#
+			,#tv_title#
+			,#tv_date#
+			,#tv_request#
+			,#reg_id#
+			,#tv_approval_state#
+			,sysdate
+			,#tv_approval_user_id#
+			,sysdate
+			,#reg_id#
+			,sysdate
+			,#reg_id#
+		)
+	</insert>
+
+	<!-- 카드 뉴스 등록 파일 -->
+	<insert id="insertFile" parameterClass="java.util.HashMap">
+		INSERT /*
+		culturemedia.insertFile */
+		INTO PCN_CULTURE_TV_FILE (
+		TV_SEQ
+		TV_ORG
+		TV_HP1
+		TV_HP2
+		TV_HP3
+		TV_TITLE
+		TV_DATE
+		TV_REQUEST
+		TV_USER_ID
+		TV_APPROVAL_STATE
+		TV_APPROVAL_DATE
+		TV_APPROVAL_USER_ID
+		INSERT_DATE
+		INSERT_USER_ID
+		UPDATE_DATE
+		UPDATE_USER_ID
+		) VALUES (
+		 (SELECT NVL(MAX(PCN_CULTURE_TV_FILE),0)+1 FROM PCN_CULTURE_TV_FILE)
+		,#tv_org#
+		,#tv_hp1#
+		,#tv_hp2#
+		,#tv_hp3#
+		,#tv_title#
+		,#tv_date#
+		,#tv_request#
+		,#tv_user_id#
+		,#tv_approval_state#
+		,#tv_approval_date#
+		,#tv_approval_user_id#
+		,sysdate
+		,#insert_user_id#
+		,sysdate
+		,#update_user_id#
+		)
+	</insert>
+
+	<!-- 카드 뉴스 수정 -->
+	<update id="update" parameterClass="paramMap">
+		UPDATE /* culturemedia.update
+		*/
+		PCN_CULTURE_TV SET
+		TV_ORG = #tv_org#
+		,TV_HP1 = #tv_hp1#
+		,TV_HP2 = #tv_hp2#
+		,TV_HP3 = #tv_hp3#
+		,TV_TITLE = #tv_title#
+		,TV_DATE = #tv_date#
+		,TV_REQUEST = #tv_request#
+		,TV_USER_ID = #tv_user_id#
+		,TV_APPROVAL_STATE = #tv_approval_state#
+		,TV_APPROVAL_DATE = #tv_approval_date#
+		,UPDATE_DATE = sysdate
+		,UPDATE_USER_ID = #upd_id# 
+		WHERE tv_seq = #tv_seq#
+		
+	</update>
+
+	<!-- 카드 뉴스 파일 삭제 -->
+	<update id="deleteFile" parameterClass="paramMap">
+		DELETE /*
+		culturemedia.deleteFile */
+		FROM PCN_CULTURE_TV_FILE
+		WHERE
+		PCN_CULTURE_TV_SEQ = #seq#
+	</update>
+
+	<!-- 카드 뉴스 상태 변경 -->
+	<update id="statusUpdate" parameterClass="paramMap">
+		UPDATE /* culturemedia.statusUpdate */
+		PCN_CULTURE_TV SET
+		<isNotEmpty property="updateStatus">
+			TV_APPROVAL_STATE = #updateStatus#,
+		</isNotEmpty>
+		UPDATE_USER_ID = #upd_id#,
+		UPDATE_DATE = SYSDATE
+		WHERE TV_SEQ IN
+		<iterate property="array.tv_seq" open="(" conjunction=","
+			close=")">
+			#array.tv_seq[]#
+		</iterate>
+	</update>
+
+	<!-- 카드 뉴스 삭제 -->
+	<delete id="delete" parameterClass="paramMap">
+	
+		DELETE /* culturemedia.delete */
+		FROM
+		PCN_CULTURE_TV
+		WHERE TV_SEQ IN
+		<iterate property="array.tv_seq" open="(" conjunction=","
+			close=")">
+			#array.tv_seq[]#
+		</iterate>
+	</delete>
+
+</sqlMap>

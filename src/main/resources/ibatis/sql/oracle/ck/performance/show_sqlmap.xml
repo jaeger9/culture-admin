@@ -253,7 +253,14 @@
 			SUBSTR(PERIOD, INSTR('~'||PERIOD,'~',1,2), INSTR(PERIOD||'~','~',1,2)-INSTR('~'||PERIOD,'~',1,2)) REG_END,
 			A.MDESCRIPTION,
 			WEB_ACCESSIBILITY_FILE,
-			WEB_ACCESSIBILITY_FILE_ORG
+			WEB_ACCESSIBILITY_FILE_ORG,
+			prfcast,
+			prfcrew,
+			styurl1,
+			styurl2,
+			styurl3,
+			styurl4
+			
 		FROM 
 			PCN_RDF_METADATA A
 		WHERE 
@@ -292,7 +299,14 @@
 			TYPE					,
 			PLACE					,
 			NOTE1					,
-			HOME_PAGE
+			HOME_PAGE,
+			prfcast,
+			prfcrew,
+			styurl1,
+			styurl2,
+			styurl3,
+			styurl4
+			
 		) 
 		SELECT
 			#uci# ,
@@ -320,7 +334,14 @@
 			#type#						,
 			#place#						,
 			#note1#						,
-			CUL_HOMEURL
+			CUL_HOMEURL,
+			#prfcast#,
+			#prfcrew#,
+			#styurl1#,
+			#styurl2#,
+			#styurl3#,
+			#styurl4#
+			
 		FROM VLI_VLI_CUL
 		WHERE CUL_NAME = #venue2#
 			AND POST_FLAG = 'Y'
@@ -349,6 +370,20 @@
 			PLACE					=#place#						,
 			APPROVAL				=#approval#						,			
 			NOTE1					=#note1#						,
+			prfcast=#prfcast#,
+			prfcrew=#prfcrew#,
+			<isNotEmpty property="styurl1">		
+			styurl1=#styurl1#,
+			</isNotEmpty>
+			<isNotEmpty property="styurl2">		
+			styurl2=#styurl2#,
+			</isNotEmpty>
+			<isNotEmpty property="styurl3">		
+			styurl3=#styurl3#,
+			</isNotEmpty>
+			<isNotEmpty property="styurl4">		
+			styurl4=#styurl4#,
+			</isNotEmpty>
 			<isNotEmpty property="file_sysname">		
 			 	REFERENCE_IDENTIFIER_ORG = #file_sysname#,
 			</isNotEmpty>	

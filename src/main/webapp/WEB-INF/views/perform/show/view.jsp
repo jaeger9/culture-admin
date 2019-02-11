@@ -31,14 +31,25 @@ var callback = {
 		
 		$('input[name=venue]').val(res.cul_name);
 		$('input[name=location]').val(res.cul_addr);
+	},
+	culturegroup : function(res){
+		if(res==null){
+			return false;
+		}
+		$('input[name=rights]').val(res.title);
 	}
 };
 
 $(function () {
 	
 	$('input[name=uploadFile]').on('change', function(){
-		$('.inputText').val($(this).val().substr(12));
+		$('.inputText:not(.styurl)').val($(this).val().substr(12));
 	})
+	
+	$('input[name^=styurl]').on('change',function(){
+		var className=$(this).attr("name");
+		$('.'+className).val($(this).val().substr(12));
+	});
 	
 	var frm = $('form[name=frm]');
 	var reg_date_start = frm.find('input[name=reg_start]');
@@ -61,11 +72,11 @@ $(function () {
 	
 		if(checked == 'Y') {
 			$('input[name=reference_identifier]').hide();
-		    $('div.fileInputs').show();
+		    $('div.fileInputs:not(.styurl)').show();
 		    $('input[name=imagedelete]').parent().show();
 		} else if(checked == 'N') {
 			$('input[name=reference_identifier]').show();
-			$('div.fileInputs').hide();
+			$('div.fileInputs:not(.styurl)').hide();
 			$('input[name=imagedelete]').parent().hide();
 		}
 	}
@@ -101,11 +112,18 @@ $(function () {
 	//공연상 선택
 	$('span.btn.whiteS a').each(function(){
 	  	$(this).click(function(){
-	    	if( $(this).html() == '선택'){
+	    	if( $(this).data('org') == 'venue'){
 	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
-	    	} else if( $(this).html() == '장소등록'){
+	    	} else if( $(this).data('org') == 'rights'){
+	      		window.open('/popup/culturegroup.do', 'culturegroupPopup', 'scrollbars=yes,width=600,height=630');
+	    	} 
+	    	/* else if( $(this).html() == '장소등록'){
 	    		location.href='/facility/place/list.do';
-	    	} else if( $(this).html() == '미리보기'){
+	    	}
+	    	else if($(this).html() == '주최등록'){
+	    		location.href='/facility/group/list.do';
+	    	} */
+	    	else if( $(this).html() == '미리보기'){
 	    		goLink();
 	    	}
 	  	});
@@ -116,7 +134,7 @@ $(function () {
 		if(action == 'delete'){
 			return true;
 		}
-		/* 
+		
 		if(title.val() == '') {
 		    alert("제목 입력하세요");
 		    title.focus();
@@ -125,7 +143,7 @@ $(function () {
 		
 		if($('input[name=note1]:checked').val() == 'Y'){
 			if($('input[name=reference_identifier]').val() == ''){
-				 alert("업로드 이미지 선택하세요");
+				 alert("썸네일 이미지 선택하세요");
 				 $('input[name=reference_identifier]').focus();
 				 return false;
 			}
@@ -158,25 +176,25 @@ $(function () {
 		}
 		
 		if(venue.val() ==''){
-			alert('공연장소 입력하세요');
+			alert('장소를 입력하세요');
 			venue.focus();
 			return false;
 		}
 
 		if(time.val() ==''){
-			alert('시간 입력하세요');
+			alert('시간을 입력하세요');
 			time.focus();
 			return false;
 		}
 
 		if(extent.val() ==''){
-			alert('러닝타임 입력하세요');
+			alert('러닝타임을 입력하세요');
 			extent.focus();
 			return false;
 		}
 		
 		if(grade.val() ==''){
-			alert('연령 입력하세요');
+			alert('연령을 입력하세요');
 			grade.focus();
 			return false;
 		}
@@ -198,7 +216,7 @@ $(function () {
 			reference.focus();
 			return false;
 		}
-		 */
+		 
 		return true;
 	});
 	
@@ -206,11 +224,6 @@ $(function () {
 	$('span > button').each(function() {
     	$(this).click(function() { 
         	if($(this).html() == '수정') { 
-        		if($('input[name=venue]').val() == ''){
-	   				 alert("공연장소를 선택해 주세요.");
-	   				 $('input[name=venue]').focus();
-	   				 return false;
-	   			}        		
         		if (!confirm('수정하시겠습니까?')) {
         			return false;
         		}
@@ -229,11 +242,6 @@ $(function () {
         		frm.attr('action' ,'/perform/show/delete.do');
         		frm.submit();
         	} else if($(this).html() == '등록') {
-        		if($('input[name=venue]').val() == ''){
-	   				 alert("공연장소를 선택해 주세요.");
-	   				 $('input[name=venue]').focus();
-	   				 return false;
-	   			}
         		if (!confirm('등록하시겠습니까?')) {
         			return false;
         		}
@@ -283,6 +291,58 @@ $(function () {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row">기간</th>
+						<td colspan="3">
+							<input type="text" name="reg_start" value="${view.reg_start }" />
+							<span>~</span>
+							<input type="text" name="reg_end" value="${view.reg_end }" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">시간</th>
+						<td colspan="3">
+							<input type="text" name="time" style="width:670px" value="${view.time}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">장소</th>
+						<td colspan="3">
+							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
+							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">문화예술단체</th>
+						<td colspan="3">
+							<input type="text" name="rights" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span>
+<%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
+ --%>						</td>
+					</tr>
+					<tr>
+						<th scope="row">관람료</th>
+						<td colspan="3">
+							<input type="text" name="charge" style="width:670px" value="${view.charge}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">러닝타임</th>
+						<td colspan="3">
+							<input type="text" name="extent" style="width:670px" value="${view.extent}" />
+						</td>
+					</tr>
+							<tr>
+						<th scope="row">연령</th>
+						<td colspan="3">
+							<input type="text" name="grade" style="width:670px" value="${view.grade}" />
+						</td>
+					</tr>
+						<tr>
+						<th scope="row">문의</th>
+						<td colspan="3">
+							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row">썸네일 이미지</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -303,66 +363,95 @@ $(function () {
 									<input type="hidden" name="reference_identifier_name" value="${view.reference_identifier_org }"/>
 								</div>
 							</c:if>
-							<input type="text" name="reference_identifier" id="reference_identifier" style="width:670px"  value="${view.reference_identifier }">
-						</td>
+<%-- 							<input type="text" name="reference_identifier" id="reference_identifier" style="width:670px"  value="${view.reference_identifier }">
+ --%>						</td>
 					</tr>
-					<tr>
-						<th scope="row">URL</th>
+						<tr>
+						<th scope="row">홈페이지 URL</th>
 						<td colspan="3">
 							<input type="text" name="url" style="width:500px" value="${view.url}" /><span class="btn whiteS"><a href="#url">미리보기</a></span>
 						</td>
 					</tr>
+					<!--  상세정보 시작 -->
 					<tr>
-						<th scope="row">기간</th>
+						<th scope="row">출연진</th>
 						<td colspan="3">
-							<input type="text" name="reg_start" value="${view.reg_start }" />
-							<span>~</span>
-							<input type="text" name="reg_end" value="${view.reg_end }" />
+							<input type="text" name="prfcast" style="width:670px" value="${view.prfcast}" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">공연장소</th>
+						<th scope="row">제작진</th>
 						<td colspan="3">
-							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url">선택</a></span><span class="btn whiteS"><a href="#url">장소등록</a></span>
-							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
+							<input type="text" name="prfcrew" style="width:670px" value="${view.prfcrew}" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">시간</th>
+						<th scope="row">소개이미지1</th>
 						<td colspan="3">
-							<input type="text" name="time" style="width:670px" value="${view.time}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl1" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px;">
+									<input type="text" title="" class="inputText styurl styurl1" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl1}">
+											<input type="hidden" name="file_delete_styurl1" value="${view.styurl1}" />
+											<label><input style="width:13px"  type="checkbox" name="imagedelete_styurl1" value="Y" /> <strong>삭제</strong>  ${view.styurl1}</label>
+									</c:if>
+								</div>
+								
+							</div>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">러닝타임</th>
+						<th scope="row">소개이미지2</th>
 						<td colspan="3">
-							<input type="text" name="extent" style="width:670px" value="${view.extent}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl2" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl2" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl2}">
+											<input type="hidden" name="file_delete_styurl2" value="${view.styurl2}" />
+											<label><input style="width:13px" type="checkbox" name="imagedelete_styurl2" value="Y" /> <strong>삭제</strong>  ${view.styurl2}</label>
+								</c:if>
+								</div>
+							</div>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">연령</th>
+						<th scope="row">소개이미지3</th>
 						<td colspan="3">
-							<input type="text" name="grade" style="width:670px" value="${view.grade}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl3" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl3" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+									<c:if test="${!empty view.styurl3}">
+											<input type="hidden" name="file_delete_styurl3" value="${view.styurl3}" />
+											<label><input style="width:13px" type="checkbox" name="imagedelete_styurl3" value="Y" /> <strong>삭제</strong>  ${view.styurl3}</label>
+									</c:if>
+								</div>
+							</div>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">주최</th>
+						<th scope="row">소개이미지4</th>
 						<td colspan="3">
-							<input type="text" name="rights" style="width:670px" value="${view.rights}" />
+							<div class="fileInputs styurl">
+								<input type="file" name="styurl4" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile" style="width:700px">
+									<input type="text" title="" class="inputText styurl styurl4" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+								<c:if test="${!empty view.styurl4}">
+									<input type="hidden" name="file_delete_styurl4" value="${view.styurl4}" />
+									<label><input style="width:13px" type="checkbox" name="imagedelete_styurl4" value="Y" /> <strong>삭제</strong>  ${view.styurl4}</label>
+								</c:if>
+																</div>
+							</div>
 						</td>
 					</tr>
-					<tr>
-						<th scope="row">관람료</th>
-						<td colspan="3">
-							<input type="text" name="charge" style="width:670px" value="${view.charge}" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">문의</th>
-						<td colspan="3">
-							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
-						</td>
-					</tr>
+				
+					<!--  상세정보 끝 -->
 					<tr>
 						<th scope="row">승인여부</th>
 						<td colspan="3">
@@ -427,7 +516,7 @@ $(function () {
 		
 		<div class="sTitBar">
 			<h4>
-				<label>내용</label>
+				<label>줄거리</label>
 			</h4>
 		</div>
 		

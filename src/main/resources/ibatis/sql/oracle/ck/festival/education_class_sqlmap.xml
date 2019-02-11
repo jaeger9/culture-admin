@@ -196,7 +196,11 @@
 			, APPLY_PERSON   
 			, APPLY_START_DT 
 			, APPLY_END_DT   
-			, LOCATION       
+			, LOCATION  
+			, GENRE
+			, FREE_YN
+			, REFERENCE_IDENTIFIER
+			, REFERENCE_IDENTIFIER_ORG      
 		FROM 
 			PORTAL_EDUCATION A
 		WHERE 
@@ -233,7 +237,11 @@
 			, APPLY_PERSON   
 			, APPLY_START_DT 
 			, APPLY_END_DT   
-			, LOCATION       
+			, LOCATION
+			, GENRE
+			, FREE_YN
+			, REFERENCE_IDENTIFIER
+			, REFERENCE_IDENTIFIER_ORG       
 		) VALUES(
 			EDUCATION_SEQ.NEXTVAL
 			, #title#          
@@ -264,6 +272,10 @@
 			, #apply_start_dt# 
 			, #apply_end_dt#   
 			, #location#       
+			, #genre#
+			, #free_yn#
+			, #REFERENCE_IDENTIFIER#
+			, #REFERENCE_IDENTIFIER_ORG#
 		)
 	</insert>
 	
@@ -293,7 +305,11 @@
 			, APPLY_PERSON      =  #apply_person#                    
 			, APPLY_START_DT    =  #apply_start_dt#                  
 			, APPLY_END_DT      =  #apply_end_dt#                    
-			, LOCATION          =  #location#                        
+			, LOCATION          =  #location#     
+			, GENRE				=  #genre#
+			, FREE_YN			=  #free_yn#
+			, REFERENCE_IDENTIFIER = #REFERENCE_IDENTIFIER#
+			, REFERENCE_IDENTIFIER_ORG = #REFERENCE_IDENTIFIER_ORG#                   
 		WHERE 
 			SEQ = #seq#
 	</update>
