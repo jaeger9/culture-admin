@@ -14,7 +14,7 @@
  <script type="text/javascript">
  
 //미리보기 팝업
-	function viewPop(){
+/* 	function viewPop(){
 		var preTitle = $("#title").val();
 
 		if(preTitle == ''){
@@ -22,7 +22,7 @@
 		}else{
 			var win = window.open("/culture/prePerformView.do", "PopupWin", "width=1220,height=800");
 		}
-	}
+	} */
  
 var action = "";
 
