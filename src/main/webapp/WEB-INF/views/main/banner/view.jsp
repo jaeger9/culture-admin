@@ -550,10 +550,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">195 * 107 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">169 * 90 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${not empty view.image_url }'>
-										<img width="195" height="170" alt="" src="${view.image_url}">
+										<img width="169" height="90" alt="" src="${view.image_url}">
 									</c:if>
 								</div>
 							</td>
@@ -618,10 +618,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">113 * 46 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">167 * 88 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${not empty view.image_url }'>
-										<img width="113" height="46" alt="" src="${view.image_url}">
+										<img width="167" height="88" alt="" src="${view.image_url}">
 									</c:if>
 								</div>
 							</td>
@@ -740,10 +740,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">180 * 92px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 88px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${not empty view.image_url }'>
-										<img width="180" height="92" alt="" src="${view.image_url}">
+										<img width="294" height="88" alt="" src="${view.image_url}">
 									</c:if>
 								</div>
 							</td>
