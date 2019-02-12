@@ -43,7 +43,7 @@ $(function() {
 		$('input:radio[name="video_approval_state"][value="${view.video_approval_state}"]').prop('checked', 'checked');
 	} else {
 /* 		$('input:radio[name="video_approval_state"][value="W"]').prop('checked', 'checked');
- */		$('input:radio[name="tv_approval_state"][value="N"]').prop('checked', 'checked');
+ */		$('input:radio[name="video_approval_state"][value="N"]').prop('checked', 'checked');
  	}
 	
 	$("input:checkbox[name='file_delete']").change(function() {
