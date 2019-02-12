@@ -190,8 +190,8 @@ $(function () {
 							<td>
 								<div class="inputBox">
 									<label><input type="radio" name="video_approval_state" value=""/> 전체</label>
-									<label><input type="radio" name="video_approval_state" value="W"/> 대기</label>
-									<label><input type="radio" name="video_approval_state" value="Y"/> 승인</label>
+<!-- 									<label><input type="radio" name="video_approval_state" value="W"/> 대기</label>
+ -->									<label><input type="radio" name="video_approval_state" value="Y"/> 승인</label>
 									<label><input type="radio" name="video_approval_state" value="N"/> 미승인</label>
 								</div>
 							</td>

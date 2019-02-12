@@ -153,11 +153,13 @@ $(function () {
 		
 		<ul class="tab">
 			<c:forEach items="${bannerList }" var="bannerList" varStatus="status">
+				<c:if test="${bannerList.code ne 205 and bannerList.code ne 571 and bannerList.code ne 572 }">
 				<li>
 					<a href="/main/banner/list.do?menu_type=${bannerList.code}" <c:if test="${ paramMap.menu_type eq bannerList.code }"> class="focus"</c:if>>
 						${bannerList.name}
 					</a>
 				</li>
+				</c:if>
 			</c:forEach>
 		</ul>
 		<fieldset class="searchBox">

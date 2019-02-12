@@ -31,7 +31,7 @@
 		,VIDEO_APPROVAL_STATE
 		,VIDEO_APPROVAL_DATE
 		,VIDEO_APPROVAL_USER_ID
-		,DECODE(VIDEO_APPROVAL_STATE,'Y','승인','N','미승인','대기') VIDEO_APPROVAL_STATE_NAME
+		,DECODE(VIDEO_APPROVAL_STATE,'Y','승인','N','미승인','미승인') VIDEO_APPROVAL_STATE_NAME
 		,TO_CHAR(INSERT_DATE,'YYYY-MM-DD') INSERT_DATE
 		,INSERT_USER_ID
 		,UPDATE_DATE
@@ -39,7 +39,12 @@
 		FROM PCN_VIDEO
 		<dynamic prepend="WHERE">
 			<isNotEmpty property="video_approval_state" prepend="AND">
-				VIDEO_APPROVAL_STATE = #video_approval_state#
+				<isEqual property="video_approval_state" compareValue="Y">
+					video_approval_state =	'Y'
+				</isEqual>
+				<isEqual property="video_approval_state" compareValue="N">
+					video_approval_state = 'N' OR video_approval_state IS NULL
+				</isEqual>
 			</isNotEmpty>
 			<isNotEmpty property="keyword" prepend="AND">
 				<isEqual property="searchGubun" compareValue="">

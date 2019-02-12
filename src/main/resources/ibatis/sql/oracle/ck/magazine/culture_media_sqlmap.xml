@@ -33,7 +33,7 @@
 		,TV_APPROVAL_STATE
 		,TV_APPROVAL_DATE
 		,TV_APPROVAL_USER_ID
-		,DECODE(TV_APPROVAL_STATE,'Y','승인','N','미승인','대기') TV_APPROVAL_STATE_NAME
+		,DECODE(TV_APPROVAL_STATE,'Y','승인','N','미승인','미승인') TV_APPROVAL_STATE_NAME
 		,TO_CHAR(INSERT_DATE,'YYYY-MM-DD') INSERT_DATE
 		,INSERT_USER_ID
 		,UPDATE_DATE
@@ -41,7 +41,12 @@
 		FROM PCN_CULTURE_TV
 		<dynamic prepend="WHERE">
 			<isNotEmpty property="tv_approval_state" prepend="AND">
-				TV_APPROVAL_STATE = #tv_approval_state#
+				<isEqual property="tv_approval_state" compareValue="Y">
+					TV_APPROVAL_STATE =	'Y'
+				</isEqual>
+				<isEqual property="tv_approval_state" compareValue="N">
+					TV_APPROVAL_STATE = 'N' OR TV_APPROVAL_STATE IS NULL
+				</isEqual>
 			</isNotEmpty>
 			<isNotEmpty property="keyword" prepend="AND">
 				<isEqual property="searchGubun" compareValue="">
