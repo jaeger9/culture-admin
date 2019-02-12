@@ -93,7 +93,7 @@ function excelDown2() {
 							<c:forEach items="${userRoleList }" var="item">
 								<option 
 								value="${item.value }"
-								<c:if test="${param.role eq item.value }">
+								<c:if test="${paramMap.role eq item.value }">
 									selected
 								</c:if>
 								>${item.name}</option>
