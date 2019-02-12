@@ -333,6 +333,31 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 				</select>
 			</td>
 		</tr>
+		<tr>
+			<th scope="row">
+				네이버 아이디<br/>연동
+			</th>
+			<td><c:choose>
+				<c:when test="${empty view.sns_naver_id }">
+					N
+				</c:when>
+				<c:otherwise>
+					Y
+				</c:otherwise>
+			
+			</c:choose>		</td>
+			<th scope="row">카카오 아이디<br/>연동</th>
+			<td>
+			<c:choose>
+				<c:when test="${empty view.sns_kakao_id }">
+					N
+				</c:when>
+				<c:otherwise>
+					Y
+				</c:otherwise>
+			</c:choose>			
+			</td>
+		</tr>
 		</tbody>
 		</table>
 	</div>
