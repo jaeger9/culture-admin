@@ -17,14 +17,6 @@
 				FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE
 				DESC)-1)/$list_unit$+1) AS PAGE
 			</isEqual>
-			<isEqual property="sort_type" compareValue="hit">
-				FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1)
-				AS PAGE
-			</isEqual>
-			<isEqual property="sort_type" compareValue="app_hit">
-				FLOOR((ROW_NUMBER()OVER(ORDER BY R.APP_VIEW_CNT
-				DESC)-1)/$list_unit$+1) AS PAGE
-			</isEqual>
 		</isNotEmpty>
 		, R.*
 		FROM (
@@ -65,10 +57,6 @@
 				<isEqual property="searchGubun" compareValue="tv_org">
 					TV_ORG LIKE '%' || #keyword# || '%'
 				</isEqual>
-				<isEqual property="searchGubun" compareValue="tv_request">
-					TV_REQUEST LIKE '%' || #keyword# || '%'
-				</isEqual>
-
 			</isNotEmpty>
 			<isNotEmpty property="reg_start">
 				<isEmpty property="reg_end" prepend="AND">

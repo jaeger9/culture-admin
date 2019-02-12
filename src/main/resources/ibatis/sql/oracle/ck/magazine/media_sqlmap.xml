@@ -17,14 +17,6 @@
 				FLOOR((ROW_NUMBER()OVER(ORDER BY R.INSERT_DATE
 				DESC)-1)/$list_unit$+1) AS PAGE
 			</isEqual>
-			<isEqual property="sort_type" compareValue="hit">
-				FLOOR((ROW_NUMBER()OVER(ORDER BY R.VIEW_CNT DESC)-1)/$list_unit$+1)
-				AS PAGE
-			</isEqual>
-			<isEqual property="sort_type" compareValue="app_hit">
-				FLOOR((ROW_NUMBER()OVER(ORDER BY R.APP_VIEW_CNT
-				DESC)-1)/$list_unit$+1) AS PAGE
-			</isEqual>
 		</isNotEmpty>
 		, R.*
 		FROM (
