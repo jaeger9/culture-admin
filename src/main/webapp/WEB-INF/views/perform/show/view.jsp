@@ -325,7 +325,7 @@ $(function () {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">문화예술단체</th>
+						<th scope="row">주최</th>
 						<td colspan="3">
 							<input type="text" name="rights" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span>
 <%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>

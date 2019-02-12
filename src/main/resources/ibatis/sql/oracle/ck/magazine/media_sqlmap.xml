@@ -181,7 +181,8 @@
 		,UPDATE_DATE
 		,UPDATE_USER_ID
 		) VALUES(
-			(SELECT NVL(MAX(VIDEO_SEQ),0)+1 FROM PCN_VIDEO)
+			<!-- (SELECT NVL(MAX(VIDEO_SEQ),0)+1 FROM PCN_VIDEO) -->
+			PCN_VIDEO_SEQ.NEXTVAL
 			,#video_org#
 			,#video_hp1#
 			,#video_hp2#
