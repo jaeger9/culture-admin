@@ -249,6 +249,11 @@ $(function () {
 				</tr>
 				</thead>
 				<tbody>
+					<c:if test="${empty list }">
+						<tr>
+							<td colspan="7">검색된 결과가 없습니다.</td>
+						</tr>
+					</c:if>
 					<c:forEach items="${list }" var="item" varStatus="status">
 						<c:set var="num" value="${count-(10*(paramMap.page_no-1))-status.index}" />
 						<tr>

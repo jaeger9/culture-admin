@@ -229,7 +229,7 @@ $(function () {
 									<option value="description">내용</option>
 									<option value="creator">작성자</option>
 								</select>
-								<input <input type="text" name="keyword" title="검색어 입력" value="${paramMap.keyword}"/>
+								<input type="text" name="keyword" title="검색어 입력" value="${paramMap.keyword}"/>
 								<span class="btn darkS">
 									<button name="searchButton" type="button">검색</button>
 								</span>
@@ -270,13 +270,17 @@ $(function () {
 						<th scope="col">교육명</th>
 						<th scope="col">출처/작성자</th>
 						<th scope="col">등록일</th>
-						
 						<th scope="col">조회수</th>
 						<th scope="col">모집인원</th>
 						<th scope="col">승인여부</th>
 					</tr>
 				</thead>
 				<tbody>
+					<c:if test="${empty list }">
+						<tr>
+							<td colspan="8">검색된 결과가 없습니다.</td>
+						</tr>
+					</c:if>
 					<c:forEach items="${list }" var="item" varStatus="status">
 						<c:set var="num" value="${count-(10*(paramMap.page_no-1))-status.index}" />
 						<tr>

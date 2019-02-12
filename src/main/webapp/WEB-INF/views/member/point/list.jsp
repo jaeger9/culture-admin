@@ -131,7 +131,7 @@ $(function () {
 		<tbody>
 			<c:if test="${empty list }">
 			<tr>
-				<td colspan="5">검색된 결과가 없습니다.</td>
+				<td colspan="6">검색된 결과가 없습니다.</td>
 			</tr>
 			</c:if>
 

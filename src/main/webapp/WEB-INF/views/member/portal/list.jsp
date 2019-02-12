@@ -182,7 +182,7 @@ function excelDown2() {
 		<tbody>
 			<c:if test="${empty list }">
 			<tr>
-				<td colspan="7">검색된 결과가 없습니다.</td>
+				<td colspan="8">검색된 결과가 없습니다.</td>
 			</tr>
 			</c:if>
 
