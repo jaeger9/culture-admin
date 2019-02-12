@@ -36,7 +36,7 @@
 		    	SELECT     
 		    		a.SEQ			,      
 					a.TITLE       , 
-				    a.REG_DATE      , 
+				    TO_CHAR(a.REG_DATE,'YYYY-MM-DD') REG_DATE      , 
 				    a.CREATED_DATE    , 
 				    a.MODIFIED_DATE   , 
 				    a.ISSUED_DATE     , 
