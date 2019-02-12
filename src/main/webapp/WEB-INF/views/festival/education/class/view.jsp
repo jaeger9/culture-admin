@@ -349,10 +349,10 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<tr>
 							<th scope="row">장르</th>
 								<td colspan="3">
-									<select title="장르" name="genre">
-										<option value="1">교육</option>
-										<option value="2">체험</option>
-									</select>
+									<div class="inputBox">
+										<label><input type="radio" name="genre" value="1" <c:if test="${view.genre eq 1 }">checked</c:if>/>교육</label>
+										<label><input type="radio" name="genre" value="2" <c:if test="${view.genre eq 2 }">checked</c:if>/>체험</label>
+							</div>
 								</td>
 							</th>
 						</tr>
