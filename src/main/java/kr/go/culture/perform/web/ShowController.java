@@ -95,11 +95,16 @@ public class ShowController {
 		ParamMap paramMap = new ParamMap(request);
 		paramMap.put("type", "06");
 
-		showInsertService.insert(paramMap, multi,"file_sysname");
-		showInsertService.insert(paramMap, styurl1,"styurl1");
-		showInsertService.insert(paramMap, styurl2,"styurl2");
-		showInsertService.insert(paramMap, styurl3,"styurl3");
-		showInsertService.insert(paramMap, styurl4,"styurl4");
+		paramMap.put("file_sysname",showInsertService.insert(multi));
+		paramMap.put("styurl1",showInsertService.insert(styurl1));
+		paramMap.put("styurl2",showInsertService.insert(styurl2));
+		paramMap.put("styurl3",showInsertService.insert(styurl3));
+		paramMap.put("styurl4",showInsertService.insert(styurl4));
+		
+		String uci = (String) ckDatabaseService.insert("show.insert", paramMap);
+		paramMap.put("uci", uci);
+		
+		ckDatabaseService.save("show.updateShow", paramMap);
 		
 
 		SessionMessage.insert(request);
@@ -143,11 +148,15 @@ public class ShowController {
 			MobileUpdateService.MdescUpdate(paramMap);
 		}
 		
-		showUpdateService.update(paramMap, multi,"file_sysname");
-		showUpdateService.update(paramMap, styurl1,"styurl1");
-		showUpdateService.update(paramMap, styurl2,"styurl2");
-		showUpdateService.update(paramMap, styurl3,"styurl3");
-		showUpdateService.update(paramMap, styurl4,"styurl4");
+		paramMap.put("file_sysname", showUpdateService.update(multi));
+		paramMap.put("styurl1", showUpdateService.update(styurl1));
+		paramMap.put("styurl2", showUpdateService.update(styurl2));
+		paramMap.put("styurl3", showUpdateService.update(styurl3));
+		paramMap.put("styurl4", showUpdateService.update(styurl4));
+		
+		ckDatabaseService.save("show.update", paramMap);
+		ckDatabaseService.save("show.updateShow", paramMap);
+		
 
 		SessionMessage.update(request);
 

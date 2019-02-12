@@ -112,11 +112,12 @@ public class EventController {
 			//이것도 어디 밖아두고 써라 나중에..
 			paramMap.put("type", "50");
 			
-			eventInsertService.insert(paramMap, multi,"file_sysname");
-			eventInsertService.insert(paramMap, styurl1,"styurl1");
-			eventInsertService.insert(paramMap, styurl2,"styurl2");
-			eventInsertService.insert(paramMap, styurl3,"styurl3");
-			eventInsertService.insert(paramMap, styurl4,"styurl4");
+			paramMap.put("file_sysname", eventInsertService.insert(multi));
+			paramMap.put("styurl1", eventInsertService.insert(styurl1));
+			paramMap.put("styurl2", eventInsertService.insert(styurl2));
+			paramMap.put("styurl3", eventInsertService.insert(styurl3));
+			paramMap.put("styurl4", eventInsertService.insert(styurl4));
+			ckDatabaseService.save("festival.event.insert", paramMap);
 			
 			
 		} catch (Exception e) {
@@ -166,11 +167,15 @@ public class EventController {
 				FestivalMobileUpdateService.MdescUpdate(paramMap);
 			}
 			
-			eventUpdateService.update(paramMap, multi,"file_sysname");
-			eventUpdateService.update(paramMap, styurl1,"styurl1");
-			eventUpdateService.update(paramMap, styurl2,"styurl2");
-			eventUpdateService.update(paramMap, styurl3,"styurl3");
-			eventUpdateService.update(paramMap, styurl4,"styurl4");
+			paramMap.put("file_sysname",eventUpdateService.update(multi));
+			paramMap.put("styurl1",eventUpdateService.update(styurl1));
+			paramMap.put("styurl2",eventUpdateService.update(styurl2));
+			paramMap.put("styurl3",eventUpdateService.update(styurl3));
+			paramMap.put("styurl4",eventUpdateService.update(styurl4));
+			
+
+			ckDatabaseService.save("festival.event.update", paramMap);
+		
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
