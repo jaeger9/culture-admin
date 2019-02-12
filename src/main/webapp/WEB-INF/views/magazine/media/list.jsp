@@ -234,7 +234,7 @@ $(function () {
 					<col style="width:%" />
 					<col style="width:25%" />
 					<col style="width:10%" />
-					<col style="width:6%" />
+					<col style="width:10%" />
 					<col style="width:8%" />
 				</colgroup>
 				<thead>
