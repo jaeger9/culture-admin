@@ -71,8 +71,8 @@ public class ContentPopupController {
 				model.addAttribute("sub_menu_type", request.getParameter("sub_menu_type").toString());
 			}
 			
-			model.addAttribute("list", ckDatabaseService.readForList("culture.recommand.vodList", paramMap));
-			model.addAttribute("count", ckDatabaseService.readForObject("culture.recommand.vodListCnt", paramMap));
+			model.addAttribute("list", ckDatabaseService.readForList("pdworker.culture.recommand.vodList", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworker.culture.recommand.vodListCnt", paramMap));
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());

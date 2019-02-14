@@ -62,7 +62,7 @@ public class CultureRecommandController {
 			paramMap.put("idx",request.getParameter("idx").toString() );
 			
 			
-			CommonModel tempMap = (CommonModel)ckDatabaseService.readForObject("culture.recommand.recomVodView", paramMap);
+			CommonModel tempMap = (CommonModel)ckDatabaseService.readForObject("pdworker.culture.recommand.recomVodView", paramMap);
 			String idx = "";
 			String rec_mov_idx ="";
 			
@@ -113,9 +113,9 @@ public class CultureRecommandController {
 			paramMap.put("recom_live_end_hour",recom_live_end_hour);
 			paramMap.put("recom_live_end_min",recom_live_end_min);
 			
-			model.addAttribute("view", ckDatabaseService.readForObject("culture.recommand.recomVodView", paramMap));
+			model.addAttribute("view", ckDatabaseService.readForObject("pdworker.culture.recommand.recomVodView", paramMap));
 			if(tempMap.get("rec_mov_idx")!=null){
-				model.addAttribute("recomList", ckDatabaseService.readForList("culture.recommand.recomDetailList", paramMap));
+				model.addAttribute("recomList", ckDatabaseService.readForList("pdworker.culture.recommand.recomDetailList", paramMap));
 			}else{
 				model.addAttribute("recomList","null");
 			}
@@ -162,8 +162,8 @@ public class CultureRecommandController {
 			setPagingNum(paramMap);
 			
 			
-			model.addAttribute("list", ckDatabaseService.readForList("culture.recommand.recomVodList", paramMap));
-			model.addAttribute("count", ckDatabaseService.readForObject("culture.recommand.recomVodListCnt", paramMap));
+			model.addAttribute("list", ckDatabaseService.readForList("pdworker.culture.recommand.recomVodList", paramMap));
+			model.addAttribute("count", ckDatabaseService.readForObject("pdworker.culture.recommand.recomVodListCnt", paramMap));
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -205,7 +205,7 @@ public class CultureRecommandController {
 		
 		
 				
-		int idx = (Integer)ckDatabaseService.readForObject("culture.recommand.incrementIdx",paramMap);
+		int idx = (Integer)ckDatabaseService.readForObject("pdworker.culture.recommand.incrementIdx",paramMap);
 		paramMap.put("idx", idx);
 		
 				
@@ -221,12 +221,12 @@ public class CultureRecommandController {
 		// 수정 
 		if(request.getParameter("formstatus")!=null && !request.getParameter("formstatus").toString().equals("")){
 			paramMap.put("idx", request.getParameter("idx").toString());
-			ckDatabaseService.save("culture.recommand.recomUpdate", paramMap);
+			ckDatabaseService.save("pdworker.culture.recommand.recomUpdate", paramMap);
 			
 		}
 		// 등록
 		else{
-			ckDatabaseService.save("culture.recommand.recomInsert", paramMap);
+			ckDatabaseService.save("pdworker.culture.recommand.recomInsert", paramMap);
 			
 		}
 		
@@ -266,7 +266,7 @@ public class CultureRecommandController {
 		
 		model.addAttribute("paramMap", paramMap);
 		
-		ckDatabaseService.delete("culture.recommand.recomDelete", paramMap);
+		ckDatabaseService.delete("pdworker.culture.recommand.recomDelete", paramMap);
 			
 		return "redirect:/magazine/recomCulture/recomList.do?menu_type="+menu_type;
 	}
@@ -303,7 +303,7 @@ public class CultureRecommandController {
 		
 		model.addAttribute("paramMap", paramMap);
 		
-		ckDatabaseService.save("culture.recommand.approvalUpdate", paramMap);
+		ckDatabaseService.save("pdworker.culture.recommand.approvalUpdate", paramMap);
 		
 		return "redirect:/magazine/recomCulture/recomList.do?menu_type="+menu_type;
 	}
