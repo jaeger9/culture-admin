@@ -179,6 +179,9 @@
 				<isNotEmpty property="type">
 				, TYPE
 				</isNotEmpty>
+				<isNotEmpty property="main_image_name">
+				,MAIN_IMAGE_NAME
+				</isNotEmpty>
 			) VALUES (
 		   		(SELECT NVL(MAX(SEQ),0)+1 FROM PORTAL_MAIN_CONTENT_SUB)
 		    	, #pseq#
@@ -203,6 +206,9 @@
 				</isNotEmpty>
 				<isNotEmpty property="type">
 				, #type#
+				</isNotEmpty>
+				<isNotEmpty property="main_image_name">
+				,#main_image_name#
 				</isNotEmpty>
 			)
 	</insert>
@@ -231,18 +237,35 @@
 			IMAGE_NAME = #image_name#,
 			CODE = #category#,
 			IMAGE_NAME2 = #image_name2#, 
+			<isNotEmpty property="period">
 			PERIOD = #period#, 
+			</isNotEmpty>
+			<isNotEmpty property="place">
 			PLACE = #place#,
+			</isNotEmpty>
+			<isNotEmpty property="discount">
 			DISCOUNT = #discount#,
+			</isNotEmpty>
+			<isNotEmpty property="summary">
 			SUMMARY = #summary#,
+			</isNotEmpty>
+			<isNotEmpty property="cont_date">
 			CONT_DATE = #cont_date#,
+			</isNotEmpty>
+			<isNotEmpty property="rights">
 			RIGHTS = #rights#,
+			</isNotEmpty>
+			<isNotEmpty property="uci">
 			UCI = #uci#
+			</isNotEmpty>
 			<isNotEmpty property="new_win_yn">
 			, NEW_WIN_YN = #new_win_yn#
 			</isNotEmpty>
 			<isNotEmpty property="type">
 			, TYPE = #type#
+			</isNotEmpty>
+			<isNotEmpty property="main_image_name">
+			,MAIN_IMAGE_NAME = #main_image_name#
 			</isNotEmpty>
 		WHERE 
 			SEQ = #seq#

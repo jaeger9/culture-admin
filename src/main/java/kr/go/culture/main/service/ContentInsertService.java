@@ -133,7 +133,17 @@ public class ContentInsertService {
 				param.put("category", paramMap.getArray("code")[index]);
 				param.put("uci", paramMap.getArray("uci")[index]);
 				param.put("new_win_yn", paramMap.getArray("new_win_yn")[index]);
-			}else{
+			}else if("1015".equals(paramMap.get("menu_type"))) {
+				param.put("title", paramMap.getArray("title")[index]);
+				param.put("url", paramMap.getArray("url")[index]);
+				param.put("uci", paramMap.getArray("uci")[index]);
+				param.put("cont_date", paramMap.getArray("cont_date")[index]);
+				param.put("rights", paramMap.getArray("rights")[index]);
+				param.put("image_name", paramMap.getArray("image_name")[index]);
+				param.put("category", paramMap.getArray("code")[index]);
+				param.put("pseq", paramMap.get("pseq"));
+			}
+			else{
 				param.put("title", paramMap.getArray("title")[index]);
 				param.put("image_name", paramMap.getArray("image_name")[index]);
 				param.put("image_name2", paramMap.getArray("image_name2")[index]);
@@ -222,7 +232,7 @@ public class ContentInsertService {
 	}
 	
 	@Transactional(value="ckTransactionManager" , rollbackFor={Exception.class})
-	public void insertMainContents(ParamMap paramMap) throws Exception { 
+	public void insertMainContents(ParamMap paramMap,MultipartFile[] multipartFiles) throws Exception {
 		List<HashMap<String , Object>> paramList = null;
 		
 		int pseq = (Integer)ckDatabaseService.insert("content.insert" , paramMap);
@@ -231,8 +241,15 @@ public class ContentInsertService {
 
 		paramList = setParamDatas(pseq, paramMap, paramMap.getInt("groupSize"));
 		
-		for(HashMap<String , Object> param : paramList)
+		int indexForFile=0;
+		
+		for(HashMap<String , Object> param : paramList) {
+			if(multipartFiles!=null && !multipartFiles[indexForFile].isEmpty()) {
+				String fileName=fileService.writeFile(multipartFiles[indexForFile++], "cultureagree");
+				param.put("main_image_name",fileName);
+			}
 			ckDatabaseService.insert("content.insertContentSub", param);
+		}
 		
 	}
 

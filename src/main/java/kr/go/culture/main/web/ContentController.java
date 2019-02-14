@@ -44,7 +44,9 @@ public class ContentController {
 		703	우측영역		: 구 함께 즐겨요
 	*/
 	
-	private String default_menu_type = "750";
+	//private String default_menu_type = "750"
+	//문화공감
+	private String default_menu_type = "1014";
 	
 	private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 	
@@ -74,7 +76,7 @@ public class ContentController {
 		ParamMap paramMap = new ParamMap(request);
 		
 		try {
-		
+			System.out.println(default_menu_type+" default_menu_typedefault_menu_type");
 			if(!paramMap.containsKey("menu_type"))paramMap.put("menu_type", default_menu_type);
 			
 			paramMap.put("common_code_type", "MAIN_CONTENT_TAB");
@@ -248,6 +250,34 @@ public class ContentController {
 				model.addAttribute("subList",
 						ckDatabaseService.readForList("content.subList2", paramMap));
 				
+			} else if( "1014".equals( paramMap.get("menu_type") ) ){
+				/* 1014	문화공감 */				
+				rtnVal = "/main/content/viewSympathy";
+				
+				//게시글 정보
+				model.addAttribute("view",
+						ckDatabaseService.readForObject("content.view", paramMap));
+				//그룹 별 정보
+				model.addAttribute("subGrpList",
+						ckDatabaseService.readForList("content.subGrpList", paramMap));
+				//그룹 별 로우 정보
+				model.addAttribute("subList",
+						ckDatabaseService.readForList("content.subList2", paramMap));
+			}else if("1015".equals( paramMap.get("menu_type") )){
+				/* 1015	문화광장 */				
+				rtnVal = "/main/content/viewSquare";
+				
+				paramMap.put("common_code_type", "MAIN_CONTENT_NOTICE");
+				
+				model.addAttribute("paramMap", paramMap);
+				model.addAttribute("menuList", ckDatabaseService.readForList("common.codeListSort", paramMap));
+				
+				//게시글 정보
+				model.addAttribute("view",
+						ckDatabaseService.readForObject("content.view", paramMap));
+				//그룹 별 로우 정보
+				model.addAttribute("subList",
+						ckDatabaseService.readForList("content.subList2", paramMap));
 			}
 			
 		} catch (Exception e) {
@@ -396,12 +426,12 @@ public class ContentController {
 	}
 	
 	@RequestMapping("insertMainContents.do")
-	public String insertMainContents(HttpServletRequest request, ModelMap model) throws Exception {
+	public String insertMainContents(HttpServletRequest request, ModelMap model,@RequestParam("uploadFile") MultipartFile[]multipartFiles) throws Exception {
 		
 		ParamMap paramMap = new ParamMap(request);
 		
 		try {
-			contentInsertService.insertMainContents(paramMap);
+			contentInsertService.insertMainContents(paramMap,multipartFiles);
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -414,13 +444,13 @@ public class ContentController {
 	}
 	
 	@RequestMapping("updateMainContents.do")
-	public String updateMainContents(HttpServletRequest request, ModelMap model) throws Exception {
+	public String updateMainContents(HttpServletRequest request, ModelMap model,@RequestParam("uploadFile") MultipartFile[]multipartFiles) throws Exception {
 		
 		ParamMap paramMap = new ParamMap(request);
 		
 		try {
 			
-			contentUpdateService.updateMainContents(paramMap);
+			contentUpdateService.updateMainContents(paramMap,multipartFiles);
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());

@@ -80,7 +80,9 @@ public class FileService {
 		,cultureVideoThumb("/upload/video/thumbnail")			//
 		,cultureVideo("/upload/cultureVideo")
 		,cultureAppPop("/upload/app/pop")						// 문화 융성앱 팝업 관리
+		,cultureagree("/upload/cultureagree")							// 문화공감 메인이미지
 		;
+
 
 		private String uploadFilePath;
 

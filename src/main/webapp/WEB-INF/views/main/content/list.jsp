@@ -175,11 +175,14 @@ function onSearch(){
 		
 		<ul class="tab">
 			<c:forEach items="${tabList }" var="tabList" varStatus="status">
+			   <c:if test="${tabList.code ne 750 and  tabList.code ne 751 and tabList.code ne 752
+			     and tabList.code ne 753  and tabList.code ne 707  and tabList.code ne 703}">
 				<li>
 					<a href="/main/content/list.do?menu_type=${tabList.code}" <c:if test="${ paramMap.menu_type eq tabList.code }"> class="focus"</c:if>>
 						${tabList.name}
 					</a>
 				</li>
+				</c:if>
 			</c:forEach>
 		</ul>
 		<!-- 리스트 -->

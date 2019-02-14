@@ -186,6 +186,12 @@ public class ContentUpdateService {
 				param.put("main_text", paramMap.getArray("main_text_grp"+gIndex)[index]);
 				param.put("category", paramMap.getArray("code_grp"+gIndex)[index]);
 				param.put("type", paramMap.getArray("sub_type_grp"+gIndex)[index]);
+				if(paramMap.getArray("seq_grp"+gIndex)[index]!=null) {
+					String seq=paramMap.getArray("seq_grp"+gIndex)[index];
+					if(!seq.equals("")) {
+						param.put("seq", seq);
+					}
+				}
 				
 				paramList.add(param);
 			}
@@ -224,17 +230,33 @@ public class ContentUpdateService {
 	}
 	
 	@Transactional(value="ckTransactionManager" , rollbackFor={Exception.class})
-	public void updateMainContents(ParamMap paramMap) throws Exception {
+	public void updateMainContents(ParamMap paramMap,MultipartFile[]multipartFiles) throws Exception {
 		List<HashMap<String , Object>> paramList = null;
 		
 		ckDatabaseService.save("content.update" , paramMap);
-		
-		//기존 데이터를 전부 삭제한 후 입력한다.
-		ckDatabaseService.delete("content.deleteContentSub", paramMap);
 		paramList = setParamDatas(paramMap, paramMap.getInt("groupSize"));
 		
-		for(HashMap<String , Object> param : paramList)
-			ckDatabaseService.save("content.insertContentSub", param);
+		int indexForFile=0;
+		
+		for(HashMap<String, Object> param : paramList) {
+			if(multipartFiles!=null && !multipartFiles[indexForFile].isEmpty()) {
+				String fileName=fileService.writeFile(multipartFiles[indexForFile++], "cultureagree");
+				param.put("main_image_name",fileName);
+			}
+			ckDatabaseService.save("content.updateContentSub",param);
+		}
+		
+		
+		//기존 데이터를 전부 삭제한 후 입력한다.
+		/*
+		 * ckDatabaseService.delete("content.deleteContentSub", paramMap); paramList =
+		 * setParamDatas(paramMap, paramMap.getInt("groupSize"));
+		 * 
+		 * for(HashMap<String , Object> param : paramList)
+		 * ckDatabaseService.save("content.insertContentSub", param);
+		 */
+		
+		
 	}
 	
 }
