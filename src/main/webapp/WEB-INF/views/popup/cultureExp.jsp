@@ -7,7 +7,7 @@
 <head>
 <script type="text/javascript">
 $(function () {
-
+//수정
 	var frm = $('form[name=frm]');
 	var page_no = frm.find('input[name=page_no]');
 	var search_word = frm.find('input[name=search_word]');
