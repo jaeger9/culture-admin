@@ -46,7 +46,7 @@ public class ContentController {
 	
 	//private String default_menu_type = "750"
 	//문화공감
-	private String default_menu_type = "1014";
+	private String default_menu_type = "754";
 	
 	private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 	
@@ -250,8 +250,8 @@ public class ContentController {
 				model.addAttribute("subList",
 						ckDatabaseService.readForList("content.subList2", paramMap));
 				
-			} else if( "1014".equals( paramMap.get("menu_type") ) ){
-				/* 1014	문화공감 */				
+			} else if( "754".equals( paramMap.get("menu_type") ) ){
+				/* 754	문화공감 */				
 				rtnVal = "/main/content/viewSympathy";
 				
 				//게시글 정보
@@ -263,8 +263,8 @@ public class ContentController {
 				//그룹 별 로우 정보
 				model.addAttribute("subList",
 						ckDatabaseService.readForList("content.subList2", paramMap));
-			}else if("1015".equals( paramMap.get("menu_type") )){
-				/* 1015	문화광장 */				
+			}else if("755".equals( paramMap.get("menu_type") )){
+				/* 755	문화광장 */				
 				rtnVal = "/main/content/viewSquare";
 				
 				paramMap.put("common_code_type", "MAIN_CONTENT_NOTICE");
