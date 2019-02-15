@@ -35,8 +35,12 @@ public class ContentInsertService {
 		int pseq = (Integer)ckDatabaseService.insert("content.insert" , paramMap);
 		
 		paramMap.put("pseq" , pseq);
-		
-		paramList = setParamData(paramMap);
+		if(paramMap.get("groupSize")!=null & paramMap.getInt("groupSize") > 0) {
+			
+			paramList = setParamDatas(pseq,paramMap,paramMap.getInt("groupSize"));
+		}else {
+			paramList = setParamData(paramMap);
+		}
 		
 		for(HashMap<String , Object> param : paramList)
 			ckDatabaseService.insert("content.insertContentSub", param);
@@ -59,6 +63,8 @@ public class ContentInsertService {
 	}
 	
 	public List<HashMap<String , Object>> setParamData(ParamMap paramMap) throws Exception {
+		System.out.println( paramMap.get("menu_type")+" menu_type menu_type");
+		
 		List<HashMap<String , Object>> paramList = new ArrayList<HashMap<String , Object>> ();
 		
 		int data_count = paramMap.getArray("title").length;
@@ -133,11 +139,20 @@ public class ContentInsertService {
 				param.put("category", paramMap.getArray("code")[index]);
 				param.put("uci", paramMap.getArray("uci")[index]);
 				param.put("new_win_yn", paramMap.getArray("new_win_yn")[index]);
-			}else if("1015".equals(paramMap.get("menu_type"))) {
+			}else if("754".equals(paramMap.get("menu_type"))) {
 				param.put("title", paramMap.getArray("title")[index]);
 				param.put("url", paramMap.getArray("url")[index]);
 				param.put("uci", paramMap.getArray("uci")[index]);
 				param.put("cont_date", paramMap.getArray("cont_date")[index]);
+				param.put("rights", paramMap.getArray("rights")[index]);
+				param.put("image_name", paramMap.getArray("image_name")[index]);
+				param.put("category", paramMap.getArray("code")[index]);
+				param.put("pseq", paramMap.get("pseq"));
+			}else if("755".equals(paramMap.get("menu_type"))) {
+				param.put("title", paramMap.getArray("title")[index]);
+				param.put("url", paramMap.getArray("url")[index]);
+				param.put("uci", paramMap.getArray("uci")[index]);
+				//param.put("cont_date", paramMap.getArray("cont_date")[index]);
 				param.put("rights", paramMap.getArray("rights")[index]);
 				param.put("image_name", paramMap.getArray("image_name")[index]);
 				param.put("category", paramMap.getArray("code")[index]);
@@ -186,7 +201,9 @@ public class ContentInsertService {
 				param.put("discount", paramMap.getArray("discount_grp"+gIndex)[index]);
 				param.put("period", paramMap.getArray("period_grp"+gIndex)[index]);
 				param.put("summary", paramMap.getArray("summary_grp"+gIndex)[index]);
-				param.put("cont_date", paramMap.getArray("cont_date_grp"+gIndex)[index]);
+				if(!paramMap.getString("menu_type").equals("755")) {
+					param.put("cont_date", paramMap.getArray("cont_date_grp"+gIndex)[index]);
+				}
 				param.put("rights", paramMap.getArray("rights_grp"+gIndex)[index]);
 				param.put("pseq", pseq);
 				param.put("title_top", paramMap.get("title_top_grp"+gIndex));
