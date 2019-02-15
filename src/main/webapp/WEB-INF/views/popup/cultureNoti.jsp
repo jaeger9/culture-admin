@@ -162,6 +162,8 @@ function onSelect(index){
 						<input type="hidden" id="period${status.index}" name="period" value="${item.period}" />
 						<input type="hidden" id="image${status.index}" name="image" value="${item.reference_identifier }" />
 						<input type="hidden" id="cont_date${status.index}" name="cont_date" value="${item.cont_date }" />
+						<input type="hidden" id="apply_date${status.index }" name="apply_date" value="${item.apply_date }" />
+						
 					</td>
 				</tr>
 			</c:forEach>

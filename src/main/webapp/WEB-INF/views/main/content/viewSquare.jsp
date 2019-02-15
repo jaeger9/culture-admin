@@ -41,6 +41,12 @@ function setVal(data){
 		if( name.indexOf('cont_date') > -1 ) $(this).val(data['cont_date']);
 		if( name.indexOf('rights') > -1 ) $(this).val(data['rights']);
 		if( name.indexOf('image_name') > -1 ) $(this).val(data['image']);
+		
+		if(data['apply_date']!= 'undefined' && data['apply_date']!= '')
+		if( name.indexOf("title_top") > -1 ) $(this).val(data['apply_date']);
+		
+		
+		
 	});
 }
 
@@ -253,7 +259,7 @@ function goPop(gbn,obj,subType){
 													<input type="hidden" value="" name="period_grp1">
 													<input type="hidden" value="" name="summary_grp1">
 													<input type="hidden" value="" name="main_text_grp1">
-													<input type="hidden" value="${i.index}" name="code_grp1">
+													<input type="hidden" value="${li.code}" name="code_grp1">
 													<input type="hidden" value="" name="sub_type_grp1">
 												</c:if>
 												<c:if test="${li.code eq '816' }">
@@ -274,7 +280,7 @@ function goPop(gbn,obj,subType){
 													<input type="hidden" value="" name="period_grp2">
 													<input type="hidden" value="" name="summary_grp2">
 													<input type="hidden" value="" name="main_text_grp2">
-													<input type="hidden" value="${i.index}" name="code_grp2"/>
+													<input type="hidden" value="${li.code}" name="code_grp2"/>
 													<input type="hidden" value="" name="sub_type_grp2">
 												</c:if>
 										</td>
@@ -285,7 +291,7 @@ function goPop(gbn,obj,subType){
 						</c:if>
 						<c:if test="${not empty subList}">
 							<c:forEach var="li" items="${menuList}">
-							<!-- 소식, 교육 안보이게끔 하드코딩 -->
+							<!-- 소식, 교육 안나오게끔 하드코딩 -->
 							  <c:if test="${li.code ne 698 and li.code ne 699 }">
 								<tr>
 									<th scope="row" rowspan="4">${li.name}</th>
@@ -310,22 +316,56 @@ function goPop(gbn,obj,subType){
 														<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,3);return;" style="width:140px;">${li.name} 선택</a></span>
 													</c:otherwise>
 												</c:choose>
-												<input type="hidden" name="code" value="${li.code}"/>
+											<%-- 	<input type="hidden" name="code" value="${li.code}"/>
 												<input type="hidden" value="${fn:replace(li2.title,'"','&quot;') }" name="title"/>
 												<input type="hidden" value="${li2.url }" name="url"/>
 												<input type="hidden" value="${li2.uci }" name="uci"/>
 												<input type="hidden" value="${li2.cont_date }" name="cont_date"/>
 												<input type="hidden" value="${li2.rights }" name="rights"/>
 												<input type="hidden" value="${li2.image_name }" name="image_name"/>
-												<input type="hidden" value="${li2.seq }" name="seq"/>
+												<input type="hidden" value="${li2.seq }" name="seq"/> --%>
 												
 												<c:if test="${li.code eq '700' }">
 													<input type="hidden" value="1" name="group_num_grp1"/>
 													<input type="hidden" value="1" name="group_type_grp1"/>	
+													<input type="hidden" value="" name="image_name_grp1"/>
+													<input type="hidden" value="" name="title_grp1"/>
+													<input type="hidden" value="" name="url_grp1"/>
+													<input type="hidden" value=""  name="uci_grp1"/>
+													<input type="hidden" value="" name="cont_date_grp1"/>
+													<input type="hidden" value="" name="rights_grp1"/>
+													<input type="hidden" name="title_top_grp1" value="채용"/>
+													<input type="hidden" value="" name="image_name2_grp1">
+													<input type="hidden" value="" name="seq_grp1">
+													<input type="hidden" value="" name="category_grp1">
+													<input type="hidden" value="" name="place_grp1">
+													<input type="hidden" value="" name="discount_grp1">
+													<input type="hidden" value="" name="period_grp1">
+													<input type="hidden" value="" name="summary_grp1">
+													<input type="hidden" value="" name="main_text_grp1">
+													<input type="hidden" value="${li.code}" name="code_grp1">
+													<input type="hidden" value="" name="sub_type_grp1">
 												</c:if>
 												<c:if test="${li.code eq '816' }">
-													<input type="hidden" value="2" name="group_num_grp2"/>
+												<input type="hidden" value="2" name="group_num_grp2"/>
 													<input type="hidden" value="2" name="group_type_grp2"/>	
+													<input type="hidden" value="" name="title_grp2"/>
+													<input type="hidden" value="" name="image_name_grp2"/>
+													<input type="hidden" value="" name="url_grp2"/>
+													<input type="hidden" value="" name="uci_grp2"/>
+													<input type="hidden" value="" name="cont_date_grp2"/>
+													<input type="hidden" value="" name="rights_grp2"/>
+													<input type="hidden" name="title_top_grp2" value="지원사업"/>
+													<input type="hidden" value="" name="image_name2_grp2">
+													<input type="hidden" value="" name="seq_grp2">
+													<input type="hidden" value="" name="category_grp2">
+													<input type="hidden" value="" name="place_grp2">
+													<input type="hidden" value="" name="discount_grp2">
+													<input type="hidden" value="" name="period_grp2">
+													<input type="hidden" value="" name="summary_grp2">
+													<input type="hidden" value="" name="main_text_grp2">
+													<input type="hidden" value="${li.code}" name="code_grp2"/>
+													<input type="hidden" value="" name="sub_type_grp2">
 												</c:if>
 											</td>
 										</tr>
