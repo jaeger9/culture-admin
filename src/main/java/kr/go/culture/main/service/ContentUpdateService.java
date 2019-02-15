@@ -181,7 +181,9 @@ public class ContentUpdateService {
 				param.put("discount", paramMap.getArray("discount_grp"+gIndex)[index]);
 				param.put("period", paramMap.getArray("period_grp"+gIndex)[index]);
 				param.put("summary", paramMap.getArray("summary_grp"+gIndex)[index]);
-				param.put("cont_date", paramMap.getArray("cont_date_grp"+gIndex)[index]);
+				if(!paramMap.getString("menu_type").equals("755")) {
+					param.put("cont_date", paramMap.getArray("cont_date_grp"+gIndex)[index]);
+				}
 				param.put("rights", paramMap.getArray("rights_grp"+gIndex)[index]);
 				param.put("pseq", paramMap.get("pseq"));
 				param.put("group_num", paramMap.getArray("group_num_grp"+gIndex)[index]);

@@ -274,6 +274,62 @@ function goPop(gbn,obj,subType){
 							<c:forEach var="li" items="${menuList}">
 							<!-- 소식, 교육 안보이게끔 하드코딩 -->
 							  <c:if test="${li.code ne 698 and li.code ne 699 }">
+							   <c:if test="${li.code eq 700 }">
+							   <tr>
+									<th scope="row" rowspan="5">${li.name}</th>
+								</tr>							
+								<c:forEach begin="1" end="4" varStatus="i">
+									<tr id="tr${li.code}${i.index}">
+										<td colspan="4">
+											<span></span>
+											<c:choose>
+											 	<c:when test="${li.code eq '698' }">
+													<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,0);return;" style="width:140px;">${li.name} 선택</a></span>
+												</c:when>
+												<c:when test="${li.code eq '699' }">
+													<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,1);return;" style="width:140px;">${li.name} 선택</a></span>
+												</c:when> 
+												<c:when test="${li.code eq '700' }">
+													<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,2);return;" style="width:140px;">${li.name} 선택</a></span>
+												</c:when>
+												<c:otherwise>
+													<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,3);return;" style="width:140px;">${li.name} 선택</a></span>
+												</c:otherwise>
+											</c:choose>
+											<%-- <input type="hidden" name="code" value="${li.code}"/>
+											<input type="hidden" name="title"/>
+											<input type="hidden" name="url"/>
+											<input type="hidden" name="uci"/>
+											<input type="hidden" name="cont_date"/>
+											<input type="hidden" name="rights"/>
+											<input type="hidden" name="image_name"/> --%>
+											
+													<input type="hidden" value="1" name="group_num_grp1"/>
+													<input type="hidden" value="1" name="group_type_grp1"/>	
+													<input type="hidden" value="" name="image_name_grp1"/>
+													<input type="hidden" value="" name="title_grp1" title="채용"/>
+													<input type="hidden" value="" name="url_grp1"/>
+													<input type="hidden" value=""  name="uci_grp1"/>
+													<input type="hidden" value="" name="cont_date_grp1"/>
+													<input type="hidden" value="" name="rights_grp1"/>
+													<input type="hidden" name="title_top_grp1" value="채용"/>
+													<input type="hidden" value="" name="image_name2_grp1">
+													<input type="hidden" value="" name="seq_grp1">
+													<input type="hidden" value="" name="category_grp1">
+													<input type="hidden" value="" name="place_grp1">
+													<input type="hidden" value="" name="discount_grp1">
+													<input type="hidden" value="" name="period_grp1">
+													<input type="hidden" value="" name="summary_grp1">
+													<input type="hidden" value="" name="main_text_grp1">
+													<input type="hidden" value="${li.code}" name="code_grp1">
+													<input type="hidden" value="" name="sub_type_grp1">
+												
+												
+										</td>
+									</tr>
+								</c:forEach>
+							   </c:if>
+							   <c:if test="${li.code eq 816 }">
 								<tr>
 									<th scope="row" rowspan="4">${li.name}</th>
 								</tr>							
@@ -303,28 +359,7 @@ function goPop(gbn,obj,subType){
 											<input type="hidden" name="rights"/>
 											<input type="hidden" name="image_name"/> --%>
 											
-											<c:if test="${li.code eq '700' }">
-													<input type="hidden" value="1" name="group_num_grp1"/>
-													<input type="hidden" value="1" name="group_type_grp1"/>	
-													<input type="hidden" value="" name="image_name_grp1"/>
-													<input type="hidden" value="" name="title_grp1" title="채용"/>
-													<input type="hidden" value="" name="url_grp1"/>
-													<input type="hidden" value=""  name="uci_grp1"/>
-													<input type="hidden" value="" name="cont_date_grp1"/>
-													<input type="hidden" value="" name="rights_grp1"/>
-													<input type="hidden" name="title_top_grp1" value="채용"/>
-													<input type="hidden" value="" name="image_name2_grp1">
-													<input type="hidden" value="" name="seq_grp1">
-													<input type="hidden" value="" name="category_grp1">
-													<input type="hidden" value="" name="place_grp1">
-													<input type="hidden" value="" name="discount_grp1">
-													<input type="hidden" value="" name="period_grp1">
-													<input type="hidden" value="" name="summary_grp1">
-													<input type="hidden" value="" name="main_text_grp1">
-													<input type="hidden" value="${li.code}" name="code_grp1">
-													<input type="hidden" value="" name="sub_type_grp1">
-												</c:if>
-												<c:if test="${li.code eq '816' }">
+											
 													<input type="hidden" value="2" name="group_num_grp2"/>
 													<input type="hidden" value="2" name="group_type_grp2"/>	
 													<input type="hidden" value="" name="title_grp2" title="지원사업"/>
@@ -344,10 +379,11 @@ function goPop(gbn,obj,subType){
 													<input type="hidden" value="" name="main_text_grp2">
 													<input type="hidden" value="${li.code}" name="code_grp2"/>
 													<input type="hidden" value="" name="sub_type_grp2">
-												</c:if>
+												
 										</td>
 									</tr>
 								</c:forEach>
+								</c:if>
 							  </c:if>
 							</c:forEach>
 						</c:if>
@@ -355,8 +391,9 @@ function goPop(gbn,obj,subType){
 							<c:forEach var="li" items="${menuList}">
 							<!-- 소식, 교육 안나오게끔 하드코딩 -->
 							  <c:if test="${li.code ne 698 and li.code ne 699 }">
+							   <c:if test="${li.code eq 700 }">
 								<tr>
-									<th scope="row" rowspan="4">${li.name}</th>
+									<th scope="row" rowspan="5">${li.name}</th>
 								</tr>							
 								<c:forEach var="li2" items="${subList}" varStatus="i">
 								  <c:if test="${li2.code ne 698 and li2.code ne 699 }">
@@ -390,50 +427,89 @@ function goPop(gbn,obj,subType){
 												<c:if test="${li.code eq '700' }">
 													<input type="hidden" value="1" name="group_num_grp1"/>
 													<input type="hidden" value="1" name="group_type_grp1"/>	
-													<input type="hidden" value="" name="image_name_grp1"/>
-													<input type="hidden" value="" name="title_grp1" title="채용"/>
-													<input type="hidden" value="" name="url_grp1"/>
-													<input type="hidden" value=""  name="uci_grp1"/>
-													<input type="hidden" value="" name="cont_date_grp1"/>
-													<input type="hidden" value="" name="rights_grp1"/>
-													<input type="hidden" name="title_top_grp1" value="채용"/>
-													<input type="hidden" value="" name="image_name2_grp1">
-													<input type="hidden" value="" name="seq_grp1">
-													<input type="hidden" value="" name="category_grp1">
-													<input type="hidden" value="" name="place_grp1">
-													<input type="hidden" value="" name="discount_grp1">
-													<input type="hidden" value="" name="period_grp1">
-													<input type="hidden" value="" name="summary_grp1">
-													<input type="hidden" value="" name="main_text_grp1">
-													<input type="hidden" value="${li.code}" name="code_grp1">
-													<input type="hidden" value="" name="sub_type_grp1">
-												</c:if>
-												<c:if test="${li.code eq '816' }">
-												<input type="hidden" value="2" name="group_num_grp2"/>
-													<input type="hidden" value="2" name="group_type_grp2"/>	
-													<input type="hidden" value="" name="title_grp2" title="지원사업"/>
-													<input type="hidden" value="" name="image_name_grp2"/>
-													<input type="hidden" value="" name="url_grp2"/>
-													<input type="hidden" value="" name="uci_grp2"/>
-													<input type="hidden" value="" name="cont_date_grp2"/>
-													<input type="hidden" value="" name="rights_grp2"/>
-													<input type="hidden" name="title_top_grp2" value="지원사업"/>
-													<input type="hidden" value="" name="image_name2_grp2">
-													<input type="hidden" value="" name="seq_grp2">
-													<input type="hidden" value="" name="category_grp2">
-													<input type="hidden" value="" name="place_grp2">
-													<input type="hidden" value="" name="discount_grp2">
-													<input type="hidden" value="" name="period_grp2">
-													<input type="hidden" value="" name="summary_grp2">
-													<input type="hidden" value="" name="main_text_grp2">
-													<input type="hidden" value="${li.code}" name="code_grp2"/>
-													<input type="hidden" value="" name="sub_type_grp2">
+													<input type="hidden" value="${li2.image_name }" name="image_name_grp1"/>
+													<input type="hidden" value="${li2.title }" name="title_grp1" title="채용"/>
+													<input type="hidden" value="${li2.url }" name="url_grp1"/>
+													<input type="hidden" value="${li2.uci }"  name="uci_grp1"/>
+													<input type="hidden" value="${li2.cont_date }" name="cont_date_grp1"/>
+													<input type="hidden" value="${li2.rights }" name="rights_grp1"/>
+<!-- 													<input type="hidden" name="title_top_grp1" value="채용"/>
+ -->												<input type="hidden" value="${li2.image_name2 }" name="image_name2_grp1">
+													<input type="hidden" value="${li2.seq }" name="seq_grp1">
+													<input type="hidden" value="${li2.category }" name="category_grp1">
+													<input type="hidden" value="${li2.place }" name="place_grp1">
+													<input type="hidden" value="${li2.discount }" name="discount_grp1">
+													<input type="hidden" value="${li2.period }" name="period_grp1">
+													<input type="hidden" value="${li2.summary }" name="summary_grp1">
+													<input type="hidden" value="${li2.main_text }" name="main_text_grp1">
+													<input type="hidden" value="${li2.code}" name="code_grp1">
+													<input type="hidden" value="${li2.sub_type }" name="sub_type_grp1">
 												</c:if>
 											</td>
 										</tr>
 									</c:if>
 								  </c:if>
 								</c:forEach>
+							   </c:if>
+							   <c:if test="${li.code eq 816 }">
+							    <tr>
+									<th scope="row" rowspan="4">${li.name}</th>
+								</tr>							
+								<c:forEach var="li2" items="${subList}" varStatus="i">
+								  <c:if test="${li2.code ne 698 and li2.code ne 699 }">
+									<c:if test="${li2.code eq li.code }">
+										<tr id="tr${li.code}${i.index}">
+											<td colspan="4">
+												<span>${li2.title}</span>
+												<c:choose>
+													<c:when test="${li.code eq '698' }">
+														<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,0);return;" style="width:140px;">${li.name} 선택</a></span>
+													</c:when>
+													<c:when test="${li.code eq '699' }">
+														<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,1);return;" style="width:140px;">${li.name} 선택</a></span>
+													</c:when>
+													<c:when test="${li.code eq '700' }">
+														<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,2);return;" style="width:140px;">${li.name} 선택</a></span>
+													</c:when>
+													<c:otherwise>
+														<span class="btn whiteS"><a href="#url" onclick="javascript:goPop('noti',this,3);return;" style="width:140px;">${li.name} 선택</a></span>
+													</c:otherwise>
+												</c:choose>
+											<%-- 	<input type="hidden" name="code" value="${li.code}"/>
+												<input type="hidden" value="${fn:replace(li2.title,'"','&quot;') }" name="title"/>
+												<input type="hidden" value="${li2.url }" name="url"/>
+												<input type="hidden" value="${li2.uci }" name="uci"/>
+												<input type="hidden" value="${li2.cont_date }" name="cont_date"/>
+												<input type="hidden" value="${li2.rights }" name="rights"/>
+												<input type="hidden" value="${li2.image_name }" name="image_name"/>
+												<input type="hidden" value="${li2.seq }" name="seq"/> --%>
+												
+											
+												<input type="hidden" value="1" name="group_num_grp2"/>
+													<input type="hidden" value="1" name="group_type_grp2"/>	
+													<input type="hidden" value="${li2.image_name }" name="image_name_grp2"/>
+													<input type="hidden" value="${li2.title }" name="title_grp2" title="채용"/>
+													<input type="hidden" value="${li2.url }" name="url_grp2"/>
+													<input type="hidden" value="${li2.uci }"  name="uci_grp2"/>
+													<input type="hidden" value="${li2.cont_date }" name="cont_date_grp2"/>
+													<input type="hidden" value="${li2.rights }" name="rights_grp2"/>
+<!-- 													<input type="hidden" name="title_top_grp1" value="채용"/>
+ -->												<input type="hidden" value="${li2.image_name2 }" name="image_name2_grp2">
+													<input type="hidden" value="${li2.seq }" name="seq_grp2">
+													<input type="hidden" value="${li2.category }" name="category_grp2">
+													<input type="hidden" value="${li2.place }" name="place_grp2">
+													<input type="hidden" value="${li2.discount }" name="discount_grp2">
+													<input type="hidden" value="${li2.period }" name="period_grp2">
+													<input type="hidden" value="${li2.summary }" name="summary_grp2">
+													<input type="hidden" value="${li2.main_text }" name="main_text_grp2">
+													<input type="hidden" value="${li2.code}" name="code_grp2">
+													<input type="hidden" value="${li2.sub_type }" name="sub_type_grp2">
+											</td>
+										</tr>
+									</c:if>
+								  </c:if>
+								</c:forEach>
+							   </c:if>
 							  </c:if>
 							</c:forEach>
 						</c:if>
