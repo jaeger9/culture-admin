@@ -33,8 +33,11 @@ public class ContentUpdateService {
 		List<HashMap<String , Object>> paramList = null;
 		
 		ckDatabaseService.save("content.update" , paramMap);
-		
-		paramList = setParamData(paramMap);
+		if(paramMap.get("menu_type")!=null && paramMap.get("menu_type").equals("755")) {
+			paramList = setParamDatas(paramMap, paramMap.getInt("groupSize"));
+		}else {
+			paramList = setParamData(paramMap);
+		}
 		
 		for(HashMap<String , Object> param : paramList)
 			ckDatabaseService.save("content.updateContentSub", param);

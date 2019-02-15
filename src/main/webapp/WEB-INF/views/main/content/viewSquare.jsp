@@ -100,19 +100,60 @@ infoTxt['700'] = "채용";
 infoTxt['816'] = "지원사업";
 
 function doValidation(){
-	var valFlg = true;
-	var name = "";
-	
+
 	if( $('input[name=mainTitle]').val() == '' ){
-		alert("제목을 입력해주세요.");
+		alert("제목을 입력하세요.");
 		$('input[name=mainTitle]').focus();
 		return false;
 	}
 	
 	if( $('input[name=mainWriter]').val() == '' ){
-		alert("등록자를 입력해주세요.");
+		alert("등록자를 입력하세요.");
 		$('input[name=mainWriter]').focus();
 		return false;
+	}
+	
+	/* if(mode!='undefined' && mode == "update"){
+		return true;
+	} */
+	
+	
+ 	for( var i=1; i<=2; i++){
+		 var cnt = 0;
+		$('input[name=title_grp'+i+']').each(function(){
+			if( $(this).val() == "" ){
+				cnt++;
+			}
+		}); 
+	
+		
+		var title= $('input[name=title_grp'+i+']').attr("title");
+
+		if(cnt != 0){
+			alert(title+" 컨텐츠를 선택해주세요.");
+			return false;
+		}
+		
+	}
+ 	return true;
+	
+}
+
+/* function doValidation(){
+	var validationReturn = true;
+	
+	var name = "";
+	
+	if( $('input[name=mainTitle]').val() == '' ){
+		alert("제목을 입력해주세요.");
+		$('input[name=mainTitle]').focus();
+		validationReturn = false;
+	}
+	
+	if( $('input[name=mainWriter]').val() == '' ){
+		alert("등록자를 입력해주세요.");
+		$('input[name=mainWriter]').focus();
+		validationReturn = false;
 	}
 
 	var cnt = 0;
@@ -121,7 +162,28 @@ function doValidation(){
 		if( name == 'code' ){
 			type = $(this).val();
 		}
-	/* 	if(name == 'title'){
+		
+		for( var i=1; i<2; i++){
+			 var cnt = 0;
+			$('input[name=title_grp'+i+']').each(function(){
+				if( $(this).val() == "" ){
+					cnt++;
+				}
+			}); 
+			
+			var title= $('input[name=title_grp'+i+']').attr("title");
+
+			if(cnt != 0){
+				alert(title+" 컨텐츠를 선택해주세요.");
+				validationReturn=false;
+				return false;
+			}
+		
+			
+			
+		}
+		
+	 /* 	if(name == 'title'){
 			if(type == '816'){ //지원사업의 경우 1개이상이면 등록가능
 				if($(this).val() == "") cnt++;
 				if(cnt ==  3){
@@ -136,11 +198,11 @@ function doValidation(){
 					return false;
 				}
 			}
-		} */
+		}  
 	});
 
-	return valFlg;
-}
+	return validationReturn;
+}*/ 
 
 var grpId = "";
 function goPop(gbn,obj,subType){
@@ -245,7 +307,7 @@ function goPop(gbn,obj,subType){
 													<input type="hidden" value="1" name="group_num_grp1"/>
 													<input type="hidden" value="1" name="group_type_grp1"/>	
 													<input type="hidden" value="" name="image_name_grp1"/>
-													<input type="hidden" value="" name="title_grp1"/>
+													<input type="hidden" value="" name="title_grp1" title="채용"/>
 													<input type="hidden" value="" name="url_grp1"/>
 													<input type="hidden" value=""  name="uci_grp1"/>
 													<input type="hidden" value="" name="cont_date_grp1"/>
@@ -265,7 +327,7 @@ function goPop(gbn,obj,subType){
 												<c:if test="${li.code eq '816' }">
 													<input type="hidden" value="2" name="group_num_grp2"/>
 													<input type="hidden" value="2" name="group_type_grp2"/>	
-													<input type="hidden" value="" name="title_grp2"/>
+													<input type="hidden" value="" name="title_grp2" title="지원사업"/>
 													<input type="hidden" value="" name="image_name_grp2"/>
 													<input type="hidden" value="" name="url_grp2"/>
 													<input type="hidden" value="" name="uci_grp2"/>
@@ -329,7 +391,7 @@ function goPop(gbn,obj,subType){
 													<input type="hidden" value="1" name="group_num_grp1"/>
 													<input type="hidden" value="1" name="group_type_grp1"/>	
 													<input type="hidden" value="" name="image_name_grp1"/>
-													<input type="hidden" value="" name="title_grp1"/>
+													<input type="hidden" value="" name="title_grp1" title="채용"/>
 													<input type="hidden" value="" name="url_grp1"/>
 													<input type="hidden" value=""  name="uci_grp1"/>
 													<input type="hidden" value="" name="cont_date_grp1"/>
@@ -349,7 +411,7 @@ function goPop(gbn,obj,subType){
 												<c:if test="${li.code eq '816' }">
 												<input type="hidden" value="2" name="group_num_grp2"/>
 													<input type="hidden" value="2" name="group_type_grp2"/>	
-													<input type="hidden" value="" name="title_grp2"/>
+													<input type="hidden" value="" name="title_grp2" title="지원사업"/>
 													<input type="hidden" value="" name="image_name_grp2"/>
 													<input type="hidden" value="" name="url_grp2"/>
 													<input type="hidden" value="" name="uci_grp2"/>

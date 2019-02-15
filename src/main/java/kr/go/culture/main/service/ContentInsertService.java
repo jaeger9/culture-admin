@@ -42,8 +42,11 @@ public class ContentInsertService {
 			paramList = setParamData(paramMap);
 		}
 		
-		for(HashMap<String , Object> param : paramList)
+		for(HashMap<String , Object> param : paramList) {
+			if(param.get("title")==null || param.get("title").equals(""))
+				continue;
 			ckDatabaseService.insert("content.insertContentSub", param);
+		}
 		
 	}
 	
@@ -57,8 +60,11 @@ public class ContentInsertService {
 		
 		paramList = setParamDatas(pseq, paramMap, 4);
 		
-		for(HashMap<String , Object> param : paramList)
+		for(HashMap<String , Object> param : paramList) {
+			if(param.get("title")==null || param.get("title").equals(""))
+				continue;
 			ckDatabaseService.insert("content.insertContentSub", param);
+		}
 		
 	}
 	
@@ -212,7 +218,13 @@ public class ContentInsertService {
 				param.put("main_text", paramMap.getArray("main_text_grp"+gIndex)[index]);
 				param.put("category", paramMap.getArray("code_grp"+gIndex)[index]);
 				param.put("type", paramMap.getArray("sub_type_grp"+gIndex)[index]);
-				
+				if(paramMap.getString("menu_type").equals("754")) {
+					if(paramMap.getArray("youtube_yn_grp"+gIndex)[index]!=null
+							&&!paramMap.getArray("youtube_yn_grp"+gIndex)[index].equals("")) {
+						param.put("new_win_yn",paramMap.getArray("youtube_yn_grp"+gIndex)[index]);
+						param.put("url", paramMap.getArray("youtube_site_grp"+gIndex)[index]);
+					}
+				}
 				paramList.add(param);
 			}
 		}

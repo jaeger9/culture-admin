@@ -129,6 +129,13 @@ function setVal(data){
 				if( name.indexOf('place') > -1 ) $(this).val(data['venue']);
 				if( name.indexOf('rights') > -1 ) $(this).val(data['rights']);
 				if( name.indexOf('uci') > -1 ) $(this).val(data['uci']);
+				/* if(name.indexOf("youtube_yn") > -1) {
+					$(this).val(data['youtube_yn']);
+				}
+				if(name.indexOf("youtube_site") > -1 ){
+					$(this).val(data['youtube_site']);
+				} */
+				
 			});
 		 }
 	 } else {
@@ -143,6 +150,12 @@ function setVal(data){
 			if( name.indexOf('image_name') > -1 ) $(this).val(data['image']);
 			if( name.indexOf('image_name2') > -1 ) $(this).val('');
 			if( name.indexOf('summary') > -1 ) $(this).val(data['summary']);
+			if(name.indexOf("youtube_yn") > -1) {
+				$(this).val(data['youtube_yn']);
+			}
+			if(name.indexOf("youtube_site") > -1 ){
+				$(this).val(data['youtube_site']);
+			}
 		});
 	 }
 }
@@ -335,6 +348,8 @@ function doValidation(mode){
 										<input type="hidden" value="" name="main_text_grp1">
 										<input type="hidden" value="${i.index + 1}" name="code_grp1">
 										<input type="hidden" value="" name="sub_type_grp1">
+										<input type="hidden" value="" name="youtube_yn_grp1">
+										<input type="hidden" value="" name="youtube_site_grp1">
 									</td>
 								</tr>
 								<tr>
@@ -378,6 +393,8 @@ function doValidation(mode){
 													<input type="hidden" value="${li2.group_text }" name="main_text_grp1">
 													<input type="hidden" value="${li2.code }" name="code_grp1">
 													<input type="hidden" value="${li2.type }" name="sub_type_grp1">
+													<input type="hidden" value="" name="youtube_yn_grp1">
+													<input type="hidden" value="" name="youtube_site_grp1">
 												</td>
 											</tr>
 												<tr>
@@ -445,6 +462,9 @@ function doValidation(mode){
 										<input type="hidden" value="" name="main_text_grp2">
 										<input type="hidden" value="${i.index + 1}" name="code_grp2">
 										<input type="hidden" value="" name="sub_type_grp2">
+										<input type="hidden" value="" name="youtube_yn_grp2">
+										<input type="hidden" value="" name="youtube_site_grp2">
+										
 									</td>			
 								</tr>
 									<tr>
@@ -489,6 +509,9 @@ function doValidation(mode){
 													<input type="hidden" value="${li2.group_text }" name="main_text_grp2">
 													<input type="hidden" value="${li2.code }" name="code_grp2">
 													<input type="hidden" value="${li2.type }" name="sub_type_grp2">
+													<input type="hidden" value="${li2.new_yn_yn }" name="youtube_yn_grp2">
+													<input type="hidden" value="${li2.url }" name="youtube_site_grp2">
+													
 												</td>
 											</tr>
 											<tr>
@@ -556,6 +579,8 @@ function doValidation(mode){
 										<input type="hidden" value="" name="main_text_grp3">
 										<input type="hidden" value="${i.index + 1}" name="code_grp3">
 										<input type="hidden" value="" name="sub_type_grp3">
+										<input type="hidden" value="" name="youtube_yn_grp3">
+										<input type="hidden" value="" name="youtube_site_grp3">
 									</td>			
 								</tr>
 									<tr>
@@ -600,6 +625,8 @@ function doValidation(mode){
 													<input type="hidden" value="${li2.group_text }" name="main_text_grp3">
 													<input type="hidden" value="${li2.code }" name="code_grp3">
 													<input type="hidden" value="${li2.type }" name="sub_type_grp3">
+													<input type="hidden" value="${li2.new_yn_yn }" name="youtube_yn_grp3"/>
+													<input type="hidden" value="${li2.url }" name="youtube_site_grp3"/>
 												</td>
 											</tr>
 											<tr>

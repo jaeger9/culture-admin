@@ -236,27 +236,27 @@
 			URL = #url#,
 			IMAGE_NAME = #image_name#,
 			CODE = #category#,
-			IMAGE_NAME2 = #image_name2#, 
+			IMAGE_NAME2 = #image_name2# 
 			<isNotEmpty property="period">
-			PERIOD = #period#, 
+			,PERIOD = #period# 
 			</isNotEmpty>
 			<isNotEmpty property="place">
-			PLACE = #place#,
+			,PLACE = #place#
 			</isNotEmpty>
 			<isNotEmpty property="discount">
-			DISCOUNT = #discount#,
+			,DISCOUNT = #discount#
 			</isNotEmpty>
 			<isNotEmpty property="summary">
-			SUMMARY = #summary#,
+			,SUMMARY = #summary#
 			</isNotEmpty>
 			<isNotEmpty property="cont_date">
-			CONT_DATE = #cont_date#,
+			,CONT_DATE = #cont_date#
 			</isNotEmpty>
 			<isNotEmpty property="rights">
-			RIGHTS = #rights#,
+			,RIGHTS = #rights#
 			</isNotEmpty>
 			<isNotEmpty property="uci">
-			UCI = #uci#
+			,UCI = #uci#
 			</isNotEmpty>
 			<isNotEmpty property="new_win_yn">
 			, NEW_WIN_YN = #new_win_yn#

@@ -182,6 +182,8 @@ function onSelect(index){
 								<input type="hidden" id="image${status.index}" name="image" value="${item.image }" />
 								<input type="hidden" id="thumb_url${status.index}" name="thumb_url" value="" />
 								<input type="hidden" id="place${status.index}" name="place"	value="${item.area_name} ${item.service_name}" />
+								<input type="hidden" id="youtube_yn${status.index }" name="youtube_yn" value="${item.youtube_yn }" />
+								<input type="hidden" id="youtube_site${status.index }" name="youtube_site" value="${item.youtube_site }" />
 							</c:when>
 							<c:when test="${paramMap.subType eq '1'}">
 								<input type="hidden" id="image${status.index}" name="image" value="${item.image }" />
@@ -197,6 +199,8 @@ function onSelect(index){
 								<input type="hidden" id="image${status.index}" name="image" value="${item.image }" />
 								<input type="hidden" id="thumb_url${status.index}" name="thumb_url" value="" />
 								<input type="hidden" id="place${status.index}" name="place"	value="${item.area_name} ${item.service_name}" />
+								<input type="hidden" id="youtube_yn${status.index }" name="youtube_yn" value="${item.youtube_yn }" />
+								<input type="hidden" id="youtube_site${status.index }" name="youtube_site" value="${item.youtube_site }" />
 							</c:otherwise>
 						</c:choose>
 						<c:choose>
