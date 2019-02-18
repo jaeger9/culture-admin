@@ -221,8 +221,13 @@ public class ContentInsertService {
 				if(paramMap.getString("menu_type").equals("754")) {
 					if(paramMap.getArray("youtube_yn_grp"+gIndex)[index]!=null
 							&&!paramMap.getArray("youtube_yn_grp"+gIndex)[index].equals("")) {
-						param.put("new_win_yn",paramMap.getArray("youtube_yn_grp"+gIndex)[index]);
-						param.put("url", paramMap.getArray("youtube_site_grp"+gIndex)[index]);
+						if(paramMap.getArray("youtube_yn_grp"+gIndex)[index].equals("Y")) {
+							param.put("new_win_yn",paramMap.getArray("youtube_yn_grp"+gIndex)[index]);
+							param.put("url", paramMap.getArray("youtube_site_grp"+gIndex)[index]);
+						}else if(paramMap.getArray("youtube_yn_grp"+gIndex)[index].equals("N")){
+							param.put("new_win_yn",paramMap.getArray("youtube_yn_grp"+gIndex)[index]);
+						}
+						
 					}
 				}
 				paramList.add(param);
