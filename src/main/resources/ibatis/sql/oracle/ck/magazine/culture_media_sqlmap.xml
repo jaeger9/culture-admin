@@ -246,15 +246,15 @@
 		UPDATE /* culturemedia.update
 		*/
 		PCN_CULTURE_TV SET
-		TV_ORG = #tv_org#
+		<!-- TV_ORG = #tv_org#
 		,TV_HP1 = #tv_hp1#
 		,TV_HP2 = #tv_hp2#
 		,TV_HP3 = #tv_hp3#
 		,TV_TITLE = #tv_title#
 		,TV_DATE = #tv_date#
 		,TV_REQUEST = #tv_request#
-		,TV_USER_ID = #tv_user_id#
-		,TV_APPROVAL_STATE = #tv_approval_state#
+		,TV_USER_ID = #tv_user_id# -->
+		TV_APPROVAL_STATE = #tv_approval_state#
 		,TV_APPROVAL_DATE = #tv_approval_date#
 		,UPDATE_DATE = sysdate
 		,UPDATE_USER_ID = #upd_id# 

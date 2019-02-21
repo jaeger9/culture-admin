@@ -34,8 +34,29 @@ var callback = {
 	}
 }
 
+function changeName(){
+	$("input[name=genre]").each(function(){
+		if($(this).prop("checked")){
+			if($(this).val()=="1"){
+				$("#venueName").text("교육장소");
+				$("#instructorName").text("강사");
+				$("#chargeName").text("수강료");
+			}else if($(this).val()=="2"){
+				$("#venueName").text("마을명");
+				$("#instructorName").text("담당자");
+				$("#chargeName").text("가격");
+			}
+		}
+	});
+}
+
 
 $(function () {
+	
+	changeName();
+	$("input[name=genre]").on("click",function(){
+		changeName();
+	});
 	
 	$('input[name=free_yn_before]').change(function(){		
 		changeNote1($(this));
@@ -348,18 +369,34 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						
 						<tr>
 							<th scope="row">장르</th>
+								<c:if test="${empty view }">
+								<td colspan="3">
+									<div class="inputBox">
+										<label><input type="radio" name="genre" value="1" checked/>교육</label>
+										<label><input type="radio" name="genre" value="2"/>체험</label>
+									</div>
+								</td>
+								</c:if>
+								<c:if test="${!empty view }">
 								<td colspan="3">
 									<div class="inputBox">
 										<label><input type="radio" name="genre" value="1" <c:if test="${view.genre eq 1 }">checked</c:if>/>교육</label>
 										<label><input type="radio" name="genre" value="2" <c:if test="${view.genre eq 2 }">checked</c:if>/>체험</label>
-							</div>
+									</div>
 								</td>
+								</c:if>
 							</th>
 						</tr>
 						<tr>
-							<th scope="row">교육 프로그램명</th>
+							<th scope="row">프로그램명</th>
 							<td colspan="3">
 								<input type="text" name="title" id="title" style="width:670px"  value="${view.title }">
+							</td>
+						</tr>
+							<tr>
+							<th scope="row">주최/주관</th>
+							<td colspan="3">
+								<input type="text" name="rights" style="width:670px"  value="${view.rights }">
 							</td>
 						</tr>
 						<tr>
@@ -371,13 +408,66 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">주최/주관</th>
+							<th scope="row" id="venueName">교육장소</th>
 							<td colspan="3">
-								<input type="text" name="rights" style="width:670px"  value="${view.rights }">
+								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
+							</td>
+						</tr>
+					
+					
+						
+					
+						<tr>
+							<th scope="row" id="instructorName">강사</th>
+							<td colspan="3">
+								<input type="text" name="instructor" style="width:670px" value="${view.instructor }" />
 							</td>
 						</tr>
 						<tr>
-							<th scope="row">장소(주소)</th>
+							<th scope="row" id="chargeName">수강료</th>
+							<td colspan="3">		
+							<input type="checkbox" id="anoY" value="Y" name="free_yn_before" <c:if test="${view.free_yn eq 'Y' }">checked</c:if>/>
+							<label for="anoY">유료</label>
+							<input type="checkbox" id="anoN" value="N" name="free_yn_before" <c:if test="${view.free_yn eq 'N' }">checked</c:if> />
+							<label for="anoN">무료</label>
+							<br/>
+							<input type="text" name="charge" style="width:400px" value="${view.charge }" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">홈페이지</th>
+							<td colspan="3">
+								<%-- 
+								<c:if test="${empty view or empty view.home_page }">
+									<c:set target="${view }" property="home_page" value="http://" />
+								</c:if>
+								 --%>
+								 <c:if test="${empty view }">
+									<input type="text" name="home_page" style="width:670px"  value="http://">
+								</c:if>
+								<c:if test="${not empty view }">
+									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
+								</c:if>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">문의처</th>
+							<td colspan="3">
+								<%-- <select title="지역번호 선택하세요" name="tel1" style="width:70px">
+									<c:forEach items="${areaTelNumList }" var="areaTelNumList" varStatus="status">
+										<option value="${areaTelNumList.value}">${areaTelNumList.name}</option>
+									</c:forEach>
+								</select>
+								-
+								<input type="text" maxlength="4" name="tel2" style="width:100px" value="${view.tel2}"/>
+								-
+								<input type="text" maxlength="4" name="tel3" style="width:100px" value="${view.tel3}"/> --%>
+								<input type="text" name="tel" style="width:100px" value="${view.tel}"/>
+							</td>
+						</tr>
+						
+							<tr>
+							<th scope="row">교육기관<br/>주소</th>
 							<td colspan="3">
 								<div class="inputBox">
 									<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
@@ -398,61 +488,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 									
 									<input type="hidden" name="location" style="width:150px" value="${view.location }" />
 								</div>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">교육장소</th>
-							<td colspan="3">
-								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
-							</td>
-						</tr>
-					
-						<tr>
-							<th scope="row">강사</th>
-							<td colspan="3">
-								<input type="text" name="instructor" style="width:670px" value="${view.instructor }" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">수강료</th>
-							<td colspan="3">		
-							<input type="checkbox" id="anoY" value="Y" name="free_yn_before" <c:if test="${view.free_yn eq 'Y' }">checked</c:if>/>
-							<label for="anoY">유료</label>
-							<input type="checkbox" id="anoN" value="N" name="free_yn_before" <c:if test="${view.free_yn eq 'N' }">checked</c:if> />
-							<label for="anoN">무료</label>
-							<br/>
-							<input type="text" name="charge" style="width:400px" value="${view.charge }" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">문의</th>
-							<td colspan="3">
-								<%-- <select title="지역번호 선택하세요" name="tel1" style="width:70px">
-									<c:forEach items="${areaTelNumList }" var="areaTelNumList" varStatus="status">
-										<option value="${areaTelNumList.value}">${areaTelNumList.name}</option>
-									</c:forEach>
-								</select>
-								-
-								<input type="text" maxlength="4" name="tel2" style="width:100px" value="${view.tel2}"/>
-								-
-								<input type="text" maxlength="4" name="tel3" style="width:100px" value="${view.tel3}"/> --%>
-								<input type="text" name="tel" style="width:100px" value="${view.tel}"/>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">홈페이지 URL</th>
-							<td colspan="3">
-								<%-- 
-								<c:if test="${empty view or empty view.home_page }">
-									<c:set target="${view }" property="home_page" value="http://" />
-								</c:if>
-								 --%>
-								 <c:if test="${empty view }">
-									<input type="text" name="home_page" style="width:670px"  value="http://">
-								</c:if>
-								<c:if test="${not empty view }">
-									<input type="text" name="home_page" style="width:670px"  value="${view.home_page }">
-								</c:if>
 							</td>
 						</tr>
 						<tr>

@@ -247,7 +247,9 @@
 			styurl1,
 			styurl2,
 			styurl3,
-			styurl4
+			styurl4,
+			OPEN_API_AGREE,
+			(SELECT NAME FROM pcn_common_code WHERE VALUE=A.SITE_NAME) SITE_NAME_VALUE
 		FROM 
 			PCN_RDF_METADATA A
 		WHERE 
@@ -293,7 +295,9 @@
 			styurl1,
 			styurl2,
 			styurl3,
-			styurl4
+			styurl4,
+			OPEN_API_AGREE,
+			SITE_NAME
 		) VALUES(
 			'G706'|| FN_CURRENT_TIME_MILLIS() ,
 			EVENT_FASTIVAL_SEQ.NEXTVAL  ,
@@ -332,7 +336,9 @@
 			#styurl1#,
 			#styurl2#,
 			#styurl3#,
-			#styurl4#
+			#styurl4#,
+			#open_api_agree#,
+			'PORTAL_MANAGER'
 		)
 	
 	</insert>

@@ -304,58 +304,6 @@ $(function () {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">기간</th>
-						<td colspan="3">
-							<input type="text" name="reg_start" value="${view.reg_start }" />
-							<span>~</span>
-							<input type="text" name="reg_end" value="${view.reg_end }" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">시간</th>
-						<td colspan="3">
-							<input type="text" name="time" style="width:670px" value="${view.time}" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">장소</th>
-						<td colspan="3">
-							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
-							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">주최</th>
-						<td colspan="3">
-							<input type="text" name="rights" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span>
-<%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
- --%>						</td>
-					</tr>
-					<tr>
-						<th scope="row">관람료</th>
-						<td colspan="3">
-							<input type="text" name="charge" style="width:670px" value="${view.charge}" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">러닝타임</th>
-						<td colspan="3">
-							<input type="text" name="extent" style="width:670px" value="${view.extent}" />
-						</td>
-					</tr>
-							<tr>
-						<th scope="row">연령</th>
-						<td colspan="3">
-							<input type="text" name="grade" style="width:670px" value="${view.grade}" />
-						</td>
-					</tr>
-						<tr>
-						<th scope="row">문의</th>
-						<td colspan="3">
-							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
-						</td>
-					</tr>
-					<tr>
 						<th scope="row">썸네일 이미지</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -385,6 +333,72 @@ $(function () {
 							<input type="text" name="url" style="width:500px" value="${view.url}" /><span class="btn whiteS"><a href="#url">미리보기</a></span>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">기간</th>
+						<td colspan="3">
+							<input type="text" name="reg_start" value="${view.reg_start }" />
+							<span>~</span>
+							<input type="text" name="reg_end" value="${view.reg_end }" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">공연장소</th>
+						<td colspan="3">
+							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
+							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">시간</th>
+						<td colspan="3">
+							<input type="text" name="time" style="width:670px" value="${view.time}" />
+						</td>
+					</tr>
+					
+					<%-- <tr>
+						<th scope="row">주최</th>
+						<td colspan="3">
+							<input type="text" name="rights" style="width:500px" value="${view.rights}" readOnly/><span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span>
+							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
+						</td>
+ 
+ 
+					</tr> --%>
+					<tr>
+						<th scope="row">러닝타임</th>
+						<td colspan="3">
+							<input type="text" name="extent" style="width:670px" value="${view.extent}" />
+						</td>
+					</tr>
+							<tr>
+						<th scope="row">연령</th>
+						<td colspan="3">
+							<input type="text" name="grade" style="width:670px" value="${view.grade}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주최</th>
+						<td colspan="3">
+							<input type="text" name="rights" style="width:670px" value="${view.rights}" />
+						</td>
+					</tr>
+					
+					
+					<tr>
+						<th scope="row">관람료</th>
+						<td colspan="3">
+							<input type="text" name="charge" style="width:670px" value="${view.charge}" />
+						</td>
+					</tr>
+					
+					
+						<tr>
+						<th scope="row">문의</th>
+						<td colspan="3">
+							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+						</td>
+					</tr>
+					
 					<!--  상세정보 시작 -->
 					<tr>
 						<th scope="row">출연진</th>
@@ -463,6 +477,33 @@ $(function () {
 							</div>
 						</td>
 					</tr>
+					
+					<tr>
+						<th scope="row">제3자<br/>공개동의여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+								 <c:if test="${empty view}">
+								<label>
+									<input type="radio" name="open_api_agree" value="Y" checked="checked"  /> 동의
+								</label>
+								<label>
+									<input type="radio" name="open_api_agree" value="N"  /> 미동의
+								</label>
+							 </c:if>
+							  <c:if test="${!empty view}">
+								${view.open_api_agree }
+							 </c:if>
+							</div>
+						</td>
+					</tr>
+					<c:if test="${not empty view}">
+					<tr>
+						<th scope="row">출처</th>
+						<td colspan="3">
+							${view.site_name_value }
+						</td>
+					</tr>
+					</c:if>
 				
 					<!--  상세정보 끝 -->
 					<tr>

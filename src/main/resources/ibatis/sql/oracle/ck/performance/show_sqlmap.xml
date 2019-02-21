@@ -259,7 +259,9 @@
 			styurl1,
 			styurl2,
 			styurl3,
-			styurl4
+			styurl4,
+			OPEN_API_AGREE,
+			(SELECT NAME FROM pcn_common_code WHERE VALUE=A.SITE_NAME) SITE_NAME_VALUE
 			
 		FROM 
 			PCN_RDF_METADATA A
@@ -305,7 +307,9 @@
 			styurl1,
 			styurl2,
 			styurl3,
-			styurl4
+			styurl4,
+			OPEN_API_AGREE,
+			SITE_NAME
 			
 		) 
 		SELECT
@@ -340,7 +344,10 @@
 			#styurl1#,
 			#styurl2#,
 			#styurl3#,
-			#styurl4#
+			#styurl4#,
+			#open_api_agree#,
+			'PORTAL_MANAGER'
+			
 			
 		FROM VLI_VLI_CUL
 		WHERE CUL_NAME = #venue2#

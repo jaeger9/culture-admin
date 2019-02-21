@@ -58,7 +58,7 @@ $(function() {
 	});
 	
 	frm.submit(function() {
-		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+		//document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
 		
 		if (video_org.val() == '') {
 			alert('기관명을 입력해주세요.');
@@ -148,44 +148,44 @@ $(function() {
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 기관명</th>
 						<td>
-							<input type="text" name="video_org" style="width:500px" value="${view.video_org }"/>
+							<input type="text" name="video_org" style="width:500px" value="${view.video_org }" readonly="readonly" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 담당자연락처</th>
 						<td>
-							<select name="video_hp1">
+							<select name="video_hp1" disabled="disabled">
 								<c:forEach items="${phoneList }" var="item">
 									<option value="${item.value }">${item.value }</option>
 								</c:forEach>
 							</select>-
-							<input type="text" name="video_hp2" value="${view.video_hp2 }" maxlength="4" /> -
-							<input type="text" name="video_hp3" value="${view.video_hp3 }" maxlength="4" />
+							<input type="text" name="video_hp2" value="${view.video_hp2 }" maxlength="4"  readonly="readonly" /> -
+							<input type="text" name="video_hp3" value="${view.video_hp3 }" maxlength="4"   readonly="readonly"/>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 제목</th>
 						<td>
-							<input type="text" name="video_title" value="${view.video_title }" style="width:500px" />							
+							<input type="text" name="video_title" value="${view.video_title }" style="width:500px"  readonly="readonly" />							
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 영상 URL</th>
 						<td>
-							<input type="text" name="video_url" value="${view.video_url }" style="width:500px" />
+							<input type="text" name="video_url" value="${view.video_url }" style="width:500px"  readonly="readonly" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 한줄소개글</th>
 						<td>
-							<input type="text" name="video_comment" value="${view.video_comment }" style="width:500px" />
+							<input type="text" name="video_comment" value="${view.video_comment }" style="width:500px"  readonly="readonly" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 영상상세정보</th>
-						<td>
-							<%-- <textarea name="contents" style="width:100%;height:100px;" maxlength="2000"><c:out value="${view.contents}" escapeXml="true" /></textarea> --%>
-							<script type="text/javascript" language="javascript">
+						<td  style="height:150px;vertical-align:top">${view.video_contents}
+							<%-- <textarea readonly="readonly" name="contents" style="width:100%;height:100px;" maxlength="2000"><c:out value="${view.video_contents}" escapeXml="true" /></textarea>  --%>
+							<%-- <script type="text/javascript" language="javascript">
 							var CrossEditor = new NamoSE('contents');
 							CrossEditor.params.Width = "100%";
 							CrossEditor.params.Height = "400px";
@@ -197,7 +197,7 @@ $(function() {
 								e.editorTarget.SetBodyValue(document.getElementById("contents").value);
 							}
 						</script>
-						<textarea id="contents" name="video_contents" style="width:100%;height:400px;display:none;"><c:out value="${view.video_contents }" escapeXml="true" /></textarea>
+						<textarea id="contents" name="video_contents" style="width:100%;height:400px;display:none;"><c:out value="${view.video_contents }" escapeXml="true" /></textarea> --%>
 						</td>	
 					</tr>
 				</tbody>

@@ -357,34 +357,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">기간</th>
-						<td colspan="3">
-							<input type="text" name="reg_start" value="${view.reg_start }" />
-							<span>~</span>
-							<input type="text" name="reg_end" value="${view.reg_end }" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">장소</th>
-						<td colspan="3">
-							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
-							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">주최</th>
-						<td colspan="3">
-							<input type="text" name="rights" style="width:500px" value="${view.rights}"/><!-- <span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span> -->
-<%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
- --%>						</td>
-					</tr>
-					<tr>
-						<th scope="row">문의</th>
-						<td colspan="3">
-							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
-						</td>
-					</tr>
-					<tr>
 						<th scope="row">썸네일 이미지</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -408,25 +380,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">공식홈페이지</th>
+						<th scope="row">기간</th>
 						<td colspan="3">
-							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
+							<input type="text" name="reg_start" value="${view.reg_start }" />
+							<span>~</span>
+							<input type="text" name="reg_end" value="${view.reg_end }" />
 						</td>
 					</tr>
-					<tr>
-						<th scope="row">URL</th>
-						<td colspan="3">
-							<input type="text" name="url" style="width:670px" value="${view.url}" />
-						</td>
-					</tr> 
-					<tr>
-						<th scope="row">요청사항</th>
-						<td colspan="3">
-							<input type="text" name="request" style="width:670px" value="${view.request}" />
-						</td>
-					</tr>
-					
-				 	<tr>
+						<tr>
 						<th scope="row">지역</th>
 						<td>
 							<select title="출처 선택" name="location">
@@ -435,12 +396,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								</c:forEach>
 							</select>
 						</td>
-						<th scope="row">장소</th>
-						<td>
+						 <th scope="row">장소</th>
+						 <td>
 							<input type="text" name="venue" style="width:250px" value="${view.venue}"/>
-						</td>
+						</td> 
 					</tr> 
-					<%-- <tr>
+					<tr>
 						<th scope="row">주소</th>
 						<td colspan="3">
 							<div class="inputBox">
@@ -457,8 +418,45 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
 							</div>
 						</td>
+					</tr> 
+					<%-- <tr>
+						<th scope="row">장소</th>
+						<td colspan="3">
+							<input type="text" name="venue" style="width:500px" value="${view.venue}" readOnly/><span class="btn whiteS"><a href="#url" data-org='venue'>선택</a></span><span class="btn whiteS"><a href="/facility/place/view.do" target="_blank">장소등록</a></span>
+							<input type="hidden" name="location" style="width:500px" value="${view.location}"/>
+						</td>
 					</tr> --%>
-					
+					<tr>
+						<th scope="row">주최/주관</th>
+						<td colspan="3">
+							<input type="text" name="rights" style="width:500px" value="${view.rights}"/><!-- <span class="btn whiteS"><a href="#url" data-org='rights'>선택</a></span><span class="btn whiteS"><a href="/facility/group/view.do" target="_blank">주최등록</a></span> -->
+<%-- 							<input type="hidden" name="location" style="width:500px" value="${view.rights}"/>
+ --%>						</td>
+					</tr>
+					<tr>
+						<th scope="row">공식홈페이지</th>
+						<td colspan="3">
+							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">문의</th>
+						<td colspan="3">
+							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">URL</th>
+						<td colspan="3">
+							<input type="text" name="url" style="width:670px" value="${view.url}" />
+						</td>
+					</tr> 
+					<tr>
+						<th scope="row">요청사항</th>
+						<td colspan="3">
+							<input type="text" name="request" style="width:670px" value="${view.request}" />
+						</td>
+					</tr>
 					<!-- 이쪽부터 상세정보 -->
 					<tr>
 						<th scope="row">시간</th>
@@ -573,6 +571,32 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</div>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">제3자<br/>공개동의여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+							 <c:if test="${empty view}">
+								<label>
+									<input type="radio" name="open_api_agree" value="Y" checked="checked"  /> 동의
+								</label>
+								<label>
+									<input type="radio" name="open_api_agree" value="N"  /> 미동의
+								</label>
+							 </c:if>
+							  <c:if test="${!empty view}">
+								${view.open_api_agree }
+							 </c:if>
+							</div>
+						</td>
+					</tr>
+					<c:if test="${not empty view}">
+					<tr>
+						<th scope="row">출처</th>
+						<td colspan="3">
+							${view.site_name_value }
+						</td>
+					</tr>
+					</c:if>
 					
 					
 					

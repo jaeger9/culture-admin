@@ -361,7 +361,7 @@ function doValidation(mode){
 											<span class="btn whiteS"><button>찾아보기</button></span>
 										</div>
 										</div>
-										<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+										<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 									</td>
 								</tr>
 								</c:forEach>
@@ -406,7 +406,7 @@ function doValidation(mode){
 															<span class="btn whiteS"><button>찾아보기</button></span>
 														</div>
 													</div>
-													<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+													<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 													</td>
 												</tr>
 													<tr>
@@ -476,7 +476,7 @@ function doValidation(mode){
 											<span class="btn whiteS"><button>찾아보기</button></span>
 										</div>
 										</div>
-										<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+										<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 									</td>
 								</tr>
 								</c:forEach>
@@ -523,7 +523,7 @@ function doValidation(mode){
 															<span class="btn whiteS"><button>찾아보기</button></span>
 														</div>
 													</div>
-													<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+													<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 													</td>
 												</tr>
 													<tr>
@@ -592,7 +592,7 @@ function doValidation(mode){
 											<span class="btn whiteS"><button>찾아보기</button></span>
 										</div>
 										</div>
-										<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+										<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 									</td>
 								</tr>
 								</c:forEach>
@@ -638,7 +638,7 @@ function doValidation(mode){
 															<span class="btn whiteS"><button>찾아보기</button></span>
 														</div>
 													</div>
-													<span class="txt">515 * 284 px에 맞추어 등록해주시기 바랍니다.</span>
+													<span class="txt">515 * 284 px에 맞추어 썸네일 이미지 등록해주시기 바랍니다.</span>
 													</td>
 												</tr>
 												<tr>

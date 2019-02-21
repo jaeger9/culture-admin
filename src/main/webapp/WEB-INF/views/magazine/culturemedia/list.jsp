@@ -280,7 +280,7 @@ $(function () {
 		<span class="btn white"><button type="button">승인</button></span>
 		<span class="btn white"><button type="button">미승인</button></span>
 		<span class="btn white"><button type="button">삭제</button></span>
-		<span class="btn dark fr"><a href="#url">등록</a></span>
+		<!-- <span class="btn dark fr"><a href="#url">등록</a></span> -->
 	</div>
 </body>
 </html>

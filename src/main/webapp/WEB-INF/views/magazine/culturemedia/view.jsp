@@ -28,7 +28,7 @@ $(function() {
 	var tv_date = frm.find('input[name=tv_date]');
 
 	
-	new Datepicker(tv_date);
+	//new Datepicker(tv_date);
 
 	// 파일업로드
 	$('.upload_pop_btn').click(function () {
@@ -61,7 +61,7 @@ $(function() {
 	});
 	
 	frm.submit(function() {
-		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+		//document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
 		
 		if (tv_org.val() == '') {
 			alert('기관명을 입력해주세요.');
@@ -144,25 +144,25 @@ $(function() {
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 기관명</th>
 						<td>
-							<input type="text" name="tv_org" style="width:500px" value="${view.tv_org }"/>
+							<input type="text" name="tv_org" style="width:500px" value="${view.tv_org }" readonly="readonly" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 담당자연락처</th>
 						<td>
-							<select name="tv_hp1">
+							<select name="tv_hp1" disabled="disabled">
 								<c:forEach items="${phoneList }" var="item">
 									<option value="${item.value }">${item.value }</option>
 								</c:forEach>
 							</select>-
-							<input type="text" name="tv_hp2" value="${view.tv_hp2 }" maxlength="4" /> -
-							<input type="text" name="tv_hp3" value="${view.tv_hp3 }" maxlength="4" />
+							<input type="text" name="tv_hp2" value="${view.tv_hp2 }" maxlength="4" readonly="readonly"/> -
+							<input type="text" name="tv_hp3" value="${view.tv_hp3 }" maxlength="4" readonly="readonly" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 행사명</th>
 						<td>
-							<input type="text" name="tv_title" value="${view.tv_title }"/>							
+							<input type="text" name="tv_title" value="${view.tv_title }" readonly="readonly" />							
 						</td>
 					</tr>
 					<tr>
@@ -173,9 +173,10 @@ $(function() {
 					</tr>
 					<tr>
 						<th scope="row"><span style="color:red">*</span> 요청사항</th>
-						<td>
-							<%-- <textarea name="contents" style="width:100%;height:100px;" maxlength="2000"><c:out value="${view.contents}" escapeXml="true" /></textarea> --%>
-							<script type="text/javascript" language="javascript">
+						<td style="height:150px;vertical-align:top">
+						${view.tv_request}
+							<%-- <textarea readonly="readonly" name="contents" style="width:100%;height:100px;" maxlength="2000"><pre><c:out value="${view.tv_request}" escapeXml="true"  /></textarea> --%>
+							<%-- <script type="text/javascript" language="javascript">
 							var CrossEditor = new NamoSE('contents');
 							CrossEditor.params.Width = "100%";
 							CrossEditor.params.Height = "400px";
@@ -187,7 +188,7 @@ $(function() {
 								e.editorTarget.SetBodyValue(document.getElementById("contents").value);
 							}
 						</script>
-						<textarea id="contents" name="tv_request" style="width:100%;height:400px;display:none;"><c:out value="${view.tv_request }" escapeXml="true" /></textarea>
+						<textarea id="contents" name="tv_request" style="width:100%;height:400px;display:none;"><c:out value="${view.tv_request }" escapeXml="true" /></textarea> --%>
 						</td>	
 					</tr>
 				</tbody>

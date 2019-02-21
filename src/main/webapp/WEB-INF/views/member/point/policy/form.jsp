@@ -186,6 +186,7 @@ $(function () {
 				<input type="text" pattern="\d*" name="policy_point" value="${view.policy_point }" style="width:50px"/> P
 			</td>
 		</tr>
+		<c:if test="${!empty view }">
 		<tr>
 			<th scope="row">등록자</th>
 			<td colspan="3">
@@ -198,8 +199,7 @@ $(function () {
 				${view.update_date }
 			</td>
 		</tr>
-		
-	
+		</c:if>
 		
 		</tbody>
 		</table>
