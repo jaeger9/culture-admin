@@ -245,10 +245,11 @@ public class ContentUpdateService {
 		
 		for(HashMap<String, Object> param : paramList) {
 			if(multipartFiles!=null && !multipartFiles[indexForFile].isEmpty()) {
-				String fileName=fileService.writeFile(multipartFiles[indexForFile++], "cultureagree");
+				String fileName=fileService.writeFile(multipartFiles[indexForFile], "cultureagree");
 				param.put("main_image_name",fileName);
 			}
 			ckDatabaseService.save("content.updateContentSub",param);
+			indexForFile++;
 		}
 		
 		

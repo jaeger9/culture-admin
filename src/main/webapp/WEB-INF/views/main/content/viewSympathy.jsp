@@ -353,7 +353,7 @@ function doValidation(mode){
 									</td>
 								</tr>
 								<tr>
-									<td colspan="3">
+									<td colspan="3"  style="border-top:0;">
 										<div class="fileInputs">
 											<input type="file" name="uploadFile" class="file hidden imageUploadFile1" title="첨부파일 선택" />
 												<div class="fakefile">
@@ -398,7 +398,7 @@ function doValidation(mode){
 												</td>
 											</tr>
 												<tr>
-													<td colspan="3">
+													<td colspan="3" style="border-top:0;">
 														<div class="fileInputs">
 															<input type="file" name="uploadFile" class="file hidden imageUploadFile1" title="첨부파일 선택" />
 																<div class="fakefile">
@@ -410,7 +410,7 @@ function doValidation(mode){
 													</td>
 												</tr>
 													<tr>
-													<td colspan="3">
+													<td colspan="3" style="border-top:0;">
 													<c:if test="${li2.main_image_name  ne 'http://www.culture.go.kr/upload/cultureagree/' and not empty li2.main_image_name }">
 													<img src="/upload/cultureagree/${li2.main_image_name}"  style="width:auto; height:140px;"/>
 													</c:if>
@@ -468,7 +468,7 @@ function doValidation(mode){
 									</td>			
 								</tr>
 									<tr>
-									<td colspan="3">
+									<td colspan="3"  style="border-top:0;">
 										<div class="fileInputs">
 											<input type="file" name="uploadFile" class="file hidden imageUploadFile2" title="첨부파일 선택" />
 												<div class="fakefile">
@@ -515,7 +515,7 @@ function doValidation(mode){
 												</td>
 											</tr>
 											<tr>
-													<td colspan="3">
+													<td colspan="3"  style="border-top:0;">
 														<div class="fileInputs">
 															<input type="file" name="uploadFile" class="file hidden imageUploadFile2" title="첨부파일 선택" />
 																<div class="fakefile">
@@ -527,7 +527,7 @@ function doValidation(mode){
 													</td>
 												</tr>
 													<tr>
-													<td colspan="3">
+													<td colspan="3" style="border-top:0;">
 													<div id="divImg">
 													<c:if test="${li2.main_image_name  ne 'http://www.culture.go.kr/upload/cultureagree/' and not empty li2.main_image_name }">
 													<img src="/upload/cultureagree/${li2.main_image_name}"  style="width:auto; height:140px;"/>
@@ -584,7 +584,7 @@ function doValidation(mode){
 									</td>			
 								</tr>
 									<tr>
-									<td colspan="3">
+									<td colspan="3"  style="border-top:0;">
 										<div class="fileInputs">
 											<input type="file" name="uploadFile" class="file hidden imageUploadFile3" title="첨부파일 선택" />
 												<div class="fakefile">
@@ -630,7 +630,7 @@ function doValidation(mode){
 												</td>
 											</tr>
 											<tr>
-													<td colspan="3">
+													<td colspan="3"  style="border-top:0;">
 														<div class="fileInputs">
 															<input type="file" name="uploadFile" class="file hidden imageUploadFile3" title="첨부파일 선택" />
 																<div class="fakefile">
@@ -642,7 +642,7 @@ function doValidation(mode){
 													</td>
 												</tr>
 												<tr>
-												<td colspan="3">
+												<td colspan="3" style="border-top:0;">
 													<div id="divImg">
 													<c:if test="${li2.main_image_name  ne 'http://www.culture.go.kr/upload/cultureagree/' and not empty li2.main_image_name }">
 													<img src="/upload/cultureagree/${li2.main_image_name}"  style="width:auto; height:140px;"/>

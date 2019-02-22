@@ -44,7 +44,7 @@ $(function () {
 	
 	var frm					=	$('form[name=frm]');
 	var policy_name				=	frm.find('input[name=policy_name]');
-	var mileage_point = frm.find("input[name=mileage_point]");
+	var mileage_point = frm.find("input[name=policy_point]");
 
 	
 	frm.submit(function () {
