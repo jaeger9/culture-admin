@@ -201,6 +201,8 @@
 			, FREE_YN
 			, REFERENCE_IDENTIFIER
 			, REFERENCE_IDENTIFIER_ORG      
+			, OPEN_API_AGREE
+			, (SELECT NAME FROM pcn_common_code WHERE VALUE=A.SITE_NAME) SITE_NAME_VALUE
 		FROM 
 			PORTAL_EDUCATION A
 		WHERE 
@@ -241,7 +243,9 @@
 			, GENRE
 			, FREE_YN
 			, REFERENCE_IDENTIFIER
-			, REFERENCE_IDENTIFIER_ORG       
+			, REFERENCE_IDENTIFIER_ORG 
+			, OPEN_API_AGREE      
+			, SITE_NAME
 		) VALUES(
 			EDUCATION_SEQ.NEXTVAL
 			, #title#          
@@ -253,8 +257,8 @@
 			, #tel#            
 			, #auto_yn#        
 			, #start_dt# || '~' || #end_dt#         
-			, #start_dt#       
-			, #end_dt#         
+			, TO_DATE(#start_dt#,'YYYY-MM-DD')       
+			, TO_DATE(#end_dt#,'YYYY-MM-DD')         
 			, #venue#          
 			, #zip_yn#         
 			, #zip_code#       
@@ -276,6 +280,8 @@
 			, #free_yn#
 			, #REFERENCE_IDENTIFIER#
 			, #REFERENCE_IDENTIFIER_ORG#
+			, #open_api_agree#
+			, 'PORTAL_MANAGER'
 		)
 	</insert>
 	
@@ -288,8 +294,8 @@
 			, TEL               =  #tel#                             
 			, AUTO_YN           =  #auto_yn#                         
 			, PERIOD            =  #start_dt# || '~' || #end_dt#     
-			, START_DT          =  #start_dt#                        
-			, END_DT            =  #end_dt#                          
+			, START_DT          =  TO_DATE(#start_dt#,'YYYY-MM-DD')                        
+			, END_DT            =  TO_DATE(#end_dt#,'YYYY-MM-DD')                          
 			, VENUE             =  #venue#                           
 			, ZIP_YN            =  #zip_yn#                          
 			, ZIP_CODE          =  #zip_code#                        

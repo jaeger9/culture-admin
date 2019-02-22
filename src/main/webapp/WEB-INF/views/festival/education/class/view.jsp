@@ -491,6 +491,32 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 							</td>
 						</tr>
 						<tr>
+							<th scope="row">제3자<br/>공개동의여부</th>
+								<td colspan="3">
+									<div class="inputBox">
+								 		<c:if test="${empty view}">
+										<label>
+											<input type="radio" name="open_api_agree" value="Y" checked="checked"  /> 동의
+										</label>
+										<label>
+											<input type="radio" name="open_api_agree" value="N"  /> 미동의
+										</label>
+							 			</c:if>
+							  			<c:if test="${!empty view}">
+											${view.open_api_agree }
+							 			</c:if>
+									</div>
+								</td>
+					</tr>
+					<c:if test="${not empty view}">
+					<tr>
+						<th scope="row">출처</th>
+						<td colspan="3">
+							${view.site_name_value }
+						</td>
+					</tr>
+					</c:if>
+						<tr>
 							<th scope="row">승인여부</th>
 							<td colspan="3">
 								<div class="inputBox">
