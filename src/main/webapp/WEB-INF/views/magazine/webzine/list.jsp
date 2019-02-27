@@ -208,7 +208,7 @@ $(function () {
 						<th scope="col"><input type="checkbox" name="seqAll" title="리스트 전체 선택" /></th>
 						<th scope="col">웹진 명</th>
 						<th scope="col">조회수</th>
-						<th scope="col">유형</th>
+						<th scope="col">웹진유형</th>
 						<th scope="col">승인여부</th>
 						
 						<th scope="col">등록일</th>

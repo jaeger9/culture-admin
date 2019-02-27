@@ -535,7 +535,7 @@ $(function () {
         		}
         		action="update";
         		if($("select[name=template_type]").val()=="P"){
-        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").val("");
+        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").not("[name=type]").val("");
         		}
         		frm.attr('action' ,'/magazine/webzine/update.do');
         		frm.submit();
@@ -552,7 +552,7 @@ $(function () {
         		}
         		action = "insert";
         		if($("select[name=template_type]").val()=="P"){
-        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").val("");
+        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").not("[name=type]").val("");
         		}
         		frm.attr('action' ,'/magazine/webzine/insert.do');
         		frm.submit();
