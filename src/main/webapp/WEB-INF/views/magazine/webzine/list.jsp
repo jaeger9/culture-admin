@@ -196,6 +196,7 @@ $(function () {
 					<col style="width:%" />
 					<col style="width:8%" />
 					<col style="width:8%" />
+					<col style="width:8%" />
 					
 					<col style="width:10%" />
 					<col style="width:8%" />
@@ -207,6 +208,7 @@ $(function () {
 						<th scope="col"><input type="checkbox" name="seqAll" title="리스트 전체 선택" /></th>
 						<th scope="col">웹진 명</th>
 						<th scope="col">조회수</th>
+						<th scope="col">유형</th>
 						<th scope="col">승인여부</th>
 						
 						<th scope="col">등록일</th>
@@ -222,6 +224,14 @@ $(function () {
 							<td><input type="checkbox" name="seq" value="${item.seq}"/></td>
 							<td><a href="/magazine/webzine/view.do?seq=<c:out value="${item.seq}"/>"><c:out value="${item.title}" /></a></td>
 							<td>${item.hit}</td>
+							<td>
+								<c:if test="${empty item.template_type or item.template_type eq 'D'}">
+									기본형
+								</c:if>
+								<c:if test="${item.template_type eq 'P' }">
+									포스트형
+								</c:if>
+							</td>
 							<td>${item.approval_yn}</td>
 							
 							<td>${item.reg_date}</td>

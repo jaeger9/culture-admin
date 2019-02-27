@@ -22,6 +22,11 @@ var patternIndex = 0;			//전통디자인
 var culturenewsIndex = 0;		//문화소식
 var festivalIndex = 0;			//행사/축제/교육
 
+
+function changeTemplateType(){
+	
+}
+
 //시퐁 hidden 다 똑같네....이걸로 hidden 값 처리 해줘도 되잖아 그냥 pass
 setResponseData = function(selectorname , res){
 	$('#' + selectorname).find('input').each(function(){
@@ -283,6 +288,35 @@ var callback = {
 	};
 
 $(function () {
+	
+	if($("select[name=template_type]").val()=="D"){
+		$("#tableForWebzine").find("tr:gt(4)").css("display","");
+		$("#cultureImage2").css("display","none");
+		$("#festival3").css("display","none");
+		$("#festival4").css("display","none");
+	}else if($("select[name=template_type]").val()=="P"){ //포스트형
+		$("#tableForWebzine").find("tr:gt(4)").css("display","none");
+		$("#cultureImage2").css("display","none");
+		$("#festival3").css("display","none");
+		$("#festival4").css("display","none");
+	}
+	
+
+	
+	$("select[name=template_type]").change(function(){
+		if($(this).val()=="D"){ // 기본형
+			$("#tableForWebzine").find("tr:gt(4)").css("display","");
+			$("#cultureImage2").css("display","none");
+			$("#festival3").css("display","none");
+			$("#festival4").css("display","none");
+		}else if($(this).val()=="P"){ //포스트형
+			$("#tableForWebzine").find("tr:gt(4)").css("display","none");
+			$("#cultureImage2").css("display","none");
+			$("#festival3").css("display","none");
+			$("#festival4").css("display","none");
+		}
+	});
+	
 	var frm 		= $('form[name=frm]');
 	var title		= frm.find('input[name=title]');
 	var url		= frm.find('input[name=url]');
@@ -344,6 +378,33 @@ $(function () {
 	if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
 	
 	frm.submit(function(){
+		if(action!='delete'){
+			if ( $("input[name='phone2']").val() == "" ){
+				alert("연락처를 입력하여 주세요.");
+				$("input[name='phone2']").focus();
+				return false;
+			}
+
+			if ( $("input[name='phone3']").val() == "" ){
+	
+				alert("연락처를 입력하여 주세요.");
+				$("input[name='phone3']").focus();
+				return false;
+			}
+
+			if(isNaN($("input[name='phone2']").val())){
+				alert('연락처는 숫자만 입력 가능합니다');
+				$("input[name='phone2']").focus();
+				return false;
+			}
+
+			if(isNaN($("input[name='phone3']").val())){
+				alert('연락처는 숫자만 입력 가능합니다');
+				$("input[name='phone3']").focus();
+				return false;
+			}
+		}
+		
 		//DB NOT NULL 기준 체크
 		 if(action != 'insert'){
 		 	return true;
@@ -355,38 +416,14 @@ $(function () {
 			return false;
 		}
 
-		if ( $("input[name='phone2']").val() == "" ){
-			alert("연락처를 입력하여 주세요.");
-			$("input[name='phone2']").focus();
-			return false;
-		}
-
-		if ( $("input[name='phone3']").val() == "" ){
-
-			alert("연락처를 입력하여 주세요.");
-			$("input[name='phone3']").focus();
-			return false;
-		}
-
-		if(isNaN($("input[name='phone2']").val())){
-			alert('연락처는 숫자만 입력 가능합니다');
-			$("input[name='phone2']").focus();
-			return false;
-		}
-
-		if(isNaN($("input[name='phone3']").val())){
-			alert('연락처는 숫자만 입력 가능합니다');
-			$("input[name='phone3']").focus();
-			return false;
-		}
-
+		
 
 		if(title.val() == '') {
 		    alert("제목 입력하세요");
 		    title.focus();
 		    return false;
 		}
-		
+	  if($("select[name=template_type]").val()=="D"){	
 		if(url.val() == '') {
 		    alert("연결 URL 입력하세요");
 		    url.focus();
@@ -439,6 +476,7 @@ $(function () {
 		    alert("행사/축제/교육 선택하세요");
 		    return false;
 		}
+	  }
 		
 		return true;
 	});
@@ -496,6 +534,9 @@ $(function () {
         			return false;
         		}
         		action="update";
+        		if($("select[name=template_type]").val()=="P"){
+        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").val("");
+        		}
         		frm.attr('action' ,'/magazine/webzine/update.do');
         		frm.submit();
         	} else if($(this).html() == '삭제') {
@@ -510,6 +551,9 @@ $(function () {
         			return false;
         		}
         		action = "insert";
+        		if($("select[name=template_type]").val()=="P"){
+        			$("#tableForWebzine").find("tr:gt(4) input").not("[name=subSeq]").val("");
+        		}
         		frm.attr('action' ,'/magazine/webzine/insert.do');
         		frm.submit();
         	} else if($(this).html() == '목록') {
@@ -572,7 +616,7 @@ function setVal(data){
 			<input type="hidden" name="menu_type" value="${paramMap.menu_type }"/>
 			<input type="hidden" name="page_no" value="${paramMap.page_no }"/>
 			<div class="tableWrite">
-				<table summary="웹진 작성">
+				<table summary="웹진 작성" id="tableForWebzine">
 					<caption>웹진 작성</caption>
 					<colgroup><col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
 					<tbody>
