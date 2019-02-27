@@ -13,7 +13,7 @@
 	<appender name="admin-active" class="org.apache.log4j.DailyRollingFileAppender">
 		<param name="encoding" value="UTF-8" />
 		<param name="file" value="C:/logs/portal-admin-active.log" />
-		<!-- <param name="file" value="/data/log/tomcat/portal-admin-active.log" /> -->
+		<!-- <param name="file" value="/data/log/tomcat/portal_admin/admin-active.log" /> -->
 		<param name="Append" value="true"/>
 		<param name="DatePattern" value="'.'yyyyMMdd"/>
 		<layout class="org.apache.log4j.PatternLayout">
