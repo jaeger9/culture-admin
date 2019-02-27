@@ -204,9 +204,13 @@ public class WebzineController {
 		try {
 			
 			webzineDeleteService.delete(paramMap );
+			
+			
+			
 
 			//태그삭제 프로세스 추가
-			mtmService.deleteTagMap(paramMap);
+			if(paramMap.getArray("seqs")!=null || paramMap.getArray("array.boardSeq")!=null)
+				mtmService.deleteTagMap(paramMap);
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
