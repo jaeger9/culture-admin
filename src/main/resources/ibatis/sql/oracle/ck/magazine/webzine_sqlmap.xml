@@ -168,10 +168,10 @@
    			URL = #url#, 
    			TITLE = #title#, 
    			CONTENT = #content#,
-   			<isNotEmpty property="file_name">
-   				FILE_NAME = #file_name#,
-   			</isNotEmpty>
-   				UPD_DATE = SYSDATE
+<!--    			<isNotEmpty property="file_name">
+ -->   				FILE_NAME = #file_name#,
+<!--    			</isNotEmpty>
+ -->   				UPD_DATE = SYSDATE
    			WHERE 
    				SEQ = #seq#
 	</update>
