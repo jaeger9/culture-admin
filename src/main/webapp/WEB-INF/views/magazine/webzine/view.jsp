@@ -295,6 +295,7 @@ $(function () {
 		$("#festival3").css("display","none");
 		$("#festival4").css("display","none");
 	}else if($("select[name=template_type]").val()=="P"){ //포스트형
+		$("#mainImage1 td:first").prepend("<div id='warningForImageUpload' style='margin-bottom:5px'>763 * 763 px 에 맞추어 등록해주시기 바랍니다.</div>");
 		$("#tableForWebzine").find("tr:gt(4)").css("display","none");
 		$("#cultureImage2").css("display","none");
 		$("#festival3").css("display","none");
@@ -305,11 +306,13 @@ $(function () {
 	
 	$("select[name=template_type]").change(function(){
 		if($(this).val()=="D"){ // 기본형
+			$("#warningForImageUpload").remove();
 			$("#tableForWebzine").find("tr:gt(4)").css("display","");
 			$("#cultureImage2").css("display","none");
 			$("#festival3").css("display","none");
 			$("#festival4").css("display","none");
 		}else if($(this).val()=="P"){ //포스트형
+			$("#mainImage1 td:first").prepend("<div id='warningForImageUpload' style='margin-bottom:5px'>763 * 763 px 에 맞추어 등록해주시기 바랍니다.</div>");
 			$("#tableForWebzine").find("tr:gt(4)").css("display","none");
 			$("#cultureImage2").css("display","none");
 			$("#festival3").css("display","none");

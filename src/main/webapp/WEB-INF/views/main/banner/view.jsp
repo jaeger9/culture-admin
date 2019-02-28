@@ -385,7 +385,7 @@ function selType(val){
 //		$('#divMobileImg1').show();
 //		$('#divMobileImg2').hide();
 //		$('#divMobileImg3').hide();
-		$('#imgSize1').text('882 * 114 px에 맞추어 등록해주시기 바랍니다.');
+		$('#imgSize1').text('882 * 140 px에 맞추어 등록해주시기 바랍니다.');
 	}else if( val == 'B' ){
 		$('#spanText1').hide();
 		$('#spanText2').hide();
@@ -398,7 +398,7 @@ function selType(val){
 //		$('#divMobileImg1').hide();
 //		$('#divMobileImg2').show();
 //		$('#divMobileImg3').hide();
-		$('#imgSize1').html('294 * 114 px에 맞추어 등록해주시기 바랍니다.');
+		$('#imgSize1').html('294 * 140 px에 맞추어 등록해주시기 바랍니다.');
 	}else{
 		$('#spanText1').hide();
 		$('#spanText2').hide();
@@ -411,7 +411,7 @@ function selType(val){
 //		$('#divMobileImg1').hide();
 //		$('#divMobileImg2').hide();
 //		$('#divMobileImg3').show();
-		$('#imgSize1').html('294 * 114 px에 맞추어 등록해주시기 바랍니다.');
+		$('#imgSize1').html('294 * 140 px에 맞추어 등록해주시기 바랍니다.');
 	}
 }
 </script>
@@ -888,7 +888,7 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt" id="imgSize1">882 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt" id="imgSize1">882 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div id="divImg1">
 									<c:if test="${view.image_url  ne 'http://www.culture.go.kr/upload/banner/' and not empty view.image_name }">
 										<img src="${view.image_url}"  alt="${view.summary}" style="width:auto; height:140px;"/>
@@ -914,7 +914,7 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">294 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div id="divImg2">
 									<c:if test="${view.image_url  ne 'http://www.culture.go.kr/upload/banner/' and not empty view.image_name }">
 										<img src="${view.image_url}"  alt="${view.summary}" style="width:auto; height:140px;"/>
@@ -940,7 +940,7 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">294 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div id="divImg3">
 									<c:if test="${view.image_url  ne 'http://www.culture.go.kr/upload/banner/' and not empty view.image_name }">
 										<img src="${view.image_url}"  alt="${view.summary}" style="width:auto; height:140px;"/>
@@ -966,7 +966,7 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">294 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div id="divImg4">
 									<c:if test="${view.image_url  ne 'http://www.culture.go.kr/upload/banner/' and not empty view.image_name }">
 										<img src="${view.image_url}"  alt="${view.summary}" style="width:auto; height:140px;"/>
@@ -996,10 +996,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">882 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">882 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${view.mobile_image_url ne "http://www.culture.go.kr/upload/banner/" }'>
-										<img width="253" height="245" alt="" src="${view.mobile_image_url}">
+										<img width="253"  alt="" src="${view.mobile_image_url}">
 									</c:if>
 								</div>
 								<div id="divMobileImg1">
@@ -1024,10 +1024,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">294 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${view.mobile_image_url2 ne "http://www.culture.go.kr/upload/banner/" }'>
-										<img width="253" height="245" alt="" src="${view.mobile_image_url2}">
+										<img width="294" height="140" alt="" src="${view.mobile_image_url2}">
 									</c:if>
 								</div>
 								<div id="divMobileImg2">
@@ -1052,10 +1052,10 @@ function selType(val){
 										<span class="btn whiteS"><button>찾아보기</button></span>
 									</div>
 								</div>
-								<span class="txt">294 * 114 px에 맞추어 등록해주시기 바랍니다.</span>
+								<span class="txt">294 * 140 px에 맞추어 등록해주시기 바랍니다.</span>
 								<div>
 									<c:if test='${view.mobile_image_url3 ne "http://www.culture.go.kr/upload/banner/" }'>
-										<img width="253" height="245" alt="" src="${view.mobile_image_url3}">
+										<img width="294" height="140" alt="" src="${view.mobile_image_url3}">
 									</c:if>
 								</div>
 								
