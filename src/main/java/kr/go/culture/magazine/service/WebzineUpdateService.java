@@ -59,17 +59,9 @@ public class WebzineUpdateService {
 			
 			param.put("title", paramMap.getArray("subTitle")[index]);
 			if(index == 0) {
-				if(filePath.equals("") && paramMap.getArray("file_name")[index]!="") {
-					param.put("file_name", paramMap.getArray("file_name")[index]);
-				}else {
-					param.put("file_name", filePath);
-				}
+				param.put("file_name", filePath);
 			} else if(index != 0 && "588".equals( paramMap.getArray("type")[index] )){	//이벤트는 실제 업로드된 파일경로를 등록한다.
-				if(filePath.equals("") && paramMap.getArray("file_name")[index]!="" && paramMap.get("template_type").equals("D")) {
-					param.put("file_name", paramMap.getArray("file_name")[index]);
-				}else {
-					param.put("file_name", filePathEvent);
-				}
+				param.put("file_name", filePathEvent);
 			}else {
 				if(paramMap.get("template_type").equals("P")){
 					param.put("file_name", null);

@@ -24,7 +24,6 @@
 			  	, DECODE(APPROVAL_YN , 'Y' , '승인' , 'N' , '미승인' , '대기') APPROVAL_YN
 			  	, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE
 			  	, HIT
-			  	, TEMPLATE_TYPE
 			FROM 
 				PCN_CUSTOMER_NEWS_MAIN_CTL
 		) R
@@ -168,10 +167,10 @@
    			URL = #url#, 
    			TITLE = #title#, 
    			CONTENT = #content#,
-<!--    			<isNotEmpty property="file_name">
- -->   				FILE_NAME = #file_name#,
-<!--    			</isNotEmpty>
- -->   				UPD_DATE = SYSDATE
+   			<isNotEmpty property="file_name">
+   				FILE_NAME = #file_name#,
+   			</isNotEmpty>
+   				UPD_DATE = SYSDATE
    			WHERE 
    				SEQ = #seq#
 	</update>
