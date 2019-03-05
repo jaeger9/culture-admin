@@ -428,7 +428,12 @@
 		<iterate property="array.cul_seq" open="SEQ IN (" conjunction="," close=")">
 			#array.cul_seq[]#
 		</iterate>
-	</delete> 
-	
+	</delete>
+
+	<update id="updateMDesc" parameterClass="paramMap">
+		UPDATE VLI_VLI_CUL  SET MDESCRIPTION=#MDESCRIPTION#
+		WHERE CUL_SEQ = #seq#
+	</update>
+
 	<!-- GIS_FACILITY_INFO -->
 </sqlMap>
