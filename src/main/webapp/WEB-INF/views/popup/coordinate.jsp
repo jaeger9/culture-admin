@@ -70,7 +70,7 @@
 	            draggable: true
 	        });
 	        
-	        marker.setDraggable(true);
+	        //marker.setDraggable(true);
 	
 	        // 인포윈도우로 장소에 대한 설명을 표시합니다
 	        var infowindow = new daum.maps.InfoWindow({
