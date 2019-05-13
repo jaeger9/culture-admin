@@ -66,7 +66,8 @@
 	        // 결과값으로 받은 위치를 마커로 표시합니다
 	        var marker = new daum.maps.Marker({
 	            map: map,
-	            position: coords
+	            position: coords,
+	            draggable: true
 	        });
 	        
 	        marker.setDraggable(true);
