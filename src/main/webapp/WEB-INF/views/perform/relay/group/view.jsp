@@ -41,24 +41,25 @@ $(function () {
 	if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
 	if('${view.zip_yn}')$('input:radio[name="zip_yn"][value="${view.zip_yn}"]').prop('checked', 'checked');
 	
-	//URL 미리보기
-	goLink = function() { 
-		window.open($('input[name=homepage]').val());
-	}
-	
 	//공연상 선택
-	$('span.btn.whiteS a').each(function(){
+ 	$('span.btn.whiteS a').each(function(){
 	  	$(this).click(function(){
 	    	if( $(this).html() == '선택'){
 	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=400,height=300');
 	    	} else if( $(this).html() == '우편번호찾기'){
 	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
 	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
-	    	} else if( $(this).html() == '유효성검사'){
+	    	}/*  else if( $(this).html() == '유효성검사'){
 	    		goLink();
-	    	}
+	    	} */
 	  	});
-	});
+	}); 
+	
+	//URL 미리보기
+	goLink = function() { 
+		window.open($('input[name=homepage]').val());
+	}
+	
 	
 	//upload file 변경시 fake file div text 변경
 	$('input[name=uploadFile]').each(function(){
@@ -142,6 +143,28 @@ $(function () {
 	
 });
 
+function uhsgs(){
+	
+	goLink();
+	//공연상 선택
+	/* $('span.btn.whiteS a').each(function(){
+	  	$(this).click(function(){
+	    	if( $(this).html() == '선택'){
+	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=400,height=300');
+	    	} else if( $(this).html() == '우편번호찾기'){
+	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
+	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
+	    	} else if( $(this).html() == '유효성검사'){
+	    		goLink();
+	    	}
+	  	});
+	}); */
+}
+
+
+
+
+
 //도로명주소 Open Api
 function jusoCallBack(sido, gugun, addr, addr2, zipNo){	
 	$('input[name=zip_code]').val(zipNo);	//우편번호
@@ -172,7 +195,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<th scope="row">홈페이지</th>
 						<td colspan="3">
 							<input type="text" name="homepage" id="homepage" style="width:570px"  value="${view.homepage }">
-							<span class="btn whiteS"><button>유효성검사</button></span>
+							<span class="btn whiteS"><button onclick="uhsgs();">유효성검사</button></span>
 						</td>
 					</tr>
 					<tr>
