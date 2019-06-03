@@ -99,7 +99,7 @@ $(function () {
 </head>
 <body>
 
-<form name="frm" method="POST" action="/customer/qna/form.do" enctype="multipart/form-data">
+<form name="frm" method="post" action="/customer/qna/form.do" enctype="multipart/form-data">
 <fieldset class="searchBox">
 	<legend>상세 보기</legend>
 
