@@ -228,7 +228,7 @@ public class WebzineController {
 		ParamMap paramMap = new ParamMap(request);
 		
 		String html = "";
-		html = urlConnectionService.readData("http://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq"), null);
+		html = urlConnectionService.readData("https://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq"), null);
 //		response.setContentType("application/x-msdownload; charset=UTF-8");
 		response.setContentType("application/octet-stream; charset=UTF-8");
 		
@@ -270,7 +270,7 @@ public class WebzineController {
 		ParamMap paramMap = new ParamMap(request);
 
 		if (paramMap.containsKey("seq")) { 
-			model.addAttribute("mailbody", urlConnectionService.readData("http://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq"), null));
+			model.addAttribute("mailbody", urlConnectionService.readData("https://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq"), null));
 			model.addAttribute("view", ckDatabaseService.readForObject("webzine.view", paramMap));
 			model.addAttribute("list",ckDatabaseService.readForList("portalMember.listByLetterExcel", paramMap));
 		}
