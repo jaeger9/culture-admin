@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller("WebzineController")
 public class WebzineController {
 	
-	private static final Logger logger = LoggerFactory.getLogger(RecomCultureAgreeController.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebzineController.class);
 	
 	@Resource(name = "CkDatabaseService")
 	private CkDatabaseService ckDatabaseService;
@@ -269,8 +269,10 @@ public class WebzineController {
 	public String mail(HttpServletRequest request, ModelMap model) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 
-		if (paramMap.containsKey("seq")) { 
-			model.addAttribute("mailbody", urlConnectionService.readData("https://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq"), null));
+		if (paramMap.containsKey("seq")) {
+			String previewUrl = "https://www.culture.go.kr/magazine/webzinePreview.do?seq=" + paramMap.getString("seq");
+			logger.info("request preview page URL={}", previewUrl);
+			model.addAttribute("mailbody", urlConnectionService.readData(previewUrl, null));
 			model.addAttribute("view", ckDatabaseService.readForObject("webzine.view", paramMap));
 			model.addAttribute("list",ckDatabaseService.readForList("portalMember.listByLetterExcel", paramMap));
 		}
