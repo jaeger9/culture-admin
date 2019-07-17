@@ -56,7 +56,7 @@ public class WebzineUpdateService {
 
 		for (int index = 0; index < data_count; index++) {
 			HashMap<String, Object> param = new HashMap<String, Object>();
-			
+
 			param.put("title", paramMap.getArray("subTitle")[index]);
 			if(index == 0) {
 				if(filePath.equals("") && paramMap.getArray("file_name")[index]!="") {
@@ -65,7 +65,7 @@ public class WebzineUpdateService {
 					param.put("file_name", filePath);
 				}
 			} else if(index != 0 && "588".equals( paramMap.getArray("type")[index] )){	//이벤트는 실제 업로드된 파일경로를 등록한다.
-				if(filePath.equals("") && paramMap.getArray("file_name")[index]!="" && paramMap.get("template_type").equals("D")) {
+				if(filePathEvent.equals("") && paramMap.getArray("file_name")[index]!="" && paramMap.get("template_type").equals("D")) {
 					param.put("file_name", paramMap.getArray("file_name")[index]);
 				}else {
 					param.put("file_name", filePathEvent);
