@@ -71,7 +71,6 @@ function getCodeList(val){
 }
 
 $(function () {
-
 	//upload file 변경시 fake file div text 변경
 	$('input[name=uploadFile]').each(function(){
 		$(this).change(function(){
@@ -101,10 +100,15 @@ $(function () {
 	var rental_pay_option			=frm.find('input[name=rental_pay_option]');
 	var rental_approval				=frm.find('input[name=rental_approval]');
 	var apply_url					=frm.find('input[name=apply_url]');
-	addr1.val(frm.find("input[name=cul_addr]").val());
-	// console.log(addr1.val()+" addr1init");
 
-	var addr_val = addr1.val();
+	var cul_place			=frm.find('input[name=cul_place]');
+	var cul_place2			=frm.find('input[name=cul_place2]');
+	var cul_gps_x			=frm.find('input[name=cul_gps_x]');
+	var cul_gps_y			=frm.find('input[name=cul_gps_y]');
+	var cul_addr			=frm.find('input[name=cul_addr]');
+
+	addr1.val(cul_addr.val());
+	// console.log(addr1.val()+" addr1init");
 
 	var str = addr1.val();
 	var arr = str.split(" ");
@@ -117,14 +121,8 @@ $(function () {
 	$("input[name=cul_place]").val(si2);
 	$("input[name=cul_place2]").val(gu2);
 
-	var cul_place			=frm.find('input[name=cul_place]');
-	var cul_place2			=frm.find('input[name=cul_place2]');
-
 	/*
-	var cul_place			=frm.find('input[name=cul_place]');
-	var cul_place2			=frm.find('input[name=cul_place2]');
-	var cul_gps_x			=frm.find('input[name=cul_gps_x]');
-	var cul_gps_y			=frm.find('input[name=cul_gps_y]');
+
 	var cul_openname			=frm.find('input[name=cul_openname]');
 	var cul_bestname			=frm.find('input[name=cul_bestname]');
 	var cul_user			=frm.find('input[name=cul_user]');
@@ -134,7 +132,6 @@ $(function () {
 	
 	//2
 	var cul_zip_yn			=frm.find('input[name=cul_zip_yn]');
-
 	var cul_post_num			=frm.find('input[name=cul_post_num]');
 	var cul_addr			=frm.find('input[name=cul_addr]');
 	var cul_openday			=frm.find('input[name=cul_openday]');
@@ -149,7 +146,8 @@ $(function () {
 	var rental_info			=frm.find('input[name=rental_info]');
 	
 	//3
-	var rental_approval			=frm.find('input[name=rental_approval]'); */
+	var rental_approval			=frm.find('input[name=rental_approval]');
+	*/
 	
 	///////////////////////////////////////////
 	changeNote = function(ele) {
@@ -282,6 +280,21 @@ $(function () {
 		if(cul_name.val() == ''){
 			alert('문화공간명 입력하세요');
 			cul_name.focus();
+			return false;
+		}
+
+		if(cul_addr.val() == ''){
+			alert('우편번호 찾기를 통해 주소를 입력하세요');
+			return false;
+		}
+
+		if(cul_gps_x.val() == ''){
+			alert('좌표찾기를 통해 좌표를 입력하세요');
+			return false;
+		}
+
+		if(cul_gps_y.val() == ''){
+			alert('좌표찾기를 통해 좌표를 입력하세요');
 			return false;
 		}
 		
@@ -442,9 +455,39 @@ $(function () {
 		$('input[name="cul_place2"]').val(gugun);
 	}
 	
-	setCoordinate = function (cul_gps_x , cul_gps_y){
+	setCoordinate = function (cul_gps_x, cul_gps_y, address, roadAddress, sido, gu, zipCode){
+		var realAddress = '';
+
+		//시일 경우 시까지만 짜른다.
+		var indexOfFirst = gu.indexOf(' ');
+		var substringVal = gu.substring(0, indexOfFirst);
+
+		if(indexOfFirst > 1){
+			gu = substringVal;
+		}
+
+		//도로명 주소가 없을 경우 지번으로 처리.
+		if(roadAddress == ''){
+			realAddress = address;
+		}else{
+			realAddress = roadAddress;
+		}
+
+		//우편번호는 도로명, 좌표는 다음을 써서 명칭이 다르다 서울일 경우 서울특별시로 변경
+		if(sido == '서울'){
+			indexOfFirst = realAddress.indexOf(' ');
+			substringVal = realAddress.substring(indexOfFirst);
+
+			realAddress = '서울특별시' + substringVal;
+		}
+
+		$('input[name=cul_place]').val(sido);
+		$('input[name=cul_place2]').val(gu);
 		$('input[name=cul_gps_x]').val(cul_gps_y);
 		$('input[name=cul_gps_y]').val(cul_gps_x);
+		$('input[name=cul_addr]').val(realAddress);
+		$('input[name=addr1]').val(realAddress);
+		$('input[name=cul_post_num]').val(zipCode);
 	}
 	
 	//2016.03.16 PCN Choi Won-Young
@@ -489,6 +532,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	var addr1=frm.find('input[name=addr1]');
 
 	addr1.val(frm.find("input[name=cul_addr]").val());
+
+	//새로운 주소를 찾을 경우 좌표값 초기화
+	var cul_gps_x=frm.find('input[name=cul_gps_x]');
+	var cul_gps_y=frm.find('input[name=cul_gps_y]');
+	cul_gps_x.val('');
+	cul_gps_y.val('');
 }
 </script>
 </head>
@@ -499,10 +548,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			<c:if test='${not empty view.cul_seq}'>
 				<input type="hidden" name="cul_seq" value="${view.cul_seq}"/>
 			</c:if>
-			<input type="hidden" value="${view.cul_place}" name="cul_place">
-			<input type="hidden" value="${view.cul_place2}" name="cul_place2">
-			<input type="hidden" value="${view.cul_gps_x }" name="cul_gps_x">
-			<input type="hidden" value="${view.cul_gps_y }" name="cul_gps_y">
 			<input type="hidden" value="" name="cul_gis_x">
 			<input type="hidden" value="" name="cul_gis_y">
 			<table summary="공연장 등록/수정">
@@ -532,7 +577,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<tr>
 						<th scope="row">문화공간명</th>
 						<td colspan="3">
-							<input type="text" name="cul_name" style="width:670px" value="${view.cul_name}" />
+							<input type="text" name="cul_name" style="width:650px" value="${view.cul_name}" />
 						</td>
 					</tr>
 					<tr>
@@ -569,7 +614,8 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<th scope="row">주소</th>
 						<td colspan="3">
 							<div class="inputBox">
-								<input type="text" name="cul_post_num" style="width:150px" value="${view.new_post_num }" readonly="readonly"/>
+								<input type="text" name="cul_post_num" style="width:70px" value="${view.new_post_num }" readonly="readonly"/>
+								<input type="text" name="cul_addr" style="width:380px" value="${view.new_addr }" readonly="readonly"/>
 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span>
 								<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
 								<div style="display:none">
@@ -579,22 +625,41 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<%--<input type="hidden" name="cul_zip_yn" value="64"/> --%>
 							</div>
 							<div class="inputBox">
-								<input type="text" name="cul_addr" style="width:670px" value="${view.new_addr }" readonly="readonly"/>
-								<input type="text" name="cul_addr2" style="width:670px" value="${view.new_addr2 }" />
+								<input type="text" name="cul_addr2" style="width:650px" value="${view.new_addr2 }" />
 								<input type="hidden" name="addr1"/>
 							</div>
 						</td>
 					</tr>
 					<tr>
+						<th scope="row">시도명</th>
+						<td>
+							<input type="text" value="${view.cul_place}" style="width:260px" name="cul_place" readonly/>
+						</td>
+						<th scope="row">구군명</th>
+						<td>
+							<input type="text" value="${view.cul_place2}" style="width:260px" name="cul_place2" readonly/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">위도</th>
+						<td>
+							<input type="text" value="${view.cul_gps_y }" style="width:260px" name="cul_gps_y" readonly/>
+						</td>
+						<th scope="row">경도</th>
+						<td>
+							<input type="text" value="${view.cul_gps_x }" style="width:260px" name="cul_gps_x" readonly/>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row">개관일</th>
 						<td colspan="3">
-							<input type="text" name="cul_openday" style="width:670px" value="${view.cul_openday}" />
+							<input type="text" name="cul_openday" style="width:650px" value="${view.cul_openday}" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">휴관일</th>
 						<td colspan="3">
-							<input type="text" name="cul_closeday" style="width:670px" value="${view.cul_closeday}" />
+							<input type="text" name="cul_closeday" style="width:650px" value="${view.cul_closeday}" />
 						</td>
 					</tr>
 					<tr>
@@ -708,7 +773,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<label><input id="charge_yn1" name="rental_charge_yn" type="radio" value="N"/> 무료</label>
         						<label><input id="charge_yn2" name="rental_charge_yn" type="radio" value="Y"/> 유료</label>
         						<span class="block">
-         							<input id="charge" value="${rentalView.charge}" name="rental_charge" title="대관금액 입력" style="width:670px" placeholder="평일/주말/공휴일/시간별 등 자세하게 작성해 주시기 바랍니다." type="text" value="" maxlength="1000"/>
+         							<input id="charge" value="${rentalView.charge}" name="rental_charge" title="대관금액 입력" style="width:650px" placeholder="평일/주말/공휴일/시간별 등 자세하게 작성해 주시기 바랍니다." type="text" value="" maxlength="1000"/>
         						</span>
         						<p style="margin-top:5px;">ex) 평일 무료, 주말 유료 1시간 기준 000원 , 30분 단위 1000원 추가</p>
 							</td>

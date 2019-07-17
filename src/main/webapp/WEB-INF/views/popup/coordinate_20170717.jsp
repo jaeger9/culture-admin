@@ -9,10 +9,7 @@
 <script type="text/javascript">
 	var gpsX = null;
 	var gpsY = null;
-	var sido = opener.document.frm.cul_place.value;
-	var gu = opener.document.frm.cul_place2.value;
 	var addr = opener.document.frm.addr1.value;
-	var zipCode = opener.document.frm.cul_post_num.value;
 
 	if(addr == '' ){
 		alert("우편번호 찾기를 통해 주소를 먼저 찾아주세요.");
@@ -27,10 +24,7 @@
 			$(this).click(function(){
 				if($(this).html() == '적용하기'){
 					if(gpsX == null || gpsY == null){alert("지도를 조작하여 좌표값을 얻어내야 합니다.");}
-					var address = $('input[name=address]').val();
-					var roadAddress = $('input[name=road_address]').val();
-					var zipCode = $('input[name=zipCode]').val();
-					window.opener.setCoordinate( gpsX, gpsY, address, roadAddress, sido, gu , zipCode );
+					window.opener.setCoordinate( gpsX , gpsY );
 					self.close();
 				}
 			});
@@ -90,39 +84,20 @@ geocoder.addressSearch(addr, function(result, status) {
 
 			infowindow.close();
 
+
+
 			searchDetailAddrFromCoords(mouseEvent.latLng, function(result, status) {
 				if (status === daum.maps.services.Status.OK) {
-					// detailAddr = !!result[0].road_address ? '<div>도로명주소 : ' + result[0].road_address.address_name + '</div>' : '';
-					// detailAddr += '<div>지번 주소 : ' + result[0].address.address_name + '</div>';
-					//
-					// var content = '<div class="bAddr">' +
-					// 				'<span class="title">주소정보</span>' +
-					// 				detailAddr +
-					// 			'</div>';
+					detailAddr = !!result[0].road_address ? '<div>도로명주소 : ' + result[0].road_address.address_name + '</div>' : '';
+					detailAddr += '<div>지번 주소 : ' + result[0].address.address_name + '</div>';
 
-					sido = result[0].address.region_1depth_name;
-					gu = result[0].address.region_2depth_name;
+					var content = '<div class="bAddr">' +
+									'<span class="title">주소정보</span>' +
+									detailAddr +
+								'</div>';
 
-					var detailAddr = '';
-					//도로명 주소가 없을 경우 지번으로 대체
-					if(result[0].road_address == null){
-						detailAddr = '<div style="width:150px;text-align:center;padding:6px 0;">' +  result[0].address.address_name + '</div>';
-						$('input[name=road_address]').val('');
-						$('input[name=zipCode]').val(result[0].address.zip_code);
-					}else{
-						detailAddr = '<div style="width:150px;text-align:center;padding:6px 0;">' +  result[0].road_address.address_name + '</div>';
-						$('input[name=road_address]').val(result[0].road_address.address_name);
-						$('input[name=zipCode]').val(result[0].road_address.zone_no);
-					}
-					var content = detailAddr;
-
-					console.log(result[0]);
-
-					//주소, 좌표값 변경
-					$('input[name=address]').val(result[0].address.address_name);
-					$('input[name=gpsX]').val(latlng.getLat());
-					$('input[name=gpsY]').val(latlng.getLng());
-
+								detailAddr22=result[0].address.address_name;
+							 //   detailAddr22=detailAddr;
 					// 마커를 클릭한 위치에 표시합니다
 					marker.setPosition(mouseEvent.latLng);
 					marker.setMap(map);
@@ -133,17 +108,17 @@ geocoder.addressSearch(addr, function(result, status) {
 				}
 			});
 
+
+			var message = '<p>지도 레벨 :  [ ' + mapOption.level + ' ]</p>';
+				message += '<p>지도 위도 : [ ' + latlng.getLat() + ' ] </br>지도 경도 : [ ' + latlng.getLng() + ' ]</p>';
+
 			gpsX = latlng.getLat();
 			gpsY = latlng.getLng();
 
-			//지도 레벨 정상작동 안한다. 데이터 관리를 위해 단순 text innerHTML에서 input으로 관리 - 20190716
-			// var message = '<p>지도 레벨 :  [ ' + mapOption.level + ' ]</p>';
-			// 	message += '<p>지도 위도 : [ ' + latlng.getLat() + ' ] </br>지도 경도 : [ ' + latlng.getLng() + ' ]</p>';
+			var resultDiv = document.getElementById('result');
+			resultDiv.innerHTML = message;
 
-			// var resultDiv = document.getElementById('result');
-			// resultDiv.innerHTML = message;
 		});
-
         // 인포윈도우로 장소에 대한 설명을 표시합니다
         var infowindow = new daum.maps.InfoWindow({
             content: '<div style="width:150px;text-align:center;padding:6px 0;">'+addr+'</div>'
@@ -156,26 +131,17 @@ geocoder.addressSearch(addr, function(result, status) {
         
      	// 지도의  레벨을 얻어옵니다
 	    var level = map.getLevel();
-
 	    // 지도의 중심좌표를 얻어옵니다 
 	    var latlng = map.getCenter();
-
-		gpsX = latlng.getLat();
-		gpsY = latlng.getLng();
-
-		//지도 레벨 정상작동 안한다. 데이터 관리를 위해 단순 text innerHTML에서 input으로 관리 - 20190716
-		// var message = '<p>지도 레벨 :  [ ' + mapOption.level + ' ]</p>';
-		// 	message += '<p>지도 위도 : [ ' + latlng.getLat() + ' ] </br>지도 경도 : [ ' + latlng.getLng() + ' ]</p>';
-
-		// var resultDiv = document.getElementById('result');
-		// resultDiv.innerHTML = message;
-
-		//주소, 좌표값 변경
-		$('input[name=address]').val(result[0].address.address_name);
-		$('input[name=road_address]').val(result[0].road_address.address_name);
-		$('input[name=gpsX]').val(latlng.getLat());
-		$('input[name=gpsY]').val(latlng.getLng());
-		$('input[name=zipCode]').val(zipCode);
+	    
+        var message = '<p>지도 레벨 :  [ ' + level + ' ]</p>';
+	    message += '<p>지도 위도 : [ ' + latlng.getLat() + ' ] </br>지도 경도 : [ ' + latlng.getLng() + ' ]</p>';
+	    
+	    gpsX = latlng.getLat();
+	    gpsY = latlng.getLng();
+	
+	    var resultDiv = document.getElementById('result');
+	    resultDiv.innerHTML = message;
     } 
 });
 
@@ -211,42 +177,7 @@ function displayCenterInfo(result, status) {
 }
 	
 	</script>
-	<%--<p id="result"></p>--%>
-	<br/>
-	<input type="hidden" name="zipCode" value="" readonly/>
-	<table summary="주소 정보">
-		<caption>주소 정보</caption>
-		<colgroup>
-			<col style="width:17%" />
-			<col style="width:83%" />
-		</colgroup>
-		<tbody>
-			<tr>
-				<th scope="row">지번</th>
-				<td>
-					<input type="text" style="width:70%;" name="address" value="" readonly/>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">도로명 주소</th>
-				<td>
-					<input type="text" style="width:70%;" name="road_address" value="" readonly/>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">지도 위도</th>
-				<td>
-					<input type="text" style="width:40%;" name="gpsX" value="" readonly/>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">지도 경도</th>
-				<td>
-					<input type="text" style="width:40%;" name="gpsY" value="" readonly/>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+	<p id="result"></p>
 	<div class="btnBox">
 		<span class="btn dark fr"><a href="#" class="close_btn">적용하기</a></span>
 	</div>

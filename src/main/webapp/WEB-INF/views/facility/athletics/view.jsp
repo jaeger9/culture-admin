@@ -8,9 +8,8 @@
 
 <script type="text/javascript">
 var saddr = "";
+
 $(function () {
-	
-	
 	var address0 = "${view.address}";
 //	alert(address0);
 	if(address0){
@@ -23,10 +22,19 @@ $(function () {
 		var culaddr2 = arr.pop();
 
 		culaddr=culaddr.join(" ");
-		console.log("arr== " + arr.pop());
+
 		$('input[name=addr1]').val(culaddr);
 		$('input[name=address]').val(culaddr);
 		$('input[name=address2]').val(culaddr2);
+
+		var frm = $('form[name=frm]');
+		var cul_gps_x=frm.find('input[name=gpsx]');
+		var cul_gps_y=frm.find('input[name=gpsy]');
+		var cul_addr=culaddr;
+
+		//좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.
+		$('input[name="cul_place"]').val(frm.find('input[name=sido]').val());		//기본주소
+		$('input[name="cul_place2"]').val(frm.find('input[name=gugun]').val());	//상세주소
 	}
 
 	var frm = $('form[name=frm]');
@@ -64,6 +72,16 @@ $(function () {
 			    $('input[name=gugun]').focus();
 			    return false;
 			}
+
+			if($('input[name=gpsx]').val() == '') {
+				alert('좌표찾기를 통해 좌표를 입력하세요');
+				return false;
+			}
+
+			if($('input[name=gpsy]').val() == '') {
+				alert('좌표찾기를 통해 좌표를 입력하세요');
+				return false;
+			}
 			
 			if($('select[name=startampm] > option:selected').val()) {
 				
@@ -98,7 +116,6 @@ $(function () {
 		return true;
 	});
 	
-	
 	$('span.btn.whiteS a').click(function(){
 		if( $(this).html() == '우편번호찾기'){
     		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
@@ -123,7 +140,6 @@ $(function () {
     		}
     	}
   	});
-
 	
 	//수정 , 삭제 , 등록 
 	$('span > button').each(function() {
@@ -159,21 +175,45 @@ $(function () {
         	}   		
     	});
 	});
-	
-	
+
 	//좌표
-	setCoordinate = function (cul_gps_x , cul_gps_y){
+	setCoordinate = function (cul_gps_x, cul_gps_y, address, roadAddress, sido, gu, zipCode){
+		var realAddress = '';
+
+		//시일 경우 시까지만 짜른다.
+		var indexOfFirst = gu.indexOf(' ');
+		var substringVal = gu.substring(0, indexOfFirst);
+
+		if(indexOfFirst > 1){
+			gu = substringVal;
+		}
+
+		//도로명 주소가 없을 경우 지번으로 처리.
+		if(roadAddress == ''){
+			realAddress = address;
+		}else{
+			realAddress = roadAddress;
+		}
+
+		//우편번호는 도로명, 좌표는 다음을 써서 명칭이 다르다 서울일 경우 서울특별시로 변경
+		if(sido == '서울'){
+			indexOfFirst = realAddress.indexOf(' ');
+			substringVal = realAddress.substring(indexOfFirst);
+
+			realAddress = '서울특별시' + substringVal;
+		}
+
+		$('input[name=cul_place]').val(sido);
+		$('input[name=cul_place2]').val(gu);
+		$('input[name=sido]').val(sido);
+		$('input[name=gugun]').val(gu);
 		$('input[name=gpsx]').val(cul_gps_x);
 		$('input[name=gpsy]').val(cul_gps_y);
+		$('input[name=cul_addr]').val(realAddress);
+		$('input[name=address]').val(realAddress);
+		$('input[name=addr1]').val(realAddress);
 	}
-	
-	
-	
-
 });
-
-
-
 
 //도로명주소 Open Api
 function jusoCallBack(sido, gugun, addr, addr2, zipNo){
@@ -203,11 +243,17 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	
 	$('input[name="cul_addr"]').val(addr);		//기본주소
 	$('input[name="cul_addr2"]').val(addr2);	//상세주소
+
+	//좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.
+	$('input[name="cul_place"]').val(sido);		//기본주소
+	$('input[name="cul_place2"]').val(gugun);	//상세주소
+	$('input[name=cul_post_num]').val(zipNo);
+
+	$('input[name="gpsx"]').val('');	//위도
+	$('input[name="gpsy"]').val('');	//경도
 	
 	saddr = addr;
-	
 }
-
 </script>
 </head>
 <body>
@@ -217,12 +263,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			<c:if test='${not empty view.seq}'>
 				<input type="hidden" name="seq" value="${view.seq}"/>
 			</c:if>
+			<%--좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.--%>
+			<input type="hidden" name="cul_place" id="cul_place" value=""/>
+			<input type="hidden" name="cul_place2" id="cul_place2" value=""/>
+			<input type="hidden" name="cul_post_num" id="cul_post_num" value=""/>
 			
-			<input type="hidden"  name="cul_addr" id="cul_addr" value="${view.address}"/>
-			<input type="hidden"  name="cul_addr2" id="cul_addr2" value=""/>
-			
+			<input type="hidden" name="cul_addr" id="cul_addr" value="${view.address}"/>
+			<input type="hidden" name="cul_addr2" id="cul_addr2" value=""/>
 			<input type="hidden" name="addr1" id="addr1"/>
-			
 			
 			<table summary="체육시설 등록/수정">
 				<caption>체육시설 등록/수정</caption>
@@ -271,22 +319,23 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<th scope="row"><span style="color: red">*</span> 도로명주소</th>
 						<td colspan="3">
 							<div class="inputBox">
-								
-								<input type="text" name="address"  id="address" value="${view.address }" maxlength="300" style="width:300px;"/>
-								<input type="text" name="address2"  id="address2" " maxlength="100" style="width:100px;" />
+								<input type="text" name="address"  id="address" value="${view.address }" maxlength="300" style="width:450px;" readonly/>
 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span>
 								<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
-							</div>						
+							</div>
+							<div class="inputBox">
+								<input type="text" name="address2"  id="address2" maxlength="100" style="width:622px;" />
+							</div>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><span style="color: red">*</span> 시도명</th>
 						<td>
-							<input type="text" name="sido" id="sido" value="${view.sido}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="sido" id="sido" value="${view.sido}" maxlength="50" style="width:200px;" readonly/>
 						</td>
 						<th scope="row"><span style="color: red">*</span> 구군명</th>
 						<td>
-							<input type="text" name="gugun" id="gugun" value="${view.gugun}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="gugun" id="gugun" value="${view.gugun}" maxlength="50" style="width:200px;" readonly/>
 						</td>
 					</tr>
 					<tr>
@@ -302,11 +351,11 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<tr>
 						<th scope="row">위도</th>
 						<td>
-							<input type="text" name="gpsx" value="${view.gpsx}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="gpsx" value="${view.gpsx}" maxlength="50" style="width:200px;" readonly/>
 						</td>
 						<th scope="row">경도</th>
 						<td>
-							<input type="text" name="gpsy" value="${view.gpsy}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="gpsy" value="${view.gpsy}" maxlength="50" style="width:200px;" readonly/>
 						</td>					
 					</tr>
 					<tr>

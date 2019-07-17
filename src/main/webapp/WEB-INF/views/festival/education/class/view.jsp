@@ -52,7 +52,6 @@ function changeName(){
 
 
 $(function () {
-	
 	//alert("before=== " + $('input[name=free_yn_before]').val());
 	//var before = $("input[name='free_yn_before']").is("checked").val();
 	var before= $("input:checkbox[name='free_yn_before']:checked").val();
@@ -111,6 +110,11 @@ $(function () {
 	var venue						= frm.find('input[name=venue]');
 	var instructor					= frm.find('input[name=instructor]');
 	var charge						= frm.find('input[name=charge]');
+
+	var cul_gps_x			=frm.find('input[name=gps_lat]');
+	var cul_gps_y			=frm.find('input[name=gps_lng]');
+
+	frm.find('input[name=cul_post_num]').val(zip_code.val());
 	
 	changeNote = function(ele) {
 		if(ele) checked = ele.val();
@@ -161,6 +165,22 @@ $(function () {
 		if(action == 'delete'){
 			return true;
 		}
+
+		if(addr1.val() == ''){
+			alert('우편번호 찾기를 통해 주소를 입력하세요');
+			return false;
+		}
+
+		if(cul_gps_x.val() == ''){
+			alert('좌표찾기를 통해 좌표를 입력하세요');
+			return false;
+		}
+
+		if(cul_gps_y.val() == ''){
+			alert('좌표찾기를 통해 좌표를 입력하세요');
+			return false;
+		}
+
 		/* 
 		if(home_page.val() ==''){
 			alert('홈페이지 입력하세요');
@@ -306,7 +326,7 @@ $(function () {
 	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=570,height=625');
 	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
 	    	} else if( $(this).html() == '좌표찾기'){
-	    		window.open('/popup/coordinate.do?from=edu', 'coordinatePopup', 'scrollbars=yes,width=500,height=450');
+				window.open('/popup/coordinate.do?from=edu','coordinatePopup', 'scrollbars=yes,width=500,height=550');
 	    	}
 	  	});
 	});
@@ -348,17 +368,89 @@ $(function () {
 		$('input[name=addr1]').val(sido+ " " +gugun+ " " +dong+ " " +(gi_num2 != "" ? gi_num1+"-"+gi_num2 : gi_num1) );
 	}
 	
-	setCoordinate = function (cul_gps_x , cul_gps_y){
-		$('input[name=gps_lng]').val(cul_gps_x);
-		$('input[name=gps_lat]').val(cul_gps_y);
+	setCoordinate = function (cul_gps_x, cul_gps_y, address, roadAddress, sido, gu, zipCode){
+		var realAddress = '';
+
+		//시일 경우 시까지만 짜른다.
+		var indexOfFirst = gu.indexOf(' ');
+		var substringVal = gu.substring(0, indexOfFirst);
+
+		if(indexOfFirst > 1){
+			gu = substringVal;
+		}
+
+		//도로명 주소가 없을 경우 지번으로 처리.
+		if(roadAddress == ''){
+			realAddress = address;
+		}else{
+			realAddress = roadAddress;
+		}
+
+		//우편번호는 도로명, 좌표는 다음을 써서 명칭이 다르다 서울일 경우 서울특별시로 변경
+		if(sido == '서울'){
+			indexOfFirst = realAddress.indexOf(' ');
+			substringVal = realAddress.substring(indexOfFirst);
+
+			realAddress = '서울특별시' + substringVal;
+		}
+
+		$('input[name=cul_place]').val(sido);
+		$('input[name=cul_place2]').val(gu);
+		$('input[name=gps_lng]').val(cul_gps_y);
+		$('input[name=gps_lat]').val(cul_gps_x);
+		$('input[name=addr1]').val(realAddress);
+		$('input[name=cul_post_num]').val(zipCode);
+		$('input[name=zip_code]').val(zipCode);	//우편번호
+
+		//지역번호 체크
+		if(sido == '서울'){
+			$('input[name=location]').val('02');
+		}else if(sido == '경기'){
+			$('input[name=location]').val('031');
+		}else if(sido == '인천'){
+			$('input[name=location]').val('032');
+		}else if(sido == '강원'){
+			$('input[name=location]').val('033');
+		}else if(sido == '충남'){
+			$('input[name=location]').val('041');
+		}else if(sido == '대전'){
+			$('input[name=location]').val('042');
+		}else if(sido == '충북'){
+			$('input[name=location]').val('043');
+		}else if(sido == '세종'){
+			$('input[name=location]').val('044');
+		}else if(sido == '부산'){
+			$('input[name=location]').val('051');
+		}else if(sido == '울산'){
+			$('input[name=location]').val('052');
+		}else if(sido == '대구'){
+			$('input[name=location]').val('053');
+		}else if(sido == '경북'){
+			$('input[name=location]').val('054');
+		}else if(sido == '경남'){
+			$('input[name=location]').val('055');
+		}else if(sido == '전남'){
+			$('input[name=location]').val('061');
+		}else if(sido == '광주'){
+			$('input[name=location]').val('062');
+		}else if(sido == '전북'){
+			$('input[name=location]').val('063');
+		}else if(sido == '제주'){
+			$('input[name=location]').val('064');
+		}
 	}
 });
 
 //도로명주소 Open Api
 function jusoCallBack(sido, gugun, addr, addr2, zipNo){	
 	$('input[name=zip_code]').val(zipNo);	//우편번호
+	$('input[name=cul_post_num]').val(zipNo);
 	$('input[name=addr1]').val(addr);		//기본주소
 	$('input[name=addr2]').val(addr2);		//상세주소
+
+	//새로운 주소를 찾을 경우 좌표값 초기화
+	$('input[name=gps_lng]').val('');
+	$('input[name=gps_lat]').val('');
 }
 </script>
 </head>
@@ -368,6 +460,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		<c:if test='${not empty view.seq}'>
 			<input type="hidden" name="seq" value="${view.seq}"/>
 		</c:if>
+
+		<%--좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.--%>
+		<input type="text" name="cul_place" id="cul_place" value=""/>
+		<input type="text" name="cul_place2" id="cul_place2" value=""/>
+		<input type="text" name="cul_post_num" id="cul_post_num" value=""/>
+
 		<div class="tableWrite">	
 			<div class="tableWrite">
 				<table summary="교육  작성">
@@ -375,7 +473,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<colgroup>
 						<col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
 					<tbody>
-						
 						<tr>
 							<th scope="row">장르</th>
 								<c:if test="${empty view }">
@@ -402,7 +499,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="title" id="title" style="width:670px"  value="${view.title }">
 							</td>
 						</tr>
-							<tr>
+						<tr>
 							<th scope="row">주최/주관</th>
 							<td colspan="3">
 								<input type="text" name="rights" style="width:670px"  value="${view.rights }">
@@ -422,10 +519,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="venue" style="width:670px" value="${view.venue }" />
 							</td>
 						</tr>
-					
-					
-						
-					
 						<tr>
 							<th scope="row" id="instructorName">강사</th>
 							<td colspan="3">
@@ -474,12 +567,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="tel" style="width:100px" value="${view.tel}"/>
 							</td>
 						</tr>
-						
-							<tr>
+						<tr>
 							<th scope="row">교육기관<br/>주소</th>
 							<td colspan="3">
 								<div class="inputBox">
-									<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
+									<input type="text" name="zip_code" style="width:70px" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
+									<input type="text" name="addr1" style="width:414px" style="width:670px" value="${view.addr1 }" readonly="readonly"/>
 									<span class="btn whiteS"><a href="#url" addrType="academy">우편번호찾기</a></span>
 									<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
 									<div style="display:none">
@@ -488,43 +581,49 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 									</div>
 								</div>
 								<div class="inputBox">
-									<input type="text" name="addr1" style="width:670px" value="${view.addr1 }" readonly="readonly"/>
 									<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
 								</div>
 								<div class="inputBox">
-									<input type="hidden" name="gps_lat" style="width:150px" value="${view.gps_lat }" />
-									<input type="hidden" name="gps_lng" style="width:150px" value="${view.gps_lng }" />
-									
 									<input type="hidden" name="location" style="width:150px" value="${view.location }" />
 								</div>
 							</td>
 						</tr>
 						<tr>
+							<th scope="row">위도</th>
+							<td>
+								<input type="text" name="gps_lat" style="width:150px" value="${view.gps_lat }" />
+							</td>
+							<th scope="row">경도</th>
+							<td>
+								<input type="text" name="gps_lng" style="width:150px" value="${view.gps_lng }" />
+							</td>
+						</tr>
+						<tr>
 							<th scope="row">제3자<br/>공개동의여부</th>
-								<td colspan="3">
-									<div class="inputBox">
-								 		<c:if test="${empty view}">
-										<label>
-											<input type="radio" name="open_api_agree" value="Y" checked="checked"  /> 동의
-										</label>
-										<label>
-											<input type="radio" name="open_api_agree" value="N"  /> 미동의
-										</label>
-							 			</c:if>
-							  			<c:if test="${!empty view}">
-											${view.open_api_agree }
-							 			</c:if>
-									</div>
-								</td>
-					</tr>
-					<c:if test="${not empty view}">
-					<tr>
-						<th scope="row">출처</th>
-						<td colspan="3">
-							${view.site_name_value }
-						</td>
-					</tr>
-					</c:if>
+							<td colspan="3">
+								<div class="inputBox">
+									<c:if test="${empty view}">
+									<label>
+										<input type="radio" name="open_api_agree" value="Y" checked="checked"  /> 동의
+									</label>
+									<label>
+										<input type="radio" name="open_api_agree" value="N"  /> 미동의
+									</label>
+									</c:if>
+									<c:if test="${!empty view}">
+										${view.open_api_agree }
+									</c:if>
+								</div>
+							</td>
+						</tr>
+						<c:if test="${not empty view}">
+						<tr>
+							<th scope="row">출처</th>
+							<td colspan="3">
+								${view.site_name_value }
+							</td>
+						</tr>
+						</c:if>
 						<tr>
 							<th scope="row">승인여부</th>
 							<td colspan="3">
@@ -535,14 +634,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								</div>
 							</td>
 						</tr>
-							<tr>
+						<tr>
 							<th scope="row">작성자</th>
 							<td colspan="3">
 								<input type="hidden" name="user_id" value="${empty view.user_id ? sessionScope.admin_id : view.user_id }">${empty view.user_id ? sessionScope.admin_id : view.user_id }
 							</td>
 						</tr>
-						
-						<!-- <tr>
+						<!--
+						<tr>
 							<th scope="row">모집구분</th>
 							<td colspan="3">
 								<select title="지역번호 선택하세요" name="apply_type">
@@ -560,7 +659,8 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 									<input type="hidden" style="width:50px" name="apply_person"/> 
 								</div>
 							</td>
-						</tr> -->
+						</tr>
+						-->
 						<input type="hidden" name="apply_type" value="ad"/>
 						<tr class="jqApplyType">
 							<th scope="row">모집 기간</th>
@@ -570,7 +670,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								<input type="text" name="apply_end_dt" value="${view.apply_end_dt}" />
 							</td>
 						</tr>
-						
 						<tr class="jqApplyType">
 							<th scope="row">승인구분</th>
 							<td colspan="3">
@@ -586,20 +685,15 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 								</div>
 							</td>
 						</tr>
-						</tr>
-						
-					
 					</tbody>
 				</table>
 			</div>
 		</div>
-		
 		<div class="sTitBar">
 			<h4>
 				<label>상세정보</label>
 			</h4>
 		</div>
-		
 		<div class="tableWrite">	
 			<table summary="축제/행사 컨텐츠 작성">
 			<caption>축제/행사 컨텐츠 글쓰기</caption>
@@ -633,7 +727,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			</tbody>
 			</table>
 		</div>
-		
 	</form>
 	<div class="btnBox textRight">
 		<c:if test='${not empty view}'>
