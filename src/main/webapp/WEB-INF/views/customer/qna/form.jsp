@@ -93,6 +93,12 @@ $(function () {
 			return false;
 		});		
 	}
+	
+//	var seqNum = ${view.seq};
+//	$("#reurl").attr("href", "https://www.culture.go.kr/info/inquireDownFile.do?seq=356");
+
+
+
 
 });
 </script>
@@ -162,6 +168,27 @@ $(function () {
 					<th scope="row">제목</th>
 					<td colspan="3">
 						${view.title }
+					</td>
+				</tr>
+<%-- 				<tr>
+					<th scope="row">파일</th>
+					
+					<td colspan="3">
+							${view.file_name }
+					</td>
+				</tr> --%>
+				<tr>
+					<th scope="row">다운로드</th>
+					<td colspan="3">
+						<%-- <c:if test="${not empty view.file_sysname }"> --%>
+						<%-- 	<c:url var="urlFile" value="http://www.culture.go.kr/download.do">
+								<c:param name="filename" value="/contest/${view.file_sysname }" />
+								<c:param name="orgname" value="${view.file_name }" />
+							</c:url>
+							<a href="${urlFile }" target="_blank">${view.file_name }</a>
+						</c:if>
+						<c:if test="${empty view.file_sysname }">-</c:if> --%>
+						<a id="reurl" href="https://www.culture.go.kr/info/inquireDownFile.do?seq=${view.seq}">${view.file_name}</a>
 					</td>
 				</tr>
 				<tr>

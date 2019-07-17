@@ -7,8 +7,27 @@
 <head>
 
 <script type="text/javascript">
-
+var saddr = "";
 $(function () {
+	
+	
+	var address0 = "${view.address}";
+//	alert(address0);
+	if(address0){
+	    var str = address0;
+	    var arr = str.split(" ");
+	    var arrArray = new Array(arr);
+		var culaddr = arrArray.pop();
+		
+		
+		var culaddr2 = arr.pop();
+
+		culaddr=culaddr.join(" ");
+		console.log("arr== " + arr.pop());
+		$('input[name=addr1]').val(culaddr);
+		$('input[name=address]').val(culaddr);
+		$('input[name=address2]').val(culaddr2);
+	}
 
 	var frm = $('form[name=frm]');
 
@@ -88,6 +107,18 @@ $(function () {
     			alert('도로명주소를 입력해주세요');
     			return false;
     		}else{
+    			
+    		/* 	    var str = $('input[name=cul_addr]').val();
+				    var arr = str.split(" ");
+				    var arrArray = new Array(arr);
+				    
+     				var culaddr = arrArray.pop();
+     				console.log("arr== " + arr.pop());
+     				var fruits = ["Apple", "Banana", "Orange", "Strawberry"];
+					var pop = fruits.pop();
+
+					culaddr=culaddr.join(" ");
+    			$('input[name=addr1]').val(culaddr); */
     			window.open('/popup/coordinate.do','coordinatePopup', 'scrollbars=yes,width=500,height=550');	
     		}
     	}
@@ -97,6 +128,14 @@ $(function () {
 	//수정 , 삭제 , 등록 
 	$('span > button').each(function() {
     	$(this).click(function() { 
+    		
+    		var address1 = $("#address").val();
+    		var address2 = $("#address2").val();
+    		
+    		$("#address").val(address1 + " " + address2);
+    		
+    	//	alert($("#address").val());
+    		
         	if($(this).html() == '수정') { 
         		if (!confirm('수정하시겠습니까?')) {
         			return false;
@@ -124,9 +163,12 @@ $(function () {
 	
 	//좌표
 	setCoordinate = function (cul_gps_x , cul_gps_y){
-		$('input[name=gpsx]').val(cul_gps_y);
-		$('input[name=gpsy]').val(cul_gps_x);
+		$('input[name=gpsx]').val(cul_gps_x);
+		$('input[name=gpsy]').val(cul_gps_y);
 	}
+	
+	
+	
 
 });
 
@@ -152,10 +194,18 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	
 	$('input[name="sido"]').val(sido);		//시도
 	$('input[name="gugun"]').val(gugun);	//구군
-	$('input[name="address"]').val(addr + ' ' + addr2);		//기본주소 + 상세주소
+	//$('input[name="address"]').val(addr + ' ' + addr2);		//기본주소 + 상세주소
+	
+	$('input[name="address"]').val(addr);
+	$('input[name="address2"]').val(addr2);
+	
+	$('input[name="addr1"]').val(addr);
 	
 	$('input[name="cul_addr"]').val(addr);		//기본주소
 	$('input[name="cul_addr2"]').val(addr2);	//상세주소
+	
+	saddr = addr;
+	
 }
 
 </script>
@@ -168,8 +218,10 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 				<input type="hidden" name="seq" value="${view.seq}"/>
 			</c:if>
 			
-			<input type="hidden"  name="cul_addr" value="${view.address }"/>
-			<input type="hidden"  name="cul_addr2" value=""/>
+			<input type="hidden"  name="cul_addr" id="cul_addr" value="${view.address}"/>
+			<input type="hidden"  name="cul_addr2" id="cul_addr2" value=""/>
+			
+			<input type="hidden" name="addr1" id="addr1"/>
 			
 			
 			<table summary="체육시설 등록/수정">
@@ -219,7 +271,9 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<th scope="row"><span style="color: red">*</span> 도로명주소</th>
 						<td colspan="3">
 							<div class="inputBox">
-								<input type="text" name="address" value="${view.address }" maxlength="500" style="width:450px;"/>
+								
+								<input type="text" name="address"  id="address" value="${view.address }" maxlength="300" style="width:300px;"/>
+								<input type="text" name="address2"  id="address2" " maxlength="100" style="width:100px;" />
 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span>
 								<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
 							</div>						
@@ -228,11 +282,11 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 					<tr>
 						<th scope="row"><span style="color: red">*</span> 시도명</th>
 						<td>
-							<input type="text" name="sido" value="${view.sido}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="sido" id="sido" value="${view.sido}" maxlength="50" style="width:200px;"/>
 						</td>
 						<th scope="row"><span style="color: red">*</span> 구군명</th>
 						<td>
-							<input type="text" name="gugun" value="${view.gugun}" maxlength="50" style="width:200px;"/>
+							<input type="text" name="gugun" id="gugun" value="${view.gugun}" maxlength="50" style="width:200px;"/>
 						</td>
 					</tr>
 					<tr>

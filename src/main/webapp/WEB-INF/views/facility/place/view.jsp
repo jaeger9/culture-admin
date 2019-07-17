@@ -81,11 +81,14 @@ $(function () {
 	
 	var frm = $('form[name=frm]');
 	var addr1=frm.find('input[name=addr1]');
-	
+
+	/*
+	사용 안함 - 2019-07-16
 	$("input[name=cul_addr]").on("change",function(){
 		addr1.val(frm.find("input[name=cul_addr]").val());
 		console.log(addr1.val()+" addr1change");
 	});
+	*/
 	
 	var reg_date_start = frm.find('input[name=reg_start]');
 	var reg_date_end = frm.find('input[name=reg_end]');
@@ -99,8 +102,26 @@ $(function () {
 	var rental_approval				=frm.find('input[name=rental_approval]');
 	var apply_url					=frm.find('input[name=apply_url]');
 	addr1.val(frm.find("input[name=cul_addr]").val());
-	console.log(addr1.val()+" addr1init");
-	/* var cul_place			=frm.find('input[name=cul_place]');
+	// console.log(addr1.val()+" addr1init");
+
+	var addr_val = addr1.val();
+
+	var str = addr1.val();
+	var arr = str.split(" ");
+	var si = arr[0];
+	var gu = arr[1];
+
+	var si2=si.substr(0,2);
+	var gu2=gu;
+
+	$("input[name=cul_place]").val(si2);
+	$("input[name=cul_place2]").val(gu2);
+
+	var cul_place			=frm.find('input[name=cul_place]');
+	var cul_place2			=frm.find('input[name=cul_place2]');
+
+	/*
+	var cul_place			=frm.find('input[name=cul_place]');
 	var cul_place2			=frm.find('input[name=cul_place2]');
 	var cul_gps_x			=frm.find('input[name=cul_gps_x]');
 	var cul_gps_y			=frm.find('input[name=cul_gps_y]');
@@ -194,7 +215,7 @@ $(function () {
 	}
 	// 에디터 HTML 적용
 	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
-//	nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+	//	nhn.husky.EZCreator.createInIFrame( oEditorsOption );
 	 
 	//썸네일 이미지 	 
 	changeNote();
@@ -422,8 +443,8 @@ $(function () {
 	}
 	
 	setCoordinate = function (cul_gps_x , cul_gps_y){
-		$('input[name=cul_gps_x]').val(cul_gps_x);
-		$('input[name=cul_gps_y]').val(cul_gps_y);
+		$('input[name=cul_gps_x]').val(cul_gps_y);
+		$('input[name=cul_gps_y]').val(cul_gps_x);
 	}
 	
 	//2016.03.16 PCN Choi Won-Young
@@ -463,6 +484,11 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	$('input[name=cul_post_num]').val(zipNo);	//우편번호
 	$('input[name=cul_addr]').val(addr);		//기본주소
 	$('input[name=cul_addr2]').val(addr2);		//상세주소
+
+	var frm = $('form[name=frm]');
+	var addr1=frm.find('input[name=addr1]');
+
+	addr1.val(frm.find("input[name=cul_addr]").val());
 }
 </script>
 </head>

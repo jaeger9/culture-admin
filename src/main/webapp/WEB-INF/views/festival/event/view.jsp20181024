@@ -1,0 +1,496 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt_rt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+<!-- 
+	20151006 : 이용환 : 에디터 변경을 위해 수정 
+<script type="text/javascript" src="/editor/js/HuskyEZCreator.js" charset="utf-8"></script>
+ -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
+
+<script type="text/javascript">
+var action = "";
+
+var callback = {
+	postalcode :function(res) {
+		/*
+			res = {
+			    "buil_num2": 0,
+			    "buil_num1": 63,
+			    "road_name": "구로동로13길",
+			    "zip_code": 152800,
+			    "gi_num2": 2,
+			    "gi_num1": 1,
+			    "dong_name1": "가리봉동",
+			    "gu_name": "구로구",
+			    "sido_name": "서울특별시"
+			}
+		*/
+		if (res == null) {
+			alert('callback data null');
+			return false;
+		}
+		
+		var zip_code = res.zip_code.toString();
+		
+		if($('input[name=zip_yn]:checked').val() == 63)
+			setZipCode(res.sido_name , res.gu_name , res.dong_name1 , res.gi_num1 , res.gi_num2 , zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
+		else if($('input[name=zip_yn]:checked').val() == 64)
+			setZipCode(res.sido_name , res.gu_name , res.road_name , res.buil_num1 , res.buil_num2 , zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
+		
+		// 신주소 : 구주소
+		var sidoObj = {
+			'강원도'			:	'강원',
+			'경기도'			:	'경기',
+			'경상남도'		:	'경남',
+			'경상북도'		:	'경북',
+			'광주광역시'		:	'광주',
+			'대구광역시'		:	'대구',
+			'대전광역시'		:	'대전',
+			'부산광역시'		:	'부산',
+			'서울특별시'		:	'서울',
+			'세종특별자치시'	:	'세종',
+			'울산광역시'		:	'울산',
+			'인천광역시'		:	'인천',
+			'전라남도'		:	'전남',
+			'전라북도'		:	'전북',
+			'제주특별자치도'	:	'제주',
+			'충청남도'		:	'충남',
+			'충청북도'		:	'충북'
+		};
+		var sido = res.sido_name;
+
+		if (sido != '') {
+			if (sidoObj[sido] != undefined) {
+				sido = sidoObj[sido];
+			}
+			
+			$('form[name=frm] select[name=location] option').each(function () {
+				if ($(this).text() == sido) {
+					$(this).prop('selected', true);
+					return false;	
+				}
+			});
+		}
+	}
+};
+
+$(function () {
+	
+	var frm = $('form[name=frm]');
+	var reg_date_start 	= frm.find('input[name=reg_start]');
+	var reg_date_end 	= frm.find('input[name=reg_end]');
+	
+	var title			= frm.find('input[name=title]');
+	var venue			= frm.find('input[name=venue]');
+	var zip_code		= frm.find('input[name=zip_code]');
+	var addr1			= frm.find('input[name=addr1]');
+	var addr2			= frm.find('input[name=addr2]');
+	var rights			= frm.find('input[name=rights]');
+	var home_page		= frm.find('input[name=home_page]');
+	var reference		= frm.find('input[name=reference]');
+	var url				= frm.find('input[name=url]');
+	var request			= frm.find('input[name=request]');
+	
+	changeNote = function(ele) {
+		if(ele) checked = ele.val();
+		else checked = $(':radio[name=note1]:checked').val();
+	
+		if(checked == 'Y') {
+			$('input[name=reference_identifier]').hide();
+		    $('div.fileInputs').show();
+		    $('input[name=imagedelete]').parent().show();
+		} else if(checked == 'N') {
+			$('input[name=reference_identifier]').show();
+			$('div.fileInputs').hide();
+			$('input[name=imagedelete]').parent().hide();
+		}
+	}
+	//layout
+	
+	new Datepicker(reg_date_start, reg_date_end);
+	
+	//upload file 변경시 fake file div text 변경
+	$('input[name=uploadFile]').each(function(){
+		$(this).change(function(){
+			$(this).next().find('input.inputText').val($(this).val());
+		});
+	});
+	
+	//radio check
+	if('${view.genre}')$('input:radio[name="genre"][value="${view.genre}"]').prop('checked', 'checked');
+	if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
+	if('${view.note1}')$('input:radio[name="note1"][value="${view.note1}"]').prop('checked', 'checked');
+	if('${view.zip_yn}')$('input:radio[name="zip_yn"][value="${view.zip_yn}"]').prop('checked', 'checked');
+	
+	//select selected
+	if('${view.location}')$("select[name=location]").val('${view.location}').attr("selected", "selected");
+	
+	// 에디터 HTML 적용
+	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+//	nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+	 
+	//썸네일 이미지 	 
+	changeNote();
+	
+	$('input[name=note1]').change(function(){
+		changeNote($(this));
+	})
+		
+	//URL 미리보기
+	goLink = function() { 
+		window.open($('input[name=url]').val());
+	}
+	
+	//공연상 선택
+	$('span.btn.whiteS a').each(function(){
+	  	$(this).click(function(){
+	  		if( $(this).html() == '우편번호찾기'){
+	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
+	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
+	    	}
+	  	});
+	});
+	
+	frm.submit(function(){
+		//DB NOT NULL 기준 체크
+		if(action == 'delete'){
+			return true;
+		}
+		/* 
+		if(title.val() ==''){
+			alert('제목 입력하세요');
+			title.focus();
+			return false;
+		}
+
+		if(reg_date_start.val() ==''){
+			alert('시작일 입력하세요');
+			reg_date_start.focus();
+			return false;
+		}
+
+		if(reg_date_end.val() ==''){
+			alert('종료일 입력하세요');
+			reg_date_end.focus();
+			return false;
+		}
+		if(venue.val() ==''){
+			alert('장소 입력하세요');
+			venue.focus();
+			return false;
+		}
+
+		if(zip_code.val() ==''){
+			alert('우편번호 선택하세요');
+			zip_code.focus();
+			return false;
+		}
+
+		if(addr1.val() ==''){
+			alert('주소 선택하세요');
+			addr1.focus();
+			return false;
+		}
+
+		if(addr2.val() ==''){
+			alert('상세주소 입력하세요');
+			addr2.focus();
+			return false;
+		}
+
+		if(rights.val() ==''){
+			alert('주최/주관 입력하세요');
+			rights.focus();
+			return false;
+		}
+
+		if(home_page.val() ==''){
+			alert('공식홈페이지 입력하세요');
+			home_page.focus();
+			return false;
+		}
+
+		if(reference.val() ==''){
+			alert('문의 입력하세요');
+			reference.focus();
+			return false;
+		}
+
+		if(url.val() ==''){
+			alert('URL 입력하세요');
+			url.focus();
+			return false;
+		}
+
+		if(request.val() ==''){
+			alert('요청사항 입력하세요');
+			request.focus();
+			return false;
+		}
+		 */
+		return true;
+	});
+	
+	//수정 , 삭제 , 등록 
+	$('span > button').each(function() {
+    	$(this).click(function() { 
+        	if($(this).html() == '수정') { 
+        		if (!confirm('수정하시겠습니까?')) {
+        			return false;
+        		}
+        		frm.attr('action' ,'/festival/event/update.do');
+ //       		oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+        		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+        		frm.submit();
+        	} else if($(this).html() == '삭제') {
+        		if (!confirm('삭제 하시겠습니까?')) {
+        			return false;
+        		}
+        		action = "delete";
+        		frm.attr('action' ,'/festival/event/delete.do');
+        		frm.submit();
+        	} else if($(this).html() == '등록') {
+        		if (!confirm('등록하시겠습니까?')) {
+        			return false;
+        		}
+        		frm.attr('action' ,'/festival/event/insert.do');
+  //      		oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+        		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+        		frm.submit();
+        	} else if($(this).html() == '목록') {
+        		location.href='/festival/event/list.do';
+        	}   		
+    	});
+	});
+	
+	setZipCode = function (sido,gugun, dong, gi_num1, gi_num2,zip_code){
+		$('input[name=zip_code]').val(zip_code);
+		$('input[name=addr1]').val(sido+ " " +gugun+ " " +dong+ " " +(gi_num2 != "" ? gi_num1+"-"+gi_num2 : gi_num1) );
+	}
+	
+});
+
+//도로명주소 Open Api
+function jusoCallBack(sido, gugun, addr, addr2, zipNo){	
+	$('input[name=zip_code]').val(zipNo);	//우편번호
+	$('input[name=addr1]').val(addr);		//기본주소
+	$('input[name=addr2]').val(addr2);		//상세주소
+}
+</script>
+</head>
+<body>
+	<form name="frm" method="post" action="/festival/event/insert.do" enctype="multipart/form-data">
+	<input type="hidden" name="mode" value="view"/>
+		<c:if test='${not empty view.uci}'>
+			<input type="hidden" name="uci" value="${view.uci}"/>
+		</c:if>
+		<div class="tableWrite">
+		
+			<table summary="공연/전시  작성">
+				<caption>공연/전시 글쓰기</caption>
+				<colgroup>
+					<col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
+				<tbody>
+					<tr>
+						<th scope="row">제목</th>
+						<td colspan="3">
+							<input type="text" name="title" id="title" style="width:670px"  value="${view.title }">
+						</td>
+					</tr>
+					<c:if test="${not empty view.creator}">
+					<tr>
+						<th scope="row">출처/작성자</th>
+						<td>
+							${view.creator}
+						</td>
+						<th scope="row">등록일</th>
+						<td>
+							${view.reg_date}
+						</td>
+					</tr>
+					</c:if>
+					<tr>
+						<th scope="row">행사/축제 구분</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" name="genre" value="1" checked/>축제</label>
+								<label><input type="radio" name="genre" value="2"/>행사</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">썸네일 이미지</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" value="Y" name="note1" checked/> 이미지</label>
+								<label><input type="radio" value="N" name="note1"/> url</label>
+							</div>
+							<div class="fileInputs">
+								<input type="file" name="uploadFile" class="file hidden" title="첨부파일 선택" />
+								<div class="fakefile">
+									<input type="text" title="" class="inputText" />
+									<span class="btn whiteS"><button>찾아보기</button></span>
+								</div>
+							</div>
+							<c:if test="${'Y' eq view.note1}">
+								<div class="inputBox">
+									<label><input type="checkbox" name="imagedelete" value="Y" /> <strong>삭제</strong>  ${view.reference_identifier_org}</label>
+									<input type="hidden" name="file_delete" value="${view.reference_identifier_org }"/>
+								</div>
+							</c:if>
+							<input type="text" name="reference_identifier" id="reference_identifier" style="width:670px"  value="${view.reference_identifier }">
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">기간</th>
+						<td colspan="3">
+							<input type="text" name="reg_start" value="${view.reg_start }" />
+							<span>~</span>
+							<input type="text" name="reg_end" value="${view.reg_end }" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">지역</th>
+						<td>
+							<select title="출처 선택" name="location">
+								<c:forEach items="${locationList}" var="list" varStatus="status">
+									<option value="${list.value}">${list.name}</option>	
+								</c:forEach>
+							</select>
+						</td>
+							<th scope="row">장소</th>
+						<td>
+							<input type="text" name="venue" style="width:250px" value="${view.venue}"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주소</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<input type="text" name="zip_code" style="width:150px" value="${view.zip_code }" readonly="readonly"/>
+								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span>
+								<div style="display:none">
+									<label><input type="radio" value="63" name="zip_yn" checked/>지번주소</label>
+									<label><input type="radio" value="64" name="zip_yn"/>도로명주소</label>
+								</div>
+							</div>
+							<div class="inputBox">
+								
+								<input type="text" name="addr1" style="width:670px" value="${view.addr1 }" readonly="readonly"/>
+								<input type="text" name="addr2" style="width:670px" value="${view.addr2 }" />
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주최/주관</th>
+						<td colspan="3">
+							<input type="text" name="rights" style="width:670px" value="${view.rights}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">공식홈페이지</th>
+						<td colspan="3">
+							<input type="text" name="home_page" style="width:670px" value="${view.home_page}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">문의</th>
+						<td colspan="3">
+							<input type="text" name="reference" style="width:670px" value="${view.reference}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">URL</th>
+						<td colspan="3">
+							<input type="text" name="url" style="width:670px" value="${view.url}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">요청사항</th>
+						<td colspan="3">
+							<input type="text" name="request" style="width:670px" value="${view.request}" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">승인여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" name="approval" value="W" checked/> 대기</label>
+								<label><input type="radio" name="approval" value="Y"/> 사용</label>
+								<label><input type="radio" name="approval" value="N"/> 미사용</label>
+							</div>
+						</td>
+					</tr>
+					<c:if test='${not empty view.uci}'>
+						<tr>
+						<th scope="row">모바일사용여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" name="mobile_yn" value="Y"  ${not empty view.mdescription ? 'checked="checked"' : '' }/>사용</label>
+								<label><input type="radio" name="mobile_yn" value="N" ${empty view.mdescription ? 'checked="checked"' : '' }/>사용안함</label>
+							</div>
+						</td>
+					</tr>
+					</c:if>
+				</tbody>
+			</table>	
+		</div>
+	
+		<div class="sTitBar">
+			<h4>
+				<label>내용</label>
+			</h4>
+		</div>
+		
+		<div class="tableWrite">	
+			<table summary="축제/행사 컨텐츠 작성">
+			<caption>축제/행사 컨텐츠 글쓰기</caption>
+			<colgroup>
+				<col style="width:15%" />
+				<col style="width:35%" />
+				<col style="width:15%" />
+				<col style="width:35%" />
+			</colgroup>
+			<tbody>
+				<tr>
+					<td colspan="4">
+	        			<!-- 20151006 : 이용환 : 에디터 변경을 위해 수정 
+						<textarea id="contents" name="description" style="width:100%;height:400px;"><c:out value="${view.description }" escapeXml="true" /></textarea>
+						-->
+						<script type="text/javascript" language="javascript">
+							var CrossEditor = new NamoSE('contents');
+							CrossEditor.params.Width = "100%";
+							CrossEditor.params.Height = "900px";
+							CrossEditor.params.UserLang = "auto";
+							CrossEditor.params.UploadFileSizeLimit = "image:10485760";
+							CrossEditor.params.Font = {"NanumGothic":"나눔고딕","Dotum":"돋움", "Gulim":"굴림", "Batang":"바탕", "Gungsuh":"궁서", "맑은 고딕":"맑은 고딕"  ,"David":"David", "MS Pgothic":"MS Pgothic","Simplified Arabic":"Simplified Arabic","SimSun":"SimSun","Arial":"Arial","Courier New":"Courier New", "Tahoma":"Tahoma", "Times New Roman":"Times New Roman", "verdana":"Verdana"};
+							CrossEditor.EditorStart();
+							function OnInitCompleted(e){
+								e.editorTarget.SetBodyValue(document.getElementById("contents").value);
+							}
+						</script>
+						<textarea id="contents" name="description" style="width:100%;height:400px;display:none;"><c:out value="${view.description }" escapeXml="true" /></textarea>					
+					</td>	
+				</tr>
+			</tbody>
+			</table>
+		</div>
+	</form>
+	
+	<div class="btnBox textRight">
+		<c:if test='${not empty view}'>
+			<span class="btn white"><button type="button">수정</button></span>
+			<span class="btn white"><button type="button">삭제</button></span>
+		</c:if>
+		<c:if test='${empty view }'>
+			<span class="btn white"><button type="button">등록</button></span>
+		</c:if>
+		<span class="btn gray"><button type="button">목록</button></span>
+	</div>
+</body>
+</html>

@@ -53,6 +53,12 @@ function changeName(){
 
 $(function () {
 	
+	//alert("before=== " + $('input[name=free_yn_before]').val());
+	//var before = $("input[name='free_yn_before']").is("checked").val();
+	var before= $("input:checkbox[name='free_yn_before']:checked").val();
+
+	$('#free_yn').val(before);
+	
 	changeName();
 	$("input[name=genre]").on("click",function(){
 		changeName();
@@ -64,13 +70,16 @@ $(function () {
 	
 	changeNote1 = function(ele) {
 		checked = ele.val();				
-		if(checked == 'Y') {
-			$('#anoN').prop('checked', '');
-		} else if(checked == 'N') {
+		if(checked == 'N') {
 			$('#anoY').prop('checked', '');
+			$('#anoN').prop('checked', 'checked');
+		} else if(checked == 'Y') {  //무료
+			$('#anoN').prop('checked', '');
+			$('#anoY').prop('checked', 'checked');
 		}
 	
 		$('#free_yn').val(checked);
+		
 	}
 	
 	var frm = $('form[name=frm]');

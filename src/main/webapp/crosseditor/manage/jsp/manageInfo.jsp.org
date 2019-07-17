@@ -1,0 +1,4 @@
+<%
+	String u_id ="admin";
+	String u_pass ="C76241516F89651AF5D1EE648356BA9654896AE9";
+%>
