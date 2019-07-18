@@ -30,63 +30,63 @@ $(function () {
 	
 	var frm = $('form[name=frm]');
 
-	frm.submit(function(){
-	
+	// 유효성 체크를 나중에 해서 문제가 생긴다. 별도 function으로 변경
+	// frm.submit(function(){
+	validateCheck = function (){
+		var msg = '';
+
 		if(frm.attr('action') != '/facility/bookStore/delete.do'){
-			
 			if($('input[name=title]').val() == '') {
-			    alert("시설명을 입력해주세요.");
+				msg = '시설명을 입력해주세요.';
 			    $('input[name=title]').focus();
-			    return false;
+			    return msg;
 			}
 
 			if($('input[name=address]').val() == '') {
-			    alert("도로명주소를 입력해주세요.");
+				msg = '도로명주소를 입력해주세요.';
 			    $('input[name=address]').focus();
-			    return false;
+			    return msg;
 			}
 			
 			if($('input[name=sido]').val() == '') {
-			    alert("시도명을 입력해주세요.");
+				msg = '시도명을 입력해주세요.';
 			    $('input[name=sido]').focus();
-			    return false;
+				return msg;
 			}
 			
 			if($('input[name=gugun]').val() == '') {
-			    alert("구군명을 입력해주세요.");
+				msg = '구군명을 입력해주세요.';
 			    $('input[name=gugun]').focus();
-			    return false;
+				return msg;
 			}
 
             if($('input[name=gpsx]').val() == '') {
-                alert('좌표찾기를 통해 좌표를 입력하세요');
-                return false;
+				msg = '좌표찾기를 통해 좌표를 입력하세요.';
+				return msg;
             }
 
             if($('input[name=gpsy]').val() == '') {
-                alert('좌표찾기를 통해 좌표를 입력하세요');
-                return false;
+				msg = '좌표찾기를 통해 좌표를 입력하세요.';
+				return msg;
             }
 			
 			if($('input[name=tel]').val() == '') {
-			    alert("전화번호를 입력해주세요.");
+				msg = '전화번호를 입력해주세요.';
 			    $('input[name=tel]').focus();
-			    return false;
+				return msg;
 			}
 			
 			if($('input[name=homepage]').val() != '') {
 				var chkStr = $('input[name=homepage]').val();
 				if(chkStr.match('http')){
-			   		alert("http:// 또는 https:// 이하의 주소를 입력해주세요. \n 예) http://www.naver.com -> www.naver.com 으로 입력");
+					msg = 'http:// 또는 https:// 이하의 주소를 입력해주세요. \n 예) http://www.naver.com -> www.naver.com 으로 입력';
 				}
-			    $('input[name=tel]').focus();
-			    return false;
+			    $('input[name=homepage]').focus();
+				return msg;
 			}
-			
 		}
-		return true;
-	});
-	
+		return msg;
+	}
 	
 	$('span.btn.whiteS a').click(function(){
 		if( $(this).html() == '우편번호찾기'){
@@ -115,16 +115,23 @@ $(function () {
 	
 	//수정 , 삭제 , 등록 
 	$('span > button').each(function() {
-    	$(this).click(function() { 
-    		
+    	$(this).click(function() {
+
+    		//유효성 체크 먼저하도록 변경.
+			var msg = validateCheck();
+
+			if(msg != ''){
+				alert(msg);
+				return false;
+			}
+
     		var address1 = $("#address").val();
     		var address2 = $("#address2").val();
 
     		//현재 테이블(PCN_BOOKSTORE)에 2번째 주소 받는 컬럼이 존재하지 않는다. 그래서 강제로 합쳐서 넣는다. 추후 변경
     		$("#address").val(address1 + " " + address2);
-    		
-    		//alert($("#address").val());
-        	if($(this).html() == '수정') { 
+
+        	if($(this).html() == '수정') {
         		if (!confirm('수정하시겠습니까?')) {
         			return false;
         		}
@@ -147,7 +154,7 @@ $(function () {
         	}   		
     	});
 	});
-	
+
 	
 	//좌표
 	setCoordinate = function (cul_gps_x, cul_gps_y, address, roadAddress, sido, gu, zipCode){
