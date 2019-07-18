@@ -462,9 +462,9 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		</c:if>
 
 		<%--좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.--%>
-		<input type="text" name="cul_place" id="cul_place" value=""/>
-		<input type="text" name="cul_place2" id="cul_place2" value=""/>
-		<input type="text" name="cul_post_num" id="cul_post_num" value=""/>
+		<input type="hidden" name="cul_place" id="cul_place" value=""/>
+		<input type="hidden" name="cul_place2" id="cul_place2" value=""/>
+		<input type="hidden" name="cul_post_num" id="cul_post_num" value=""/>
 
 		<div class="tableWrite">	
 			<div class="tableWrite">
