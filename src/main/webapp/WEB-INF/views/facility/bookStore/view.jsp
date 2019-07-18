@@ -57,6 +57,16 @@ $(function () {
 			    $('input[name=gugun]').focus();
 			    return false;
 			}
+
+            if($('input[name=gpsx]').val() == '') {
+                alert('좌표찾기를 통해 좌표를 입력하세요');
+                return false;
+            }
+
+            if($('input[name=gpsy]').val() == '') {
+                alert('좌표찾기를 통해 좌표를 입력하세요');
+                return false;
+            }
 			
 			if($('input[name=tel]').val() == '') {
 			    alert("전화번호를 입력해주세요.");
@@ -109,7 +119,8 @@ $(function () {
     		
     		var address1 = $("#address").val();
     		var address2 = $("#address2").val();
-    		
+
+    		//현재 테이블(PCN_BOOKSTORE)에 2번째 주소 받는 컬럼이 존재하지 않는다. 그래서 강제로 합쳐서 넣는다. 추후 변경
     		$("#address").val(address1 + " " + address2);
     		
     		//alert($("#address").val());
@@ -139,15 +150,43 @@ $(function () {
 	
 	
 	//좌표
-	setCoordinate = function (cul_gps_x , cul_gps_y){
-		$('input[name=gpsx]').val(cul_gps_x);
-		$('input[name=gpsy]').val(cul_gps_y);
+	setCoordinate = function (cul_gps_x, cul_gps_y, address, roadAddress, sido, gu, zipCode){
+        var realAddress = '';
+
+        //시일 경우 시까지만 짜른다.
+        var indexOfFirst = gu.indexOf(' ');
+        var substringVal = gu.substring(0, indexOfFirst);
+
+        if(indexOfFirst > 1){
+            gu = substringVal;
+        }
+
+        //도로명 주소가 없을 경우 지번으로 처리.
+        if(roadAddress == ''){
+            realAddress = address;
+        }else{
+            realAddress = roadAddress;
+        }
+
+        //우편번호는 도로명, 좌표는 다음을 써서 명칭이 다르다 서울일 경우 서울특별시로 변경
+        if(sido == '서울'){
+            indexOfFirst = realAddress.indexOf(' ');
+            substringVal = realAddress.substring(indexOfFirst);
+
+            realAddress = '서울특별시' + substringVal;
+        }
+
+        $('input[name=cul_place]').val(sido);
+        $('input[name=cul_place2]').val(gu);
+        $('input[name=sido]').val(sido);
+        $('input[name=gugun]').val(gu);
+        $('input[name=gpsx]').val(cul_gps_x);
+        $('input[name=gpsy]').val(cul_gps_y);
+        $('input[name=cul_addr]').val(realAddress);
+        $('input[name=address]').val(realAddress);
+        $('input[name=addr1]').val(realAddress);
 	}
-
 });
-
-
-
 
 //도로명주소 Open Api
 function jusoCallBack(sido, gugun, addr, addr2, zipNo){
@@ -184,10 +223,17 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 	
 	$('input[name="cul_addr"]').val(addr);		//기본주소
 	$('input[name="cul_addr2"]').val(addr2);	//상세주소
+
+    //좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.
+    $('input[name="cul_place"]').val(sido);		//기본주소
+    $('input[name="cul_place2"]').val(gugun);	//상세주소
+    $('input[name=cul_post_num]').val(zipNo);
+
+    $('input[name="gpsx"]').val('');	//위도
+    $('input[name="gpsy"]').val('');	//경도
 	
 	saddr = addr;
 }
-
 </script>
 </head>
 <body>
@@ -197,12 +243,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			<c:if test='${not empty view.seq}'>
 				<input type="hidden" name="seq" value="${view.seq}"/>
 			</c:if>
-			
+            <%--좌표 처리 팝업에서 접근하는 input 추가 화면별 name이 다 다르다. 추후 controll 부분 부터 전부 정리.--%>
+            <input type="hidden" name="cul_place" id="cul_place" value=""/>
+            <input type="hidden" name="cul_place2" id="cul_place2" value=""/>
+            <input type="hidden" name="cul_post_num" id="cul_post_num" value=""/>
+
 			<input type="hidden"  name="cul_addr"  id="cul_addr" value="${view.address }"/>
 			<input type="hidden"  name="cul_addr2" id="cul_addr2"  value=""/>
-			
 			<input type="hidden"  name="addr1" id="addr1" value=""/>
-			
 			
 			<table summary="체육시설 등록/수정">
 				<caption>체육시설 등록/수정</caption>
@@ -220,11 +268,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 						<td colspan="3">
 							<div class="inputBox">
 								<%-- <input type="text" name="address" id="address" value="${view.address }" maxlength="500" style="width:450px;"/> --%>
-								<input type="text" name="address"  id="address" value="${view.address }" maxlength="300" style="width:300px;"/>
-								<input type="text" name="address2"  id="address2" " maxlength="100" style="width:100px;" />
+								<input type="text" name="address"  id="address" value="${view.address }" maxlength="300" style="width:450px;" readonly/>
 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span>
 								<span class="btn whiteS"><a href="#url">좌표찾기</a></span>
-							</div>						
+							</div>
+							<%--현재 테이블(PCN_BOOKSTORE)에 2번째 주소 받는 컬럼이 존재하지 않는다.--%>
+							<input type="text" name="address2"  id="address2" maxlength="100" style="width:622px;" />
 						</td>
 					</tr>
 					<tr>
