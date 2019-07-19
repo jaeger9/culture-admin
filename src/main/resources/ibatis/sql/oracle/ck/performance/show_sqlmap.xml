@@ -20,11 +20,11 @@
 		(
 		  	SELECT 
 		    	<isEmpty property="sort_type">
-					FLOOR((ROW_NUMBER()OVER(ORDER BY A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
+					FLOOR((ROW_NUMBER()OVER(ORDER BY A.ORDER_REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
 				</isEmpty>
 				<isNotEmpty property="sort_type">
 					<isEqual property="sort_type" compareValue="latest">
-						FLOOR((ROW_NUMBER()OVER(ORDER BY A.REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
+						FLOOR((ROW_NUMBER()OVER(ORDER BY A.ORDER_REG_DATE DESC nulls last)-1)/$list_unit$+1) AS PAGE
 					</isEqual>
 					<isEqual property="sort_type" compareValue="hit">
 						FLOOR((ROW_NUMBER()OVER(ORDER BY A.VIEW_CNT DESC nulls last)-1)/$list_unit$+1) AS PAGE
@@ -36,7 +36,8 @@
 		    	SELECT     
 		    		a.SEQ			,      
 					a.TITLE       , 
-				    TO_CHAR(a.REG_DATE,'YYYY-MM-DD') REG_DATE      , 
+				    TO_CHAR(a.REG_DATE,'YYYY-MM-DD') REG_DATE      ,
+					a.REG_DATE ORDER_REG_DATE,
 				    a.CREATED_DATE    , 
 				    a.MODIFIED_DATE   , 
 				    a.ISSUED_DATE     , 
