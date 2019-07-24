@@ -3,7 +3,7 @@
 <sqlMap namespace="ask">
 	<select id="list" parameterClass="paramMap" resultClass="commonMap">
 		SELECT /* ask.list */
-			SEQ, NAME, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, CASE WHEN STATUS = 'Y' THEN TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') ELSE '' END CONFIRM_DATE,
+			SEQ, NAME, TO_CHAR(REG_DATE, 'YYYY-MM-DD') REG_DATE, CASE WHEN STATUS = 'Y' OR STATUS = 'D' THEN TO_CHAR(CONFIRM_DATE, 'YYYY-MM-DD') ELSE '' END CONFIRM_DATE,
 			DECODE(STATUS, 'Y', '승인', 'N', '사용안함', 'C', '신청취소','D','다운로드', '대기') STATUS,
 			(SELECT COUNT(1) FROM PCN_PATTERN_USEPATTERN S WHERE S.PSEQ = T.SEQ) PATTERN_CNT,
 			CASE 
