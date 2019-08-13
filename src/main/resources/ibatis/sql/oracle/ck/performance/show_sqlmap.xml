@@ -112,6 +112,19 @@
 					<isNotEmpty property="approval" prepend="AND">
 						APPROVAL = #approval#	
 					</isNotEmpty>
+
+					<isEqual property="state" compareValue="1" prepend="AND">
+						CREATOR IS NOT NULL
+					</isEqual>
+					<isEqual property="state" compareValue="2" prepend="AND">
+						CREATOR NOT IN ('kopis', 'nticket')
+					</isEqual>
+					<isEqual property="state" compareValue="3" prepend="AND">
+						CREATOR = 'kopis'
+					</isEqual>
+					<isEqual property="state" compareValue="4" prepend="AND">
+						CREATOR = 'nticket'
+					</isEqual>
 				
 			) A
 			<dynamic prepend="WHERE">
@@ -210,6 +223,19 @@
 					<isNotEmpty property="approval" prepend="AND">
 						APPROVAL = #approval#	
 					</isNotEmpty>
+
+					<isEqual property="state" compareValue="1" prepend="AND">
+						CREATOR IS NOT NULL
+					</isEqual>
+					<isEqual property="state" compareValue="2" prepend="AND">
+						CREATOR NOT IN ('kopis', 'nticket')
+					</isEqual>
+					<isEqual property="state" compareValue="3" prepend="AND">
+						CREATOR = 'kopis'
+					</isEqual>
+					<isEqual property="state" compareValue="4" prepend="AND">
+						CREATOR = 'nticket'
+					</isEqual>
 			
 		) A
 		<dynamic prepend="WHERE">

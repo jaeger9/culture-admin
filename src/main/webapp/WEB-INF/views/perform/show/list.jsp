@@ -44,6 +44,10 @@ $(function () {
 			return false;
 		}
 	});
+
+	//radio check
+	if('${paramMap.state}')
+		$('input:radio[name="state"][value="${paramMap.state}"]').prop('checked', 'checked');
 	
 	//checkbox
 	new Checkbox('input[name=uciAll]', 'input[name=uci]');
@@ -51,8 +55,10 @@ $(function () {
 	//selectbox
 	if('${paramMap.approval}')$("select[name=approval]").val('${paramMap.approval}').attr("selected", "selected");
 	if('${paramMap.period}')$("select[name=period]").val('${paramMap.period}').attr("selected", "selected");
-	if('${paramMap.office}')$("select[name=office]").val('${paramMap.office}').attr("selected", "selected");
 	if('${paramMap.searchGubun}')$("select[name=searchGubun]").val('${paramMap.searchGubun}').attr("selected", "selected");
+
+	// radio 변경
+	// if('${paramMap.office}')$("select[name=office]").val('${paramMap.office}').attr("selected", "selected");
 	
 	//검색
 	$('button[name=searchButton]').click(function(){
@@ -64,8 +70,6 @@ $(function () {
 		frm.submit();
 	}
 	
-	
-	
 	//상세
 	$('div.tableList table tbody tr td').each(function() {
   		if(!$(this).find('input').attr('type')){
@@ -75,14 +79,12 @@ $(function () {
   		}
 	});
 	
-	
-		show = function(menu_cd , seq) { 
+	show = function(menu_cd , seq) {
 		location.href('/common/reply/list.do?rUrl=/perform/show/list.do&menu_cd=' + menu_cd + '&amp;seq=' + seq);
 		
 		return false;
 	};
-	
-	
+
 	//최신순 , 조회순
 	$('div.topBehavior ul li a').each(function() {
 		$(this).click(function() { 
@@ -96,7 +98,7 @@ $(function () {
     	});
 	});
 	
-	//등록 & 상세
+	// 등록, 상세
 	$('span.btn.dark.fr').click(function(){
 		view();
 	});
@@ -176,15 +178,26 @@ $(function () {
 					<caption>게시판 글 검색</caption>
 					<colgroup><col style="width:15%" /><col style="width:35%" /><col style="width:15%" /><col style="width:35%" /></colgroup>
 					<tbody>
+						<%--<tr>--%>
+							<%--<th scope="row">출처</th>--%>
+							<%--<td colspan="3">--%>
+								<%--<select title="출처 선택" name="office">--%>
+									<%--<option value="">전체</option>--%>
+									<%--<c:forEach items="${officeList }" var="list" varStatus="status">--%>
+										<%--<option value="${list.publisher}">${list.job_group_name}</option>	--%>
+									<%--</c:forEach>--%>
+								<%--</select>--%>
+							<%--</td>--%>
+						<%--</tr>--%>
 						<tr>
 							<th scope="row">출처</th>
 							<td colspan="3">
-								<select title="출처 선택" name="office">
-									<option value="">전체</option>
-									<c:forEach items="${officeList }" var="list" varStatus="status">
-										<option value="${list.publisher}">${list.job_group_name}</option>	
-									</c:forEach>
-								</select>
+								<div class="inputBox">
+									<label><input type="radio" value="1" name="state" checked/> 전체</label>
+									<label><input type="radio" value="2" name="state"/> 내부 등록</label>
+									<label><input type="radio" value="3" name="state"/> 공연예술통합전산망</label>
+									<label><input type="radio" value="4" name="state"/> nticket</label>
+								</div>
 							</td>
 						</tr>
 						<tr>
@@ -220,12 +233,12 @@ $(function () {
 									<option value="description">내용</option>
 									<option value="creator">작성자</option>
 								</select>
-								<input <input type="text" name="keyword" title="검색어 입력" value="${paramMap.keyword}"/>
+								<input type="text" name="keyword" title="검색어 입력" value="${paramMap.keyword}"/>
 								<span class="btn darkS">
 									<button name="searchButton" type="button">검색</button>
 								</span>
 							</td>
-						</tr> 
+						</tr>
 					</tbody>
 				</table>
 			</div>

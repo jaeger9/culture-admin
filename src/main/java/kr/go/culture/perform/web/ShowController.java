@@ -71,7 +71,20 @@ public class ShowController {
 		model.addAttribute("genreList", ckDatabaseService.readForList("common.codeList", paramMap));
 
 		if (paramMap.containsKey("uci")) {
-			model.addAttribute("view", ckDatabaseService.readForObject("show.view", paramMap));
+			Object showView = ckDatabaseService.readForObject("show.view", paramMap);
+
+			//url 처리
+			String url = (String) ((CommonModel) showView).get("url");
+			if(url != null){
+				String checkUrl = url.substring(0,4);
+				if(!checkUrl.equals("http")){
+					url = "http://" + url;
+				}
+
+				((CommonModel) showView).put("url", url);
+			}
+
+			model.addAttribute("view", showView);
 		}
 
 		return "/perform/show/view";
