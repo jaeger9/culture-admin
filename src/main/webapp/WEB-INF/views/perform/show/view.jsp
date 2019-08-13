@@ -305,7 +305,7 @@ $(function () {
 					</tr>
 					<tr>
 						<th scope="row">썸네일 이미지</th>
-						<td colspan="3">
+						<td colspan="2" style="vertical-align: top;">
 							<div class="inputBox">
 								<label><input type="radio" value="Y" name="note1" checked/> 이미지</label>
 								<label><input type="radio" value="N" name="note1"/> url</label>
@@ -322,10 +322,17 @@ $(function () {
 									<input type="hidden" name="file_delete" value="${view.reference_identifier_org}" />
 									<label><input type="checkbox" name="imagedelete" value="Y" /> <strong>삭제</strong>  ${view.reference_identifier_org}</label>
 									<input type="hidden" name="reference_identifier_name" value="${view.reference_identifier_org }"/>
+									<a href="https://www.culture.go.kr/upload/rdf/${view.reference_identifier_org}" target="_blank" class="focus">이미지 새창으로 확인</a>
 								</div>
 							</c:if>
-<%-- 							<input type="text" name="reference_identifier" id="reference_identifier" style="width:670px"  value="${view.reference_identifier }">
- --%>						</td>
+							<%--<input type="text" name="reference_identifier" id="reference_identifier" style="width:670px"  value="${view.reference_identifier }">--%>
+						</td>
+						<td>
+							<c:if test='${not empty view.reference_identifier_org }'>
+								<img width="40%" alt="썸네일이미지" src="https://www.culture.go.kr/upload/rdf/${view.reference_identifier_org}">
+
+							</c:if>
+						</td>
 					</tr>
 						<tr>
 						<th scope="row">URL</th>
