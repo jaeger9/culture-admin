@@ -9,10 +9,10 @@
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
 	
 	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" lazy-init="true" />
-	
-	<bean id="sqlMapClient-ck" 
-		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
-		
+
+	<bean id="sqlMapClient-ck"
+		  class="egovframework.rte.psl.orm.ibatis.SqlMapClientFactoryBean">
+
 		<property name="configLocations">
 			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>
 		</property>
@@ -26,7 +26,7 @@
 			<ref bean="lobHandler" />
 		</property>
 	</bean>
-	
+
 <!-- 	<bean id="sqlMapClient-kiiss" 
 		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
 		<property name="configLocations">
@@ -43,7 +43,7 @@
 		</property>
 	</bean> -->
 	<bean id="sqlMapClient-culture" 
-		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		class="egovframework.rte.psl.orm.ibatis.SqlMapClientFactoryBean">
 		
 		<property name="configLocations">
 			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>
@@ -59,8 +59,8 @@
 		</property>
 	</bean>
 	
-	<bean id="sqlMapClient-culdata" 
-		class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+	<bean id="sqlMapClient-culdata"
+		  class="egovframework.rte.psl.orm.ibatis.SqlMapClientFactoryBean">
 		
 		<property name="configLocations">
 			<value>classpath:/ibatis/conf/ibatis-oracle-config.xml</value>

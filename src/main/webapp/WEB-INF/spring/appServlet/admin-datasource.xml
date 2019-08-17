@@ -85,41 +85,44 @@ Cubrid Deleted
 		</property>
 	</bean>
 	
-	<bean id="dataSource-ck-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+<!--	<bean id="dataSource-ck-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">-->
+<!--		<constructor-arg ref="dataSource-ck" />-->
+<!--		<property name="logFormatter">-->
+<!--			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">-->
+<!--				<property name="loggingType" value="MULTI_LINE" />-->
+<!--				&lt;!&ndash; <property name="margin" value="19"/>  &ndash;&gt;-->
+<!--				<property name="sqlPrefix" value="SQL=>" />-->
+<!--			</bean>-->
+<!--		</property>-->
+<!--	</bean>-->
+<!--	-->
+<!--	<bean id="dataSource-culture-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">-->
+<!--		<constructor-arg ref="dataSource-culture" />-->
+<!--		<property name="logFormatter">-->
+<!--			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">-->
+<!--				<property name="loggingType" value="MULTI_LINE" />-->
+<!--				&lt;!&ndash; <property name="margin" value="19"/>  &ndash;&gt;-->
+<!--				<property name="sqlPrefix" value="SQL=>" />-->
+<!--			</bean>-->
+<!--		</property>-->
+<!--	</bean>-->
+<!--	-->
+<!--	<bean id="dataSource-culdata-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">-->
+<!--		<constructor-arg ref="dataSource-culdata" />-->
+<!--		<property name="logFormatter">-->
+<!--			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">-->
+<!--				<property name="loggingType" value="MULTI_LINE" />-->
+<!--				&lt;!&ndash; <property name="margin" value="19"/>  &ndash;&gt;-->
+<!--				<property name="sqlPrefix" value="SQL=>" />-->
+<!--			</bean>-->
+<!--		</property>-->
+<!--	</bean>-->
+	<bean id="dataSource-ck-proxy" class="net.sf.log4jdbc.sql.jdbcapi.DataSourceSpy">
 		<constructor-arg ref="dataSource-ck" />
-		<property name="logFormatter">
-			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
-				<property name="loggingType" value="MULTI_LINE" />
-				<!-- <property name="margin" value="19"/>  -->
-				<property name="sqlPrefix" value="SQL=>" />
-			</bean>
-		</property>
-	</bean>
-	
-	<bean id="dataSource-culture-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
-		<constructor-arg ref="dataSource-culture" />
-		<property name="logFormatter">
-			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
-				<property name="loggingType" value="MULTI_LINE" />
-				<!-- <property name="margin" value="19"/>  -->
-				<property name="sqlPrefix" value="SQL=>" />
-			</bean>
-		</property>
-	</bean>
-	
-	<bean id="dataSource-culdata-proxy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
-		<constructor-arg ref="dataSource-culdata" />
-		<property name="logFormatter">
-			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
-				<property name="loggingType" value="MULTI_LINE" />
-				<!-- <property name="margin" value="19"/>  -->
-				<property name="sqlPrefix" value="SQL=>" />
-			</bean>
-		</property>
 	</bean>
 	
 	<alias name="dataSource-ck-proxy" alias="admin.datasource.ck" />
-	<alias name="dataSource-culture-proxy" alias="admin.datasource.culture" />
-	<alias name="dataSource-culdata-proxy" alias="admin.datasource.culdata" />
+	<alias name="dataSource-culture" alias="admin.datasource.culture" />
+	<alias name="dataSource-culdata" alias="admin.datasource.culdata" />
 	
 </beans>

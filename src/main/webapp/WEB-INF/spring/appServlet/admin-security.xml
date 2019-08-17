@@ -1,9 +1,9 @@
 <beans:beans xmlns="http://www.springframework.org/schema/security"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
 	http://www.springframework.org/schema/security
-	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	http://www.springframework.org/schema/security/spring-security-4.2.xsd">
 
 	<!-- <http access-decision-manager-ref="accessDecisionManager" auto-config="true"> -->
 	<!-- <http auto-config="true">
@@ -31,18 +31,23 @@
 	    <beans:property name="sqlMapClient" ref="sqlMapClient-opadm"/>
 	</beans:bean>
 	-->
-	
-	<http access-denied-page="/loginaccessdenied">
-       <form-login login-page="/login" default-target-url="/index.do"
-		    authentication-success-handler-ref="authenticationSuccessHandler"
-			authentication-failure-url="/loginfailed" />
-		<logout logout-success-url="/logout" />
-        <http-basic />
+
+    <http use-expressions="true">
+        <access-denied-handler error-page="/loginaccessdenied"/>
+        <form-login login-page="/login" default-target-url="/index.do"
+                    authentication-success-handler-ref="authenticationSuccessHandler"
+                    authentication-failure-url="/loginfailed"
+                    login-processing-url="/j_spring_security_check"
+                    username-parameter="j_username" password-parameter="j_password"/>
+        <logout logout-success-url="/logout"/>
+        <http-basic/>
         <custom-filter before="FILTER_SECURITY_INTERCEPTOR"
-             ref="securityFilter" />
+                       ref="securityFilter"/>
+
+        <csrf disabled="true" />
     </http>
 
-	<beans:bean id="authenticationSuccessHandler" class="kr.go.culture.login.AdminAuthenticationSuccessHandler" />
+    <beans:bean id="authenticationSuccessHandler" class="kr.go.culture.login.AdminAuthenticationSuccessHandler" />
 													     
     <beans:bean id="securityFilter" class="kr.go.culture.login.filter.AdminFilterSecurityInterceptor">
         <beans:property name="authenticationManager"

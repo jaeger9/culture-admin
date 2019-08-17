@@ -20,7 +20,7 @@
 	<tx:annotation-driven transaction-manager="ckTransactionManager" />
 	<beans:bean id="ckTransactionManager"
 	  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-	  <beans:property name="dataSource" ref="dataSource-ck-proxy"></beans:property>
+	  <beans:property name="dataSource" ref="admin.datasource.ck"></beans:property>
 	</beans:bean>
 <!-- 
 Cubrid Deleted
@@ -30,7 +30,7 @@ Cubrid Deleted
 	</beans:bean> -->
 	<beans:bean id="cultureTransactionManager"
 	  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-	  <beans:property name="dataSource" ref="dataSource-culture-proxy"></beans:property>
+	  <beans:property name="dataSource" ref="admin.datasource.culture"></beans:property>
 	</beans:bean>
 
 	<!-- Enables the Spring MVC @Controller programming model -->

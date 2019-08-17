@@ -1,0 +1,164 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url 'http://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+    }
+}
+
+plugins {
+    id 'java-lang'
+    id 'war'
+    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        url 'https://repo.spring.io/release'
+    }
+    maven {
+        url 'http://maven.egovframe.kr:8080/maven/'
+    }
+}
+
+ext {
+    gradleWrapperVersion = '5.0'
+    egovframeworkVersion = '3.8.0'
+    springframeworkVersion = '4.3.16.RELEASE'
+    springDataRelaseTrain = 'Ingalls-SR17'
+}
+
+group = 'kr.go.culture'
+version = '2.0.0-BUILD-SNAPSHOT'
+description = 'admin'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.data:spring-data-releasetrain:${springDataRelaseTrain}"
+    }
+
+    dependencies {
+        dependencySet(group: 'egovframework.rte', version: "${egovframeworkVersion}") {
+            entry 'egovframework.rte.fdl.cmmn'
+            entry 'egovframework.rte.fdl.property'
+            entry 'egovframework.rte.fdl.idgnr'
+            entry 'egovframework.rte.fdl.security'
+            entry 'egovframework.rte.fdl.xml'
+            entry 'egovframework.rte.fdl.crypto'
+            entry 'egovframework.rte.fdl.excel'
+            entry 'egovframework.rte.itl.integration'
+            entry 'egovframework.rte.itl.webservice'
+            entry 'egovframework.rte.psl.dataaccess'
+            entry 'egovframework.rte.ptl.mvc'
+            entry 'egovframework.rte.bat.core'
+        }
+
+//        dependencySet(group:'org.springframework', version: "${springframeworkVersion}") {
+//            entry 'spring-core'
+//            entry 'spring-context'
+//            entry 'spring-context-support'
+//            entry 'spring-tx'
+//            entry 'spring-beans'
+//            entry 'spring-web'
+//            entry 'spring-webmvc'
+//            entry 'spring-aop'
+//            entry 'spring-test'
+//            entry 'spring-orm'
+//            entry 'spring-jdbc'
+//
+//        }
+    }
+}
+
+dependencies {
+    implementation group: 'egovframework.rte', name: 'egovframework.rte.fdl.cmmn'
+    implementation group: 'egovframework.rte', name: 'egovframework.rte.ptl.mvc'
+    implementation group: 'egovframework.rte', name: 'egovframework.rte.fdl.security'
+    implementation group: 'egovframework.rte', name: 'egovframework.rte.psl.dataaccess'
+
+    // local library
+    implementation fileTree(dir: 'libs', include: '*.jar')
+
+    // servlet
+    compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+
+    // jstl
+    implementation 'javax.servlet:jstl:1.2'
+    implementation 'taglibs:standard:1.1.1'
+
+    // library
+    implementation group: 'net.sf.json-lib', name: 'json-lib', version: '2.4', classifier: 'jdk15'
+
+    // mail
+    implementation 'javax.mail:javax.mail-api:1.5.2'
+
+    // thumbnailator
+    implementation 'net.coobird:thumbnailator:0.4.8'
+
+    implementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    implementation 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+    implementation 'org.apache.poi:poi:3.10-FINAL'
+    implementation group: 'org.jdom', name: 'jdom', version: '1.1'
+
+//    runtime 'org.lazyluke:log4jdbc-remix:0.2.7'
+    runtime 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
+    runtime 'commons-dbcp:commons-dbcp:1.4'
+    runtime 'opensymphony:sitemesh:2.4.2'
+    runtime 'commons-fileupload:commons-fileupload:1.2.2'
+//    implementation 'org.apache.ibatis:ibatis-sqlmap:2.3.4.726'
+
+//    compile 'javax.mail:javax.mail-api:1.5.2'
+//    compile 'net.sf.json-lib:json-lib:2.4'
+//    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+//    compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+//    compile 'opensymphony:sitemesh:2.4.2'
+//    compile 'com.google.code.gson:gson:2.3'
+//    compile 'org.apache.ibatis:ibatis-sqlmap:2.3.4.726'
+//    compile 'commons-dbcp:commons-dbcp:1.2.2'
+//    compile 'commons-pool:commons-pool:1.6'
+//    compile 'commons-collections:commons-collections:3.2'
+//    compile 'commons-beanutils:commons-beanutils:1.6'
+//    compile 'commons-lang:commons-lang:2.2'
+//    compile 'commons-io:commons-io:2.4'
+//    compile 'commons-fileupload:commons-fileupload:1.2.2'
+//    compile 'org.springframework:spring-context:3.2.0.RELEASE'
+//    compile 'org.springframework:spring-webmvc:3.2.0.RELEASE'
+//    compile 'org.springframework:spring-jdbc:3.2.0.RELEASE'
+//    compile 'org.springframework:spring-orm:3.2.0.RELEASE'
+//    compile 'org.springframework:spring-context-support:3.2.0.RELEASE'
+//    compile 'org.springframework:spring-test:3.2.0.RELEASE'
+//    compile 'org.springframework.security:spring-security-core:3.1.0.RELEASE'
+//    compile 'org.springframework.security:spring-security-web:3.1.0.RELEASE'
+//    compile 'org.springframework.security:spring-security-config:3.1.0.RELEASE'
+//    compile 'org.springframework.security:spring-security-taglibs:3.1.0.RELEASE'
+//    compile 'org.aspectj:aspectjrt:1.6.10'
+//    compile 'org.lazyluke:log4jdbc-remix:0.2.7'
+//    compile 'org.slf4j:slf4j-api:1.6.6'
+//    compile 'javax.inject:javax.inject:1'
+//    compile 'javax.servlet:jstl:1.2'
+//    compile 'org.neo4j:neo4j-cypher-compiler-2.1:2.1.2'
+//    compile 'org.apache.poi:poi:3.10-FINAL'
+//    compile 'jdom:jdom:1.1'
+//    compile 'net.coobird:thumbnailator:0.4.8'
+//    runtime 'org.slf4j:jcl-over-slf4j:1.6.6'
+//    runtime 'org.slf4j:slf4j-log4j12:1.6.6'
+//    runtime 'log4j:log4j:1.2.15'
+
+//    providedCompile 'javax.servlet:servlet-api'
+//    providedCompile 'javax.servlet.jsp:jsp-api'
+
+//    testCompile 'junit:junit:4.7'
+//    system 'com.oracle:ojdbc14:10.2.0.4.0'
+//    system 'unisqljdbc:unisqljdbc:206'
+//    system 'log4sql:log4sql:7.0.8'
+}
+

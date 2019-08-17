@@ -1,9 +1,17 @@
+
+### for gradle
+.gradle
+build
+
+### for eclipse
 .settings
 .project
 .classpath
 .externalToolBuilders
 
+### for jetbrains
 .idea
-
-target
 out
+
+### for maven
+target
