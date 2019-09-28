@@ -41,6 +41,21 @@ targetCompatibility = '1.8'
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
 
+sourceSets {
+    def activeStage = project.hasProperty('stage') ? project.getProperty('stage') : 'development'
+
+    if ('production'.equalsIgnoreCase(activeStage)) {
+        main.resources.srcDirs(['src/main/resources', 'src/production/resources'])
+        war.webXml = file('src/production/webapp/WEB-INF/web.xml')
+    } else if ('candidate'.equalsIgnoreCase(activeStage)) {
+        main.resources.srcDirs(['src/main/resources', 'src/candidate/resources'])
+        war.webXml = file('src/candidate/webapp/WEB-INF/web.xml')
+    } else {
+        main.resources.srcDirs(['src/main/resources', 'src/development/resources'])
+        war.webXml = file('src/development/webapp/WEB-INF/web.xml')
+    }
+}
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.data:spring-data-releasetrain:${springDataRelaseTrain}"
