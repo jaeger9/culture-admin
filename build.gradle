@@ -14,6 +14,12 @@ plugins {
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
+configurations {
+    compile {
+        exclude group: 'egovframework.rte', module: 'egovframework.rte.fdl.logging'
+    }
+}
+
 repositories {
     mavenCentral()
     jcenter()
@@ -123,6 +129,12 @@ dependencies {
     implementation 'org.codehaus.jackson:jackson-core-asl:1.9.13'
     implementation 'org.apache.poi:poi:3.10-FINAL'
     implementation group: 'org.jdom', name: 'jdom', version: '1.1'
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    implementation group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.25'
+    implementation group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.25'
+    implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
 //    runtime 'org.lazyluke:log4jdbc-remix:0.2.7'
     runtime 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'

@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.PortResolverImpl;
@@ -15,29 +17,36 @@ import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
 public class AdminAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler   {
+
+	private static final Logger logger = LoggerFactory.getLogger(AdminAuthenticationSuccessHandler.class);
+
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
 		
 		SavedRequest savedRequest =  new DefaultSavedRequest(request, new PortResolverImpl());
-		
-		System.out.println("redirectUrl:" + savedRequest.getRedirectUrl());
-		
-		System.out.println("name:" + authentication.getName());
-		System.out.println("detal:" + authentication.getDetails());
-		System.out.println("detal:" + authentication.getAuthorities());
-		
-		System.out.println("OpadmAuthenticationSuccessHandler request URI:" + request.getRequestURI());
-		
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("redirectUrl:" + savedRequest.getRedirectUrl());
+
+			logger.debug("name: {}", authentication.getName());
+			logger.debug("detal: {}", authentication.getDetails());
+			logger.debug("detal: {}", authentication.getAuthorities());
+
+			logger.debug("OpadmAuthenticationSuccessHandler request URI: {}", request.getRequestURI());
+		}
+
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		HttpSession session = request.getSession(true);
 		
 		// put the UserDetails object here.
 		session.setAttribute("userDetails", principal);
 		session.setAttribute("admin_id", authentication.getName());
-		
-		
-		System.out.println("userDetails:" + session.getAttribute("userDetails"));
-		System.out.println(principal.getClass());
+
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("userDetails: {}", session.getAttribute("userDetails"));
+			logger.debug("{}", principal.getClass());
+		}
 		//사용자에 따른 첫 페이지 정할수 있겠다..
 		setDefaultTargetUrl("/index.do");
 		

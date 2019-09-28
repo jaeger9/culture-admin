@@ -5,6 +5,8 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -16,6 +18,8 @@ import org.springframework.security.web.FilterInvocation;
 
 public class AdminAccessDecisionManager implements AccessDecisionManager {
 
+	private static final Logger logger = LoggerFactory.getLogger(AdminAccessDecisionManager.class);
+
 	// In this method, need to compare authentication with configAttributes.
 	// 1, A object is a URL, a filter was find permission configuration by this
 	// URL, and pass to here.
@@ -26,8 +30,11 @@ public class AdminAccessDecisionManager implements AccessDecisionManager {
 	public void decide(Authentication authentication, Object object,
 			Collection<ConfigAttribute> configAttributes)
 			throws AccessDeniedException, InsufficientAuthenticationException {
-		
-		System.out.println("SampleAccessDecisionManager[decide]");
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("SampleAccessDecisionManager[decide]");
+		}
+
 		FilterInvocation filterInvocation = null;
 		HttpServletResponse response = null;
 		
@@ -36,9 +43,11 @@ public class AdminAccessDecisionManager implements AccessDecisionManager {
 		if (configAttributes == null) {
 			return;
 		}
-		
-		System.out.println("object is url:" + object.toString()); // object is a URL.
-		
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("object is url: {}", object.toString()); // object is a URL.
+		}
+
 		Iterator<ConfigAttribute> ite = configAttributes.iterator();
 		
 		while (ite.hasNext()) {

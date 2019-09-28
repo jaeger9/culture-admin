@@ -9,8 +9,12 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 
 import net.sf.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ParamMap extends HashMap<String, Object> {
+
+	private static final Logger logger = LoggerFactory.getLogger(ParamMap.class);
 
 	private static final long serialVersionUID = 7434436874765081011L;
 
@@ -93,9 +97,14 @@ public class ParamMap extends HashMap<String, Object> {
 			this.put(SESSION_ADMIN_ID, request.getSession().getAttribute("admin_id"));
 		}
 
-		System.out.println("Url = " + request.getRequestURI());
-		System.out.println("Querystring = " + request.getQueryString());
-		System.out.println("ParamMap = " + this.toJSON());
+//		System.out.println("Url = " + request.getRequestURI());
+//		System.out.println("Querystring = " + request.getQueryString());
+//		System.out.println("ParamMap = " + this.toJSON());
+		if (logger.isDebugEnabled()) {
+			logger.debug("Url = {}", request.getRequestURI());
+			logger.debug("QueryString = {}", request.getQueryString());
+			logger.debug("ParamMap = {}", this.toJSON());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
