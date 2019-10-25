@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller("LoginController")
 public class LoginController {
 
-	@RequestMapping("/login")
+	@RequestMapping("/login.do")
 	public String login(HttpServletRequest request, HttpServletResponse response) {
 		return "login/login";
 	}
 
-	@RequestMapping("/logout")
+	@RequestMapping("/logout.do")
 	public String logout(HttpSession session) {
 		session.removeAttribute("admin_id");
 		session.removeAttribute("userDetails");
@@ -29,7 +29,7 @@ public class LoginController {
 		return "login/login";
 	}
 
-	@RequestMapping("/loginfailed")
+	@RequestMapping("/loginfailed.do")
 	public String loginfailed(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		if(session.getAttribute("fail_cnt") != null){
@@ -51,7 +51,7 @@ public class LoginController {
 		return "login/login";
 	}
 
-	@RequestMapping("/loginaccessdenied")
+	@RequestMapping("/loginaccessdenied.do")
 	public String loginaccessdenied(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		session.removeAttribute("admin_id");

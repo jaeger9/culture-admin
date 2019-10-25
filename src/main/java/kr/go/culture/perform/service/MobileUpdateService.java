@@ -20,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MobileUpdateService {
 
 
-	@Value("#{contextConfig['file.upload.base.location.dir']}")
+//	@Value("#{contextConfig['file.upload.base.location.dir']}")
+	@Value(value = "${file.upload.base.location.dir:/data/culture_admin_2015}")
 	private String fileUploadBaseLocaionDir;
 	
 	@Resource(name = "CkDatabaseService")

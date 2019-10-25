@@ -136,10 +136,30 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.10.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0'
+
+    //thymeleaf
+    implementation group: 'org.thymeleaf', name: 'thymeleaf-spring4', version: '3.0.11.RELEASE'
+    implementation group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-springsecurity4', version: '3.0.4.RELEASE'
+    implementation group: 'nz.net.ultraq.thymeleaf', name: 'thymeleaf-layout-dialect', version: '2.3.0'
+    implementation group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-java8time', version: '3.0.2.RELEASE'
+
 //    runtime 'org.lazyluke:log4jdbc-remix:0.2.7'
     runtime 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
-    runtime 'commons-dbcp:commons-dbcp:1.4'
-    runtime 'opensymphony:sitemesh:2.4.2'
+//    runtime 'commons-dbcp:commons-dbcp:1.4'
+    implementation group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.5.0' // 김현준 추가
+    implementation group: 'org.lazyluke', name: 'log4jdbc-remix', version: '0.2.7' // 김현준 추가
+
+    implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.2.17.Final'
+    implementation group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.2.17.Final'
+    implementation group: 'org.hibernate', name: 'hibernate-validator', version: '5.4.2.Final'
+
+    // ehcache
+    implementation group: 'javax.cache', name: 'cache-api', version: '1.1.0'
+    implementation group: 'org.ehcache', name: 'ehcache', version: '3.6.3'
+
+    implementation 'opensymphony:sitemesh:2.4.2'
     runtime 'commons-fileupload:commons-fileupload:1.2.2'
 //    implementation 'org.apache.ibatis:ibatis-sqlmap:2.3.4.726'
 

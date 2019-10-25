@@ -46,7 +46,7 @@
 
 	<div id="content">
 		<div class="loginForm">
-			<form name="loginForm" method="post" action="<c:url value='j_spring_security_check' />" >
+			<form name="loginForm" method="post" action="<c:url value='j_spring_security_check.do' />" >
 			<fieldset>
 				<legend>로그인</legend>
 				<!-- focus될경우 class="focus" -->

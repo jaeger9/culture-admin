@@ -12,11 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.PortResolverImpl;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.stereotype.Service;
 
-public class AdminAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler   {
+@Service
+public class AdminAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdminAuthenticationSuccessHandler.class);
 

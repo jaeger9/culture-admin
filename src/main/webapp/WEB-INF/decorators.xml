@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <decorators defaultdir="/WEB-INF/views/decorators">
 	<excludes>
-		<pattern>/login</pattern>
-		<pattern>/logout</pattern>
-		<pattern>/loginfailed</pattern>
-		<pattern>/loginaccessdenied</pattern>
+		<pattern>/login.do</pattern>
+		<pattern>/logout.do</pattern>
+		<pattern>/loginfailed.do</pattern>
+		<pattern>/loginaccessdenied.do</pattern>
 		<pattern>/mail/*.jsp</pattern>
 		<pattern>*json.do</pattern>
 		<pattern>/editor/*</pattern>

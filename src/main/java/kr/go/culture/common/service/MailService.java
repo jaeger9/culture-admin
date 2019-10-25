@@ -1,5 +1,6 @@
 package kr.go.culture.common.service;
 
+import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,12 @@ import org.springframework.stereotype.Service;
 @Service("MailService")
 public class MailService {
 
-	@Autowired
+//	@Autowired
+    @Resource(name = "mailsender")
 	private JavaMailSender mailSender;
 
-	@Autowired
-	private SimpleMailMessage simpleMailMessage;
+//	@Autowired
+//	private SimpleMailMessage simpleMailMessage;
 
 	public void sendMail(final String from,  final String to, final String subject, final String body) throws Exception {
 
@@ -31,9 +33,9 @@ public class MailService {
 		mailSender.send(message);
 	}
 	
-	public void sendAlertMail(String alert) {
-	    SimpleMailMessage mailMessage = new SimpleMailMessage(simpleMailMessage);
-	    mailMessage.setText(alert);
-	    mailSender.send(mailMessage);
-	}
+//	public void sendAlertMail(String alert) {
+//	    SimpleMailMessage mailMessage = new SimpleMailMessage(simpleMailMessage);
+//	    mailMessage.setText(alert);
+//	    mailSender.send(mailMessage);
+//	}
 }

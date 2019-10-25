@@ -25,7 +25,8 @@ public class ContentInsertService {
 	@Resource(name = "FileService")
 	private FileService fileService;
 
-	@Value("#{contextConfig['file.upload.base.location.dir']}")
+//	@Value("#{contextConfig['file.upload.base.location.dir']}")
+	@Value(value = "${file.upload.base.location.dir:/data/culture_admin_2015}")
 	private String fileUploadBaseLocaionDir;
 	
 	@Transactional(value="ckTransactionManager" , rollbackFor={Exception.class})

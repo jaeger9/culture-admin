@@ -4,7 +4,9 @@ import kr.go.culture.common.util.MemberUtils;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.encoding.BaseDigestPasswordEncoder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class MD5MessageDigestPasswordEncoder extends BaseDigestPasswordEncoder {
 
 	public String encodePassword(String rawPass, Object salt) {

@@ -25,8 +25,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileService {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileService.class);
-	
-	@Value("#{contextConfig['file.upload.base.location.dir']}")
+
+	//@Value("#{contextConfig['file.upload.base.location.dir']}")
+	@Value(value = "${file.upload.base.location.dir:/data/culture_admin_2015}")
 	private String fileUploadBaseLocaionDir;
 
 	public enum MenuUploadFilePath {

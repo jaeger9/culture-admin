@@ -41,4 +41,6 @@ public class LoginDAO {
 	public int insert(String strMapID , Object object) throws Exception {
 		return (Integer) sqlMapClient.insert(strMapID , object);
 	}
+
+
 }
