@@ -161,6 +161,13 @@ dependencies {
 
     implementation 'opensymphony:sitemesh:2.4.2'
     runtime 'commons-fileupload:commons-fileupload:1.2.2'
+
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'org.springframework', name: 'spring-test', version: '4.3.16.RELEASE'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.23.4'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.3.1'
+
+
 //    implementation 'org.apache.ibatis:ibatis-sqlmap:2.3.4.726'
 
 //    compile 'javax.mail:javax.mail-api:1.5.2'
