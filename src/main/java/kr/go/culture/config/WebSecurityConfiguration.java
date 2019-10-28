@@ -63,7 +63,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/images/**",
                         "/js/**",
                         "/mail/**",
-                        "/font/**"
+                        "/font/**",
+                        "/assets/**"
                 }
         )
                 .and()

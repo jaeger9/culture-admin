@@ -23,7 +23,7 @@
     <logger name="jdbc.sqltiming" level="INFO"/>
     <logger name="org.thymeleaf" level="DEBUG"/>
 <!--    <logger name="com.navercorp.lucy" level="INFO"/>-->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
 </configuration>

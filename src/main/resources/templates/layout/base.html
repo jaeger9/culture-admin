@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <title>문화포털 통합관리시스템</title>
+    <link rel="stylesheet" type="text/css" href="/assets/css/contents.css">
+    <link href="/js/jquery/ui/jquery-ui.custom.css" rel="stylesheet" type="text/css" />
+    <link href="/js/jquery/pagination/jquery.pagination.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript" src="/js/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/js/jquery/ui/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/jquery/ui/jquery.ui.datepicker-ko.min.js"></script>
+    <script type="text/javascript" src="/js/jquery/pagination/jquery.pagination.js"></script>
+    <script type="text/javascript" src="/js/view/json2.js"></script>
+    <script type="text/javascript" src="/js/view/common.js"></script>
+</head>
+    <body>
+        <div id="wrap">
+            <!-- header -->
+            <th:block th:replace="~{layout/fragments/header :: header}">
+            </th:block>
+            <!-- //header -->
+            <!-- container -->
+            <div id="container" layout:fragment="container" >
+                <a href="#" class="aside_btn">메뉴감추기</a>
+                <!-- asidemenu -->
+                <div id="aside" layout:fragment="aside_lnb_wrap"></div>
+                <!-- //asidemenu -->
+                <!-- contents -->
+                <div id="contents" layout:fragment="contents">
+                </div>
+                <!-- //contents-->
+            </div>
+            <hr />
+            <!-- //container -->
+            <!-- footer -->
+            <th:block th:replace="~{layout/fragments/footer :: footer}">
+            </th:block>
+            <!-- //footer -->
+        </div>
+    </body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}" >
+
+<head>
+    <title>KCISA 문화포털 통합관리시스템</title>
+</head>
+<body>
+    <div id="aside" layout:fragment="aside_lnb_wrap">
+        <h2>공연/전시</h2>
+        <ul class="lnb">
+            <li><a href="#">공연/전시</a></li>
+            <li><a href="#">추천공연</a></li>
+            <li><a href="#">추천전시</a></li>
+            <li><a href="#">할인티켓</a></li>
+            <li class="on"><a href="#">문화릴레이티켓</a>
+                <ul class="dep_menu">
+                    <li class="on"><a href="#">할인중인공연</a></li>
+                    <li><a href="#">리플렛 다운로드</a></li>
+                <li><a href="#">참여공연단체</a></li>
+                </ul>
+            </li>
+            <li><a href="#">관람후기</a></li>
+        </ul>
+    </div>
+    <div id="contents" layout:fragment="contents">
+    </div>
+</body>
+</html>
