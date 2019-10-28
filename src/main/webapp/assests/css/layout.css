@@ -1,0 +1,65 @@
+@charset "utf-8";
+
+/* wrap */
+#wrap {min-width:1200px;}
+
+/* header */
+#header {height:90px;line-height:20px;background:#fff;}
+#header h1 {display:inline-block;height:34px;padding:6px 0 0 15px;}
+#header h1 img {vertical-align:top;}
+
+#header .utility {position:absolute;right:0;top:0;}
+#header .utility li {float:left;height:40px;}
+#header .utility li.name {padding:0 15px 0 20px;font-size:14px;line-height:40px;color:#000;border-right:1px solid #e1e5f1;background:url('../images/ico_person.png') no-repeat 0 50%;}
+#header .utility li.logout {padding:0 15px;font-size:14px;line-height:40px;color:#029451;font-weight:500;border-right:1px solid #e1e5f1;}
+#header .utility li.logout a {display:block;color:#029451;}
+#header .utility li.logout a:hover {color:#01562f;}
+#header .utility li.noti {position:relative;padding:0 25px;border-right:1px solid #e1e5f1;background:url('../images/ico_noti.png') no-repeat 40% 50%;}
+#header .utility li.noti span {position:absolute;right:7px;top:2px;display:inline-block;padding:0 5px;min-width:;height:16px;line-height:16px;font-size:10px;color:#fff;text-align:center;background:#179978;border-radius:20px;}
+#header .utility li.btn {padding:7px 8px 0 8px;}
+#header .utility li.btn a {display:inline-block;padding:0 10px;height:25px;line-height:24px;text-align:center;font-size:13px;color:#fff;font-weight:500;vertical-align:middle;border:1px solid #367fa9;background:#3c8dbc;white-space:nowrap;border-radius:3px;}
+#header .utility li.btn a:hover {background:#2d77a2;}
+
+/* gnb */
+#gnb {padding-left:55px;height:50px;line-height:50px;background:#00a65a;overflow:hidden;}
+#gnb li {float:left;text-align:center;}
+#gnb li a {display:block;padding:0 21px;color:#fff;font-size:16px;font-weight:500;}
+#gnb li a:hover,#gnb li.on a {background:#198b55;}
+
+/* container */
+#container {position:relative;min-height:848px;}
+#container:after {content: ".";display:block;height:0;clear:both;visibility:hidden;}
+
+/* contents */
+#contents {padding:0 20px 20px 20px;line-height:20px;margin-left:230px;}
+#contents:after {content: ".";display:block;height:0;clear:both;visibility:hidden;}
+
+/* lnb */
+.aside_btn {position:absolute;top:-50px;left:0;z-index:100;width:54px;height:50px;text-indent:-999px;overflow:hidden;border-right:1px solid #55bc8c;background:#00924f url('../images/ico_menu01.png') no-repeat 50% 50%;}
+.aside_btn:hover {background:#198b55 url('../images/ico_menu02.png') no-repeat 50% 50%;}
+#container.aside_close .aside_btn {background:#00924f url('../images/ico_menu02.png') no-repeat 50% 50%;}
+#container.aside_close .aside_btn:hover {background:#198b55 url('../images/ico_menu01.png') no-repeat 50% 50%;}
+#container.aside_close #aside {display:none;}
+#container.aside_close #contents {margin-left:0;}
+#aside {position:absolute;top:0;left:0;width:230px;height:100%;border-right:1px solid #d2d6de;background:#f9fafc;}
+#aside h2 {height:80px;line-height:80px;color:#111;font-size:20px;font-weight:500;text-align:center;border-bottom:1px solid #d2d6de;}
+#aside .lnb > li {border-bottom:1px solid #e8e8e8;}
+#aside .lnb li:first-child {border-top:0;}
+#aside .lnb li a {display:block;height:40px;line-height:40px;padding-left:15px;color:#333;font-size:14px;font-weight:500;background:url('../images/lnb_arrow.gif') no-repeat 100% 50%;}
+#aside .lnb li a:hover {color:#000;background:#f1f1f1 url('../images/lnb_arrow_over.gif') no-repeat 100% 50%;}
+#aside .lnb li.on a {color:#fff;font-weight:bold;background:#00a65a url('../images/lnb_arrow_on.gif') no-repeat 100% 50%;}
+#aside .lnb li.on .dep_menu {display:block;}
+#aside .lnb .dep_menu {display:none;padding:10px 0;border-top:1px solid #e8e8e8;}
+#aside .lnb .dep_menu li a {height:25px;line-height:25px;padding-left:28px;font-size:13px;color:#333;font-weight:400;background:url('../images/lnb_bult.gif') no-repeat 18px 50%;}
+#aside .lnb .dep_menu li a:hover {color:#00a65a;}
+#aside .lnb .dep_menu li.on a {color:#00a65a;font-weight:500;}
+
+/* content_header */
+.content_header {position:relative;margin-bottom:10px;border-bottom:1px solid #d2d6de;background:#fff;}
+.content_header h3 {height:80px;line-height:80px;padding-left:20px;color:#111;font-size:28px;font-weight:500;letter-spacing:-1px;}
+.content_header .location {position:absolute;right:20px;top:30px;font-size:12px;color:#666;}
+.content_header .location .ico_home {padding-left:18px;background:url('../images/ico_home.gif') no-repeat 0 50%;}
+.content_header .location span {color:#00a65a;font-weight:500;}
+
+/* footer */
+#footer {padding:10px;clear:both;text-align:center;border-top:1px solid #d2d6de;background:#fff;}
