@@ -5,29 +5,62 @@
     <title>KCISA 문화포털 통합관리시스템</title>
 </head>
 <body>
-    <div id="aside" layout:fragment="aside_lnb_wrap">
+    <div id="aside" layout:fragment="aside_lnb_wrap"
+         th:with="
+            currentMenuIdTop=${currentMenu !=null ? currentMenu.parentTopMenuId:''},
+            currentMenuIdParent=${currentMenu !=null ? currentMenu.menu_pid:''},
+            currentMenuId=${currentMenu !=null  ? currentMenu.menu_id:''}
+         "
+    >
+        <!--/* 메뉴관련 (메뉴가 존재)시작 */-->
+        <th:block th:if="${allMenuTree == null and allMenuTree.empty}">
+            <h2><a th:href="#void">기타 서비스</a></h2>
+            <ul th:class="lnb">
+                <li><a th:href="#void">기타 서비스</a></li>
+            </ul>
+        </th:block>
+        <!--/* 메뉴관련 (메뉴가 존재)끝 */-->
 
-        <h2>공연/전시</h2>
-        <ul class="lnb">
-            <li><a href="#">공연/전시</a></li>
-            <li><a href="#">추천공연</a></li>
-            <li><a href="#">추천전시</a></li>
-            <li><a href="#">할인티켓</a></li>
-            <li class="on"><a href="#">문화릴레이티켓</a>
-                <ul class="dep_menu">
-                    <li class="on"><a href="#">할인중인공연</a></li>
-                    <li><a href="#">리플렛 다운로드</a></li>
-                <li><a href="#">참여공연단체</a></li>
-                </ul>
-            </li>
-            <li><a href="#">관람후기</a></li>
-        </ul>
+        <!--/* 메뉴관련 (메뉴X)시작 */-->
+        <th:block th:if="${allMenuTree != null and !allMenuTree.empty}" th:with="currentMenuActive=0">
+            <th:block th:each="dep1,index : ${allMenuTree}">
+                <th:block th:if="${dep1.menu_id eq currentMenuIdTop }" th:with="currentMenuActive=1">
+                    <h2 th:text="${dep1.menu_name}"></h2>
 
+                    <th:block th:if="${dep1.childMenuList !=null and !dep1.childMenuList.empty }">
+                        <ul class="lnb">
+                            <th:block th:each="dep2 : ${dep1.childMenuList}">
+                                <li th:class="${dep2.menu_id eq currentMenuIdParent or dep2.menu_id eq currentMenuId} ?'on' :''">
+                                    <a th:href="${dep2.firstUrl}">
+                                        <th:block th:text="${dep2.menu_name}"></th:block>
+                                    </a>
 
+                                    <th:block th:if="${dep2.childMenuList !=null and !dep2.childMenuList.empty}">
+                                        <ul th:class="dep_menu">
+                                            <th:block th:each="dep3 : ${dep2.childMenuList}">
+                                                <li th:class="${dep3.menu_id eq currentMenuId ? 'on' : '' }">
+                                                    <a th:href="${dep3.firstUrl}">
+                                                        <th:block th:text="${dep3.menu_name}"></th:block>
+                                                    </a>
+                                                </li>
+                                            </th:block>
+                                        </ul>
+                                    </th:block>
+                                </li>
+                            </th:block>
+                        </ul>
+                    </th:block>
 
+                    <th:block th:if="${currentMenuActive == 0}">
+                        <h2 th:text="기타서비스"></h2>
+                    </th:block>
 
+                </th:block>
+            </th:block>
+        </th:block>
+        <!--/* 메뉴관련 (메뉴X)끝 */-->
     </div>
-    <div id="contents" layout:fragment="contents">
-    </div>
+
+    <div id="contents" layout:fragment="contents"></div>
 </body>
 </html>
