@@ -1,0 +1,5 @@
+.gradle
+build
+gretty
+node_modules
+src/main/webapp/bundles
