@@ -2,6 +2,30 @@
 <html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/admin}">
 <head>
     <title>KCISA 문화포털 통합관리시스템</title>
+    <style type="text/css">
+        .detailContent {
+            padding: 0;
+            margin-left: 20px;
+            line-height:1.5;
+            width: 30%;
+            float:left;
+        }
+        .detailContent div {
+            margin-bottom:10px;
+        }
+
+        .detailContent h3 {
+            font-size:1.2em;
+            font-weight:bold;
+            color:#4b6de6;
+            margin: 0;
+            padding: 10px 0 0 0;
+        }
+
+        .detailContent ul {
+            margin-top: 5px
+        }
+    </style>
 </head>
 <body>
     <div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
@@ -10,26 +34,21 @@
         <!--/* content_header 끝 */-->
         <div class="cont_box">
 
-            <table class="tbl_view">
-                <caption>NCS구분</caption>
-                <colgroup>
-                    <col style="width:13%" />
-                    <col>
-                </colgroup>
-                <tbody>
-                <tr>
-                    <th scope="row">NCS구분</th>
-                    <td>
-                        <ul class="itemlist disib">
-                            <li><input type="radio" id="item1" name="radio" checked="checked" /><em></em> <label for="item1">기초소양교과</label></li>
-                            <li><input type="radio" id="item2" name="radio" /><em></em> <label for="item2">NCS교과</label></li>
-                            <li><input type="radio" id="item3" name="radio" /><em></em> <label for="item3">비NCS교과(이론/실기)</label></li>
-                        </ul>
-                        <a href="#" class="btn_mtype1">교과목등록</a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <th:block th:each="dep1,status1 : ${allMenuTree}">
+                <th:block th:if="${status1.index % 5 == 0}" th:utext="'&lt;div class=\'detailContent\'&gt;'"></th:block>
+                <h3 th:text="${dep1.menu_name}"></h3>
+
+                <th:block th:if="${dep1.childMenuList !=null}">
+                    <ul>
+                        <th:block th:each="dep2 : ${dep1.childMenuList}">
+                            <li><a th:href="${dep2.firstUrl}" th:text="${dep2.menu_name}"></a></li>
+                        </th:block>
+                    </ul>
+                </th:block>
+
+                <th:block th:if="${status1.count != 0 and status1.count % 5 == 0}" th:utext="'&lt;/div&gt;'"></th:block>
+
+            </th:block>
 
         </div>
     </div>
