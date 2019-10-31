@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
 	<display-name>culture_admin</display-name>
 	<description>culture_admin</description>
 
+	<!--
 	<context-param>
 		<param-name>webAppRootKey</param-name>
 		<param-value>culture_admin_new.root</param-value>
 	</context-param>
+	-->
 
-	<!-- The definition of the Root Spring Container shared by all Servlets and Filters -->
+	<!-- The definition of the Root Spring Container shared by all Servlets and Filters
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
@@ -25,7 +27,8 @@
 		<param-name>deploy-mode</param-name>
 		<param-value>dev</param-value>
 	</context-param>
-	
+
+
 	<filter>
 		<filter-name>encodingFilter</filter-name>
 		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -42,8 +45,9 @@
 		<filter-name>encodingFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
-	<!-- Spring Security -->
+	-->
+
+	<!-- Spring Security
 	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
@@ -52,7 +56,7 @@
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
+
 	<filter>
 		<filter-name>sitemesh</filter-name>
 		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
@@ -61,9 +65,9 @@
 		<filter-name>sitemesh</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
-	
-	
+	 -->
+
+
 	<!-- log4j param -->
 	<!-- <context-param>
 		<param-name>log4jConfigLocation</param-name>
@@ -76,13 +80,14 @@
 	<listener>
 		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
 	</listener> -->
-	
-	<!-- Creates the Spring Container shared by all Servlets and Filters -->
+
+	<!-- Creates the Spring Container shared by all Servlets and Filters
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
+	-->
 
-	<!-- Processes application requests -->
+	<!-- Processes application requests
 	<servlet>
 		<servlet-name>adminServlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -100,6 +105,7 @@
 	<session-config>
 		<session-timeout>60</session-timeout>
 	</session-config>
+ 	-->
 
 	<welcome-file-list>
 		<welcome-file>/</welcome-file>
@@ -108,10 +114,6 @@
 		<welcome-file>/index.html</welcome-file>
 	</welcome-file-list>
 
-	<error-page>
-		<exception-type>java.lang.Throwable</exception-type>
-		<location>/WEB-INF/views/error/500.jsp</location>
-	</error-page>
 	<!--
 	<error-page>
 		<error-code>403</error-code>
