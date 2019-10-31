@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+        <div class="content_header" th:fragment="contentHeader">
+            <th:block th:if="${currentMenu == null}">
+                <div class="location">
+                    <a href="/index.do" class="ico_home">홈</a> &gt; <span>기타 서비스</span>
+                </div>
+                <h3>기타 서비스</h3>
+            </th:block>
+            <th:block th:unless="${currentMenu == null}">
+                <div class="location">
+                    <a href="/index.do" class="ico_home">홈</a>
+                    <th:block th:each="item,status : ${currentMenu.parentMenuNameList}">
+                        <th:block th:if="${not status.last}">
+                            &gt;
+                        </th:block>
+                        <th:block th:unless="${not status.last}">
+                            <span th:text="${item}"></span>
+                        </th:block>
+                    </th:block>
+                </div>
+                <h3>
+                    <th:block th:each="item,status : ${currentMenu.parentMenuNameList}">
+                        <th:block th:if="${status.last}">
+                            <th:block th:text="${item}"></th:block>
+                        </th:block>
+                    </th:block>
+                </h3>
+            </th:block>
+        </div>
+</body>
+</html>
