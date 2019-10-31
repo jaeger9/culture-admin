@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <decorators defaultdir="/WEB-INF/views/decorators">
 	<excludes>
+		<pattern>/index.do</pattern>
+		<pattern>/perform/*/*</pattern>
 		<pattern>/login.do</pattern>
 		<pattern>/logout.do</pattern>
 		<pattern>/loginfailed.do</pattern>
