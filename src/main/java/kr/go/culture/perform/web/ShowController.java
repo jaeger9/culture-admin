@@ -58,7 +58,8 @@ public class ShowController {
 		model.addAttribute("count", (Integer) ckDatabaseService.readForObject("show.listCnt", paramMap));
 		model.addAttribute("list", ckDatabaseService.readForList("show.list", paramMap));
 
-		return "/perform/show/list";
+//		return "/perform/show/list";
+		return "thymeleaf/perform/show/list";
 	}
 
 	@RequestMapping("view.do")

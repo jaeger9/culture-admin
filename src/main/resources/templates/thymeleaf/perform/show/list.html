@@ -22,7 +22,7 @@
 
             // alert('[[${paramMap.page_no}]]');
             if('[[${paramMap[sort_type]}]]') {
-                if('${paramMap.sort_type}' == 'hit'){
+                if('[[${paramMap[sort_type]}]]' == 'hit'){
                     $('ul.sortingList li').removeClass('on');
                     $('ul.sortingList li:eq(1)').addClass('on');
                 }
@@ -34,7 +34,7 @@
             var p = new Pagination({
                 view		:	'#pagination',
                 page_count	:	'[[${count }]]',
-                page_no		:	'${paramMap.page_no }',
+                page_no		:	'[[${paramMap[page_no]}]]',
                 /* link		:	'/main/code/list.do?page_no=__id__', */
                 callback	:	function(pageIndex, e) {
                     page_no.val(pageIndex + 1);
@@ -44,16 +44,16 @@
             });
 
             //radio check
-            if('${paramMap.state}')
-                $('input:radio[name="state"][value="${paramMap.state}"]').prop('checked', 'checked');
+            if('[[${paramMap[state]}]]')
+                $('input:radio[name="state"][value="[[${paramMap[state]}]]"]').prop('checked', 'checked');
 
             //checkbox
             new Checkbox('input[name=uciAll]', 'input[name=uci]');
 
             //selectbox
-            if('${paramMap.approval}')$("select[name=approval]").val('${paramMap.approval}').attr("selected", "selected");
-            if('${paramMap.period}')$("select[name=period]").val('${paramMap.period}').attr("selected", "selected");
-            if('${paramMap.searchGubun}')$("select[name=searchGubun]").val('${paramMap.searchGubun}').attr("selected", "selected");
+            if('[[${paramMap[approval]}]]')$("select[name=approval]").val('[[${paramMap[approval]}]]').attr("selected", "selected");
+            if('[[${paramMap[period]}]]')$("select[name=period]").val('[[${paramMap[period]}]]').attr("selected", "selected");
+            if('[[${paramMap[searchGubun]}]]')$("select[name=searchGubun]").val('[[${paramMap[searchGubun]}]]').attr("selected", "selected");
 
             // radio 변경
             // if('${paramMap.office}')$("select[name=office]").val('${paramMap.office}').attr("selected", "selected");

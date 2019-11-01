@@ -31,7 +31,8 @@ public class HomeController {
 	public String home(ModelMap model) {
 		Map<RequestMappingInfo, HandlerMethod> map = requestMappingHandlerMapping.getHandlerMethods();
 		model.addAttribute("map", map);
-		return "test/first";
+//		return "test/first";
+		return "thymeleaf/test/first";
 	}
 
 }

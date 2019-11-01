@@ -81,6 +81,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers(new String[]{
+                        "/index.do",
                         "/**/**insert**.do",
                         "/**/**/**insert**.do",
                         "/**/**update**.do",
@@ -92,6 +93,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 }).authenticated()
                 //.antMatchers("/member/findId.do").access("hasRole('ROLE_USER')")
                 .antMatchers(new String[]{
+                        "/",
                         "/login.do",
                 }).permitAll()
                 .and()

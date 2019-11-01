@@ -15,9 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.cache.CacheManager;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Properties;
 
