@@ -12,6 +12,7 @@ plugins {
     id 'java-lang'
     id 'war'
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
+    id 'eclipse-wtp'
 }
 
 configurations {
