@@ -170,17 +170,29 @@
         <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
         <!--/* content_header 끝 */-->
         <div class="cont_box">
-
-
-
+            <table class="tbl_view">
+                <caption>NCS구분</caption>
+                <colgroup>
+                    <col style="width:13%" />
+                    <col>
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">출처</th>
+                    <td>
+                        <ul class="itemlist disib">
+                            <li><input type="radio" id="item1" name="state" checked="checked" /><em></em> <label for="item1">기초소양교과</label></li>
+                            <li><input type="radio" id="item2" name="state" /><em></em> <label for="item2">NCS교과</label></li>
+                            <li><input type="radio" id="item3" name="state" /><em></em> <label for="item3">비NCS교과(이론/실기)</label></li>
+                        </ul>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
 
             <div id="pagination">
             </div>
-
-
-
         </div>
-
     </div>
 </body>
 </html>
