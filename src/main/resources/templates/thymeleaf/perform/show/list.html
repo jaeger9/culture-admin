@@ -169,26 +169,142 @@
         <!--/* content_header 시작 */-->
         <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
         <!--/* content_header 끝 */-->
-        <div class="cont_box">
-            <table class="tbl_view">
-                <caption>NCS구분</caption>
+
+        <!-- search -->
+        <div class="search_box">
+            <table class="tbl_search">
+                <caption>검색</caption>
                 <colgroup>
-                    <col style="width:13%" />
-                    <col>
+                    <col style="width:140px" />
+                    <col style="width:35%" />
+                    <col style="width:140px" />
+                    <col />
                 </colgroup>
                 <tbody>
                 <tr>
                     <th scope="row">출처</th>
-                    <td>
+                    <td colspan="3">
                         <ul class="itemlist disib">
-                            <li><input type="radio" id="item1" name="state" checked="checked" /><em></em> <label for="item1">기초소양교과</label></li>
-                            <li><input type="radio" id="item2" name="state" /><em></em> <label for="item2">NCS교과</label></li>
-                            <li><input type="radio" id="item3" name="state" /><em></em> <label for="item3">비NCS교과(이론/실기)</label></li>
+                            <li><input type="radio" id="item1" name="state" checked="checked" /><em></em> <label for="item1">전체</label></li>
+                            <li><input type="radio" id="item2" name="state" /><em></em> <label for="item2">내부 등록</label></li>
+                            <li><input type="radio" id="item3" name="state" /><em></em> <label for="item3">공연예술통합전산망</label></li>
+                            <li><input type="radio" id="item4" name="state" /><em></em> <label for="item3">nticket</label></li>
                         </ul>
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row">공연/전시일</th>
+                    <td colspan="3">
+                        <select style="width:10%;" title="공연/전시일 선택하세요" name="period">
+                            <option value="">공연/전시일을 선택하세요.</option>
+                            <option value="event">공연/전시일</option>
+                            <option value="insert">등록일</option>
+                        </select>
+
+                        <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 시작 -->
+                        <input type="text" style="width:100px;"  name="search_start" title="공연/전시 시작일자">
+                        <a href="#" class="ico_cal">달력</a>
+                        ~
+                        <input type="text" style="width:100px;" name="search_end" title="공연/전시 마지막일자">
+                        <a href="#" class="ico_cal">달력</a>
+                        <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 종료 -->
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">승인여부</th>
+                    <td colspan="3">
+                        <select style="width:10%;" title="승인여부" name="approval">
+                            <option value="">전체</option>
+                            <option value="N">미승인</option>
+                            <option value="Y">승인</option>
+                            <option value="W">대기</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">검색어</th>
+                    <td colspan="3">
+                        <select style="width:10%;" name="searchGubun">
+                            <option value="all">전체</option>
+                            <option value="title">제목</option>
+                            <option value="description">내용</option>
+                            <option value="creator">작성자</option>
+                        </select>
+                        <input type="text" name="keyword" title="검색어 입력" style="width:10%;" th:value="${paramMap[keyword]} == null ? '' :  ${paramMap[keyword]}"/>
+                    </td>
+                </tr>
+
                 </tbody>
             </table>
+            <div class="search_btn">
+                <a href="#" class="btn_search">검색</a>
+            </div>
+        </div>
+        <!-- //search -->
+
+        <div class="cont_box">
+
+            <div class="list_header">
+                <span class="page_num">검색결과 : <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}">1,000</span></span>
+                <div class="right">
+                    <select style="width:200px;" title="카테고리선택">
+                        <option value="">최신순</option>
+                        <option value="">조회순</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- list -->
+            <table class="tbl_list">
+                <caption>공연/전시목록</caption>
+                <colgroup>
+                    <col style="width:3%" />
+                    <col style="width:3%" />
+                    <col style="width:5%"/>
+                    <col style="width:5%" />
+                    <col/>
+                    <col style="width:5%" />
+                    <col style="width:10%" />
+                    <col style="width:8%" />
+                    <col style="width:3%" />
+                    <col style="width:3%" />
+                    <col style="width:3%" />
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col" class="th02"><input type="checkbox"><em></em></th>
+                    <th scope="col">번호</th>
+                    <th scope="col">지역</th>
+                    <th scope="col">장르</th>
+                    <th scope="col">제목</th>
+                    <th scope="col">출처/작성자</th>
+                    <th scope="col">공연기간</th>
+                    <th scope="col">등록일</th>
+                    <th scope="col">조회수</th>
+                    <th scope="col">승인여부</th>
+                    <th scope="col">댓글</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item,status : ${list}">
+                        <td class="td01"><input type="checkbox" name="uci" th:value="${item.uci}"/><em></em></td>
+                        <td th:text="${count-(10*(paramMap.page_no-1))-status.index}"></td>
+                        <td th:text="${item.location}"></td>
+                        <td th:text="${item.genre}"></td>
+                        <td><a th:href="@{/perform/show/view.do?(uci=${item.uci},qs=${paramMap.qs})}" th:text="${item.title}"></a></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr th:if="${list.size() == 0}">
+                        검색된 결과가 없습니다.
+                    </tr>
+                </tbody>
+            </table>
+            <!-- //list -->
 
             <div id="pagination">
             </div>
