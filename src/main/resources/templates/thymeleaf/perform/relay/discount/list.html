@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+	$(function() {
+
+		var frm = $('form[name=frm]');
+		var page_no = frm.find('input[name=page_no]');
+		var reg_date_start = frm.find('input[name=reg_start]');
+		var reg_date_end = frm.find('input[name=reg_end]');
+		/* var creators = frm.find('input[name=creators]');
+		var approval = frm.find('input[name=approval]');
+		var reg_date_start = frm.find('inpput[name=reg_date_start]');
+		var reg_date_end = frm.find('inpput[name=reg_date_end]');
+		var insert_date_start = frm.find('inpput[name=insert_date_start]');
+		var insert_date_end = frm.find('inpput[name=insert_date_end]');
+		var search_type = frm.find('select[name=search_type]');
+		var search_word = frm.find('inpput[name=search_word]'); */
+
+		//layout
+		new Datepicker(reg_date_start, reg_date_end);
+
+		//paging
+		var p = new Pagination({
+			view : '#pagination',
+			page_count : '[[${count}]]',
+			page_no : '[[${paramMap[page_no]}]]',
+			/* link		:	'/main/code/list.do?page_no=__id__', */
+			callback : function(pageIndex, e) {
+				page_no.val(pageIndex + 1);
+				search();
+				return false;
+			}
+		});
+
+		//checkbox
+		new Checkbox('input[name=seqAll]', 'input[name=seq]');
+
+		//selectbox
+		if ('[[${paramMap[regType]}]]') {
+			$("select[name=regType]").val('[[${paramMap[regType]}]]').attr(
+					"selected", "selected");
+		}
+		
+		if ('[[${paramMap[discount]}]]') {
+			$("select[name=discount]").val('[[${paramMap[discount]}]]').attr(
+					"selected", "selected");
+		}
+		
+		
+		//검색
+		$('a[name=searchButton]').click(function() {
+			$('input[name=page_no]').val('1');
+			$('form[name=frm]').submit();
+		});
+
+		search = function() {
+			frm.submit();
+		}
+
+		//상세
+		$('div.tableList table tbody tr td').each(
+				function() {
+					if (!$(this).find('input').attr('type')) {
+						$(this).click(
+								function() {
+									view($(this).parent().first().find('input')
+											.attr('type', 'checkbox').val());
+								});
+					}
+				});
+
+		view = function(seq) {
+			url = '/perform/relay/discount/view.do';
+			if (seq)
+				url += '?seq=' + seq;
+
+			location.href = url;
+		}
+
+		//등록 & 상세
+		$('span.btn.dark.fr').click(function() {
+			view();
+		});
+
+		//승인 , 미승인 , 삭제 이벤트 
+		$('span > button').each(function() {
+			$(this).click(function() {
+				if ($(this).html() == '삭제') {
+					if (!confirm('삭제 하시겠습니까?')) {
+						return false;
+					}
+					deleteSites();
+				} else if ($(this).html() == '승인') {
+					if (!confirm('승인 처리 하시겠습니까?')) {
+						return false;
+					}
+					$('input[name=updateStatus]').val('Y');
+					updateStatus();
+				} else if ($(this).html() == '미승인') {
+					if (!confirm('미승인 처리 하시겠습니까?')) {
+						return false;
+					}
+					$('input[name=updateStatus]').val('N');
+					updateStatus();
+				}
+			});
+		});
+
+		//승인 , 미승인
+		updateStatus = function() {
+
+			if (getCheckBoxCheckCnt() == 0) {
+				if ($('input[name=updateStatus]').val() == 'N')
+					alert('미승인할 코드를 선택하세요');
+				if ($('input[name=updateStatus]').val() == 'Y')
+					alert('승인할 코드를 선택하세요');
+				return false;
+			}
+
+			formSubmit('/perform/relay/discount/statusUpdate.do');
+		}
+
+		//삭제
+		deleteSites = function() {
+
+			if (getCheckBoxCheckCnt() == 0) {
+				alert('삭제할 코드를 선택하세요');
+				return false;
+			}
+
+			formSubmit('/perform/relay/discount/delete.do');
+		}
+
+		//체크 박스 count 수 
+		getCheckBoxCheckCnt = function() {
+			return $('input[name=seq]:checked').length;
+		};
+
+		//submit
+		formSubmit = function(url) {
+			frm.attr('action', url);
+			frm.submit();
+		};
+	});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+
+
+		<form name="frm" method="get" action="/perform/relay/discount/list.do">
+			<div class="search_box">
+				<input type="hidden" name="page_no" value="${paramMap.page_no}" />
+				<input type="hidden" name="updateStatus" value="" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>검색</caption>
+					<tbody>
+						<tr>
+						  <th scope="row">할인률</th>
+							<td>
+							<select style="width:20%" title="할인률 선택하세요" name="discount">
+									<option value="">전체</option>
+									<option value="100">무료</option>
+									<option value="30">30%</option>
+									<option value="20">20%</option>
+									<option value="15">15%</option>
+									<option value="10">10%</option>
+							</select>
+						  </td>
+						</tr>
+						<tr>
+							<th scope="row">기간</th>
+							<td colspan="3">
+							<select title="공연/전시일 선택하세요" name="regType">
+									<option value="1">공연일</option>
+									<option value="2">등록일</option>
+							</select> 
+							<input type="text" name="reg_start" th:value="${paramMap[reg_start]} == null ? '' : ${paramMap[reg_start]} " />
+								<span>~</span> 
+								<input type="text" name="reg_end" th:value="${paramMap[reg_end]} == null ? '' : ${paramMap[reg_end]} " />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">검색어</th>
+							<td colspan="3">
+							<input type="text" name="searchKeyword" placeholder="검색어 입력"
+								th:value="${paramMap[searchKeyword]} == null ? '' : ${paramMap[searchKeyword]} " />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="search_btn">
+					<a href="#" class="btn_search" name="searchButton">검색</a>
+				</div>
+			</div>
+			<!-- //search -->
+			<div class="cont_box">
+				<input type="hidden" name="page_no" value="${paramMap.page_no }" />
+				<input type="hidden" name="updateStatus" value="" />
+				<div class="list_header">
+					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
+					<div class="btnBox" style="float: right; display: inline-block;">
+						<a type="button" class="btn_stype3">승인</a> <a type="button"
+							class="btn_stype3">미승인</a> <a type="button" class="btn_stype3">삭제</a>
+						<a class="btn_stype3" th:href="@{#url}">등록</a>
+					</div>
+
+				</div>
+				<!-- list -->
+				<table class="tbl_list">
+					<caption>게시판 글 목록</caption>
+					<colgroup>
+						<col style="width: 3%" />
+						<col style="width: 8%" />
+						<col style="width: %" />
+						<col style="width: 10%" />
+						<col style="width: 20%" />
+						<col style="width: 15%" />
+						<col style="width: 10%" />
+					</colgroup>
+					<thead>
+						<tr>
+							    <th scope="col" class="th02"><input type="checkbox"><em></em></th>
+							<th scope="col">번호</th>
+							<th scope="col">제목</th>
+							<th scope="col">할인률</th>
+							<th scope="col">기간</th>
+							<th scope="col">등록일</th>
+							<th scope="col">승인여부</th>
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:each="item , status : ${list}">
+							<tr>
+							     <td class="td01"><input type="checkbox" name="seq" th:value="${item.seq}"/><em></em></td>
+								<td><th:block th:with="num=${count}-(10 * (${paramMap[page_no]}-1))-${status.index}">
+										<span th:text="${num}"></span>
+									</th:block></td>
+								<td><a th:href="@{/perform/relay/discount/view.do(seq=${item.seq})}" th:text="${item.title}"></a></td>
+								<td><th:block th:if="${item.discount} != 100" th:text="${item.discount}"></th:block> 
+								<th:block th:unless="${item.discount} != 100" th:text="무료"></th:block></td>
+								<td th:text="${item[period]} == null ? '' :${item[period]}"></td>
+								<td th:text="${item.reg_date}"></td>
+								<td th:text="${item.approval}"></td>
+							</tr>
+						</th:block>
+					</tbody>
+				</table>
+				<!-- //list -->
+				<!-- paginate -->
+				<div class="paginate" id="pagination"> </div>
+				<!-- //paginate -->
+			</div>
+		</form>
+	</div>
+
+
+
+
+
+</body>
+</html>

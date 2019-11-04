@@ -36,10 +36,11 @@ public class TicketController {
 
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("count", (Integer) ckDatabaseService.readForObject("ticket.listCnt", paramMap));
-		model.addAttribute("list",
-				ckDatabaseService.readForList("ticket.list", paramMap));
-
+		model.addAttribute("list", ckDatabaseService.readForList("ticket.list", paramMap));
+		
+	
 		return "/perform/ticket/list";
+		//return "thymeleaf/perform/relay/discount/list";
 	}
 
 	@RequestMapping("view.do")
