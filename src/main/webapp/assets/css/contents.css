@@ -135,6 +135,8 @@ textarea:-ms-input-placeholder {color:#888;text-indent:4px;}
 .btn_center a {margin:0 1px;}
 .btn_right {margin-top:10px;text-align:right;}
 .btn_center a {margin-left:2px;}
+.btn_left {margin-top:10px;text-align:left;}
+
 a.btn_ltype1 {display:inline-block;min-width:70px;padding:0 12px;margin:0 1px;height:38px;line-height:38px;text-align:center;font-size:14px;color:#fff;font-weight:500;vertical-align:middle;border:1px solid #008d4c;background:#00a65a;white-space:nowrap;border-radius:3px;}
 a.btn_ltype2 {display:inline-block;min-width:70px;padding:0 12px;margin:0 1px;height:38px;line-height:38px;text-align:center;font-size:14px;color:#fff;font-weight:500;vertical-align:middle;border:1px solid #367fa9;background:#3c8dbc;white-space:nowrap;border-radius:3px;}
 a.btn_ltype3 {display:inline-block;min-width:70px;padding:0 12px;margin:0 1px;height:38px;line-height:38px;text-align:center;font-size:14px;color:#333;font-weight:500;vertical-align:middle;border:1px solid #bbb;background:#f4f4f4;white-space:nowrap;border-radius:3px;}

@@ -9,18 +9,7 @@
             var page_no = frm.find('input[name=page_no]');
             var search_date_start = frm.find('input[name=search_start]');
             var search_date_end = frm.find('input[name=search_end]');
-            /* var creators = frm.find('input[name=creators]');
-            var approval = frm.find('input[name=approval]');
-            var reg_date_start = frm.find('inpput[name=reg_date_start]');
-            var reg_date_end = frm.find('inpput[name=reg_date_end]');
-            var insert_date_start = frm.find('inpput[name=insert_date_start]');
-            var insert_date_end = frm.find('inpput[name=insert_date_end]');
-            var search_type = frm.find('select[name=search_type]');
-            var search_word = frm.find('inpput[name=search_word]'); */
 
-            //layout
-
-            // alert('[[${paramMap.page_no}]]');
             if('[[${paramMap[sort_type]}]]') {
                 if('[[${paramMap[sort_type]}]]' == 'hit'){
                     $('ul.sortingList li').removeClass('on');
@@ -54,15 +43,7 @@
             if('[[${paramMap[approval]}]]')$("select[name=approval]").val('[[${paramMap[approval]}]]').attr("selected", "selected");
             if('[[${paramMap[period]}]]')$("select[name=period]").val('[[${paramMap[period]}]]').attr("selected", "selected");
             if('[[${paramMap[searchGubun]}]]')$("select[name=searchGubun]").val('[[${paramMap[searchGubun]}]]').attr("selected", "selected");
-
-            // radio 변경
-            // if('${paramMap.office}')$("select[name=office]").val('${paramMap.office}').attr("selected", "selected");
-
-            //검색
-            $('button[name=searchButton]').click(function(){
-                $('input[name=page_no]').val('1');
-                $('form[name=frm]').submit();
-            });
+            if('[[${paramMap[sort_type]}]]')$("select[name=sort_type]").val('[[${paramMap[sort_type]}]]').attr("selected", "selected");
 
             search = function() {
                 frm.submit();
@@ -84,17 +65,26 @@
             };
 
             //최신순 , 조회순
-            $('div.topBehavior ul li a').each(function() {
-                $(this).click(function() {
-                    if($(this).html() == '최신순') {
-                        $('input[name=sort_type]').val('latest');
-                        search();
-                    } else if($(this).html() == '조회순') {
-                        $('input[name=sort_type]').val('hit');
-                        search();
-                    }
+            $("#sort_type").change(function () {
+                $("#sort_type option:selected").each(function() {
+                    var selectVal = $(this).val();
+
+                    $('input[name=sort_type]').val(selectVal);
+                    search();
                 });
             });
+
+            // $('div.topBehavior ul li a').each(function() {
+            //     $(this).click(function() {
+            //         if($(this).html() == '최신순') {
+            //             $('input[name=sort_type]').val('latest');
+            //             search();
+            //         } else if($(this).html() == '조회순') {
+            //             $('input[name=sort_type]').val('hit');
+            //             search();
+            //         }
+            //     });
+            // });
 
             // 등록, 상세
             $('span.btn.dark.fr').click(function(){
@@ -102,7 +92,7 @@
             });
 
             //승인 , 미승인 , 삭제 이벤트
-            $('span > button').each(function() {
+            $('.btn_left > a').each(function() {
                 $(this).click(function() {
                     if($(this).html() == '삭제') {
                         if (!confirm('삭제 하시겠습니까?')) {
@@ -162,6 +152,10 @@
             };
         });
 
+        fnSearch = function() {
+            var frm = $('form[name=frm]');
+            frm.submit();
+        }
     </script>
 </head>
 <body>
@@ -169,6 +163,10 @@
         <!--/* content_header 시작 */-->
         <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
         <!--/* content_header 끝 */-->
+        <form name="frm" method="get" action="/perform/show/list.do">
+            <input type="hidden" name="page_no" th:value="${paramMap?.page_no}"/>
+            <input type="hidden" name="updateStatus"/>
+            <input type="hidden" name="sort_type" th:value="${paramMap?.sort_type}" />
 
         <!-- search -->
         <div class="search_box">
@@ -185,10 +183,10 @@
                     <th scope="row">출처</th>
                     <td colspan="3">
                         <ul class="itemlist disib">
-                            <li><input type="radio" id="item1" name="state" checked="checked" /><em></em> <label for="item1">전체</label></li>
-                            <li><input type="radio" id="item2" name="state" /><em></em> <label for="item2">내부 등록</label></li>
-                            <li><input type="radio" id="item3" name="state" /><em></em> <label for="item3">공연예술통합전산망</label></li>
-                            <li><input type="radio" id="item4" name="state" /><em></em> <label for="item3">nticket</label></li>
+                            <li><input type="radio" id="item1" name="state" value="1" checked="checked" /><em></em> <label for="item1">전체</label></li>
+                            <li><input type="radio" id="item2" name="state" value="2" /><em></em> <label for="item2">내부 등록</label></li>
+                            <li><input type="radio" id="item3" name="state" value="3" /><em></em> <label for="item3">공연예술통합전산망</label></li>
+                            <li><input type="radio" id="item4" name="state" value="4" /><em></em> <label for="item3">nticket</label></li>
                         </ul>
                     </td>
                 </tr>
@@ -202,10 +200,10 @@
                         </select>
 
                         <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 시작 -->
-                        <input type="text" style="width:100px;"  name="search_start" title="공연/전시 시작일자">
+                        <input type="text" style="width:100px;"  name="search_start" th:value="${paramMap?.search_start}" title="공연/전시 시작일자">
                         <a href="#" class="ico_cal">달력</a>
                         ~
-                        <input type="text" style="width:100px;" name="search_end" title="공연/전시 마지막일자">
+                        <input type="text" style="width:100px;" name="search_end" th:value="${paramMap?.search_end}" title="공연/전시 마지막일자">
                         <a href="#" class="ico_cal">달력</a>
                         <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 종료 -->
                     </td>
@@ -230,14 +228,14 @@
                             <option value="description">내용</option>
                             <option value="creator">작성자</option>
                         </select>
-                        <input type="text" name="keyword" title="검색어 입력" style="width:10%;" th:value="${paramMap[keyword]} == null ? '' :  ${paramMap[keyword]}"/>
+                        <input type="text" name="keyword" title="검색어 입력" style="width:10%;" th:value="${paramMap?.keyword}"/>
                     </td>
                 </tr>
 
                 </tbody>
             </table>
             <div class="search_btn">
-                <a href="#" class="btn_search">검색</a>
+                <a href="#search" th:onclick="|javascript:fnSearch()|" class="btn_search">검색</a>
             </div>
         </div>
         <!-- //search -->
@@ -247,9 +245,9 @@
             <div class="list_header">
                 <span class="page_num">검색결과 : <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}">1,000</span></span>
                 <div class="right">
-                    <select style="width:200px;" title="카테고리선택">
-                        <option value="">최신순</option>
-                        <option value="">조회순</option>
+                    <select style="width:200px;" title="카테고리선택" id="sort_type" name="sort_type">
+                        <option value="latest">최신순</option>
+                        <option value="hit">조회순</option>
                     </select>
                 </div>
             </div>
@@ -268,11 +266,11 @@
                     <col style="width:8%" />
                     <col style="width:3%" />
                     <col style="width:3%" />
-                    <col style="width:3%" />
+                    <col style="width:5%" />
                 </colgroup>
                 <thead>
                 <tr>
-                    <th scope="col" class="th02"><input type="checkbox"><em></em></th>
+                    <th scope="col" class="th02"><input type="checkbox" name="uciAll"><em></em></th>
                     <th scope="col">번호</th>
                     <th scope="col">지역</th>
                     <th scope="col">장르</th>
@@ -288,16 +286,19 @@
                 <tbody>
                     <tr th:each="item,status : ${list}">
                         <td class="td01"><input type="checkbox" name="uci" th:value="${item.uci}"/><em></em></td>
-                        <td th:text="${count-(10*(paramMap.page_no-1))-status.index}"></td>
+                        <td th:text="${count-(10*(#conversions.convert(paramMap.page_no,'Integer')-1))-status.index}"></td>
                         <td th:text="${item.location}"></td>
                         <td th:text="${item.genre}"></td>
                         <td><a th:href="@{/perform/show/view.do?(uci=${item.uci},qs=${paramMap.qs})}" th:text="${item.title}"></a></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td th:text="${item.creator}"></td>
+                        <td th:text="${item.reg_start+'~'+item.reg_end}"></td>
+                        <td th:text="${item.reg_date}"></td>
+                        <td th:text="${item.view_cnt}"></td>
+                        <td th:text="${item.approval}"></td>
+                        <td>
+                            <input type="hidden" name="menuTD"/>
+                            <a th:href="@{/common/reply/list.do?(uci=${item.uci},seq=${item.seq},menu_cd=1)}" class="btn_stype3">보기</a>(<th:block th:text="${item.reply_cnt}"></th:block>)
+                        </td>
                     </tr>
                     <tr th:if="${list.size() == 0}">
                         검색된 결과가 없습니다.
@@ -308,7 +309,16 @@
 
             <div id="pagination">
             </div>
+
+            <div class="btn_left">
+                <a href="#" class="btn_ltype1">승인</a>
+                <a href="#" class="btn_ltype1">미승인</a>
+                <a href="#" class="btn_ltype1">삭제</a>
+                <a href="/perform/show/view.do" class="btn_ltype3">등록</a>
+            </div>
+
         </div>
+        </form>
     </div>
 </body>
 </html>
