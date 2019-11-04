@@ -166,7 +166,7 @@
         <form name="frm" method="get" action="/perform/show/list.do">
             <input type="hidden" name="page_no" th:value="${paramMap?.page_no}"/>
             <input type="hidden" name="updateStatus"/>
-            <input type="hidden" name="sort_type" th:value="${paramMap?.sort_type}" />
+            <input type="hidden" name="sort_type"  th:value="${paramMap[sort_type]} == null ? '' :  ${paramMap[sort_type]} "/>
 
         <!-- search -->
         <div class="search_box">
@@ -200,10 +200,10 @@
                         </select>
 
                         <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 시작 -->
-                        <input type="text" style="width:100px;"  name="search_start" th:value="${paramMap?.search_start}" title="공연/전시 시작일자">
+                        <input type="text" style="width:100px;"  name="search_start" th:value="${paramMap[search_start]} == null ? '' :  ${paramMap[search_start]} "  title="공연/전시 시작일자">
                         <a href="#" class="ico_cal">달력</a>
                         ~
-                        <input type="text" style="width:100px;" name="search_end" th:value="${paramMap?.search_end}" title="공연/전시 마지막일자">
+                        <input type="text" style="width:100px;" name="search_end" th:value="${paramMap[search_end]} == null ? '' :  ${paramMap[search_end]} "  title="공연/전시 마지막일자">
                         <a href="#" class="ico_cal">달력</a>
                         <!-- todo 공통컴퍼넌트 (달력 - 시작일 ~ 종료일) 종료 -->
                     </td>
@@ -228,7 +228,7 @@
                             <option value="description">내용</option>
                             <option value="creator">작성자</option>
                         </select>
-                        <input type="text" name="keyword" title="검색어 입력" style="width:10%;" th:value="${paramMap?.keyword}"/>
+                        <input type="text" name="keyword" title="검색어 입력" style="width:10%;" th:value="${paramMap[keyword]} == null ? '' :  ${paramMap[keyword]} " />
                     </td>
                 </tr>
 
