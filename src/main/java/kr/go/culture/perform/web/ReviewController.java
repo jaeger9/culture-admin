@@ -39,7 +39,8 @@ public class ReviewController {
 		model.addAttribute("list",
 				ckDatabaseService.readForList("review.list", paramMap));
 
-		return "/perform/review/list";
+//		return "/perform/review/list";
+		return "thymeleaf/perform/review/list";
 	}
 
 	@RequestMapping("view.do")
