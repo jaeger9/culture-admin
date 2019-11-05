@@ -200,7 +200,7 @@
             });
 
             //수정 , 삭제 , 등록
-            $('span > button').each(function() {
+            $('.btn_right > a').each(function() {
                 $(this).click(function() {
                     if($(this).html() == '수정') {
                         if (!confirm('수정하시겠습니까?')) {
@@ -210,7 +210,7 @@
                         /* 20151006 : 이용환 : 에디터 변경을 위해 수정
                         oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
                         */
-                        document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+                        document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
                         $('input[name=venue2]').val($('input[name=venue]').val());
                         frm.submit();
                     } else if($(this).html() == '삭제') {
@@ -228,7 +228,7 @@
                         /* 20151006 : 이용환 : 에디터 변경을 위해 수정
                         oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
                         */
-                        document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+                        document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
                         $('input[name=venue2]').val($('input[name=venue]').val());
                         frm.submit();
                     } else if($(this).html() == '목록') {
@@ -245,7 +245,8 @@
         <!--/* content_header 시작 */-->
         <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
         <!--/* content_header 끝 */-->
-
+        <form name="frm" method="post" action="/perform/show/insert.do" enctype="multipart/form-data">
+        </form>
         <div class="cont_box">
             <table class="tbl_view">
                 <caption>과정기본정보</caption>
@@ -573,7 +574,16 @@
                     </tr>
                 </tbody>
             </table>
-
+            <div class="btn_right">
+                <th:block th:if="${view != null}">
+                    <a href="#" class="btn_ltype1">수정</a>
+                    <a href="#" class="btn_ltype1">삭제</a>
+                </th:block>
+                <th:block th:unless="${view != null}">
+                    <a href="#" class="btn_ltype1">등록</a>
+                </th:block>
+                <a href="#" class="btn_ltype3">목록</a>
+            </div>
         </div>
 
     </div>
