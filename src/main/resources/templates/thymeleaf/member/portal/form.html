@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+	var callback = {
+		zipcode : function(res) {
+			/*
+				JSON.stringify(res) = {
+					"cateType"	:	"F"
+					,"orgCode"	:	"NLKF02"
+					,"orgId"	:	86
+					,"category"	:	"도서"
+					,"name"		:	"국립중앙도서관"
+				}
+			 */
+			if (res == null) {
+				return false;
+			}
+
+			$('input[name=zip_code]').val(res.zipcode);
+			$('input[name=addr]').val(res.addr);
+		}
+	};
+
+	$(function() {
+
+		// 에디터 HTML 적용
+		// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+		// nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+
+		var frm = $('form[name=frm]');
+
+		var tel1 = frm.find('select[name=tel1]');
+		var tel2 = frm.find('input[name=tel2]');
+		var tel3 = frm.find('input[name=tel3]');
+		var tel = frm.find('input[name=tel]');
+
+		var hp1 = frm.find('select[name=hp1]');
+		var hp2 = frm.find('input[name=hp2]');
+		var hp3 = frm.find('input[name=hp3]');
+		var hp = frm.find('input[name=hp]');
+
+		var email1 = frm.find('input[name=email1]');
+		var email2 = frm.find('input[name=email2]');
+		var email = frm.find('input[name=email]');
+
+		var addr_category = frm.find('input[name=addr_category]');
+		var zip_code = frm.find('input[name=zip_code]');
+		var addr = frm.find('input[name=addr]');
+
+		var favor_portal_tmp = frm.find('input[name=favor_portal_tmp]');
+		var favor_portal = frm.find('input[name=favor_portal]');
+
+		frm.submit(function() {
+			// frm.serialize()
+			// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+
+			tel.val(tel1.val() + '-' + tel2.val() + '-' + tel3.val());
+			hp.val(hp1.val() + '-' + hp2.val() + '-' + hp3.val());
+			email.val(email1.val() + '@' + email2.val());
+
+			if (favor_portal_tmp.filter(':checked').size() > 0) {
+				var value = '';
+				favor_portal_tmp.filter(':checked').each(function() {
+					if (value == '') {
+						value = $(this).val();
+					} else {
+						value = value + ',' + $(this).val();
+					}
+				});
+				favor_portal.val(value);
+			}
+
+			return true;
+		});
+
+		// 등록/수정
+		$('.insert_btn').click(function() {
+			frm.submit();
+			return false;
+		});
+
+		// 우편번호
+		$('.post_btn')
+				.add(zip_code)
+				.add(addr)
+				.click(
+						function() {
+							var value = '63';
+
+							if (addr_category.filter(':checked').size() > 0) {
+								value = addr_category.filter(':checked').val();
+							}
+
+							if (value != '63' && value != '64') {
+								value = '63';
+							}
+
+							/* if (value == '63') {
+								Popup.zipcode();
+							} else {
+								Popup.zipcodeRoad();
+							} */
+							window
+									.open('/popup/jusoPopup.do',
+											'postalcodePopup',
+											'width=570, height=420, scrollbars=yes, resizable=yes');
+
+							return false;
+						});
+
+		if ($('input[name=private_agreement_yn]').filter(':checked') == 0) {
+			$('input[name=private_agreement_yn]:eq(0)').click(); // checked bug 있음
+		}
+
+		if ($('input[name=sec_cer_flag]').filter(':checked') == 0) {
+			$('input[name=sec_cer_flag]:eq(0)').click(); // checked bug 있음
+		}
+		// init
+		if ($('input[name=newsletter_yn]').filter(':checked') == 0) {
+			$('input[name=newsletter_yn]:eq(0)').click(); // checked bug 있음
+		}
+		if ($('input[name=addr_category]').filter(':checked') == 0) {
+			$('input[name=addr_category]:eq(0)').click(); // checked bug 있음
+		}
+		if ($('input[name=join_path]').filter(':checked') == 0) {
+			$('input[name=join_path]:eq(0)').click(); // checked bug 있음
+		}
+
+	});
+
+	//도로명주소 Open Api
+	function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
+		$('input[name=zip_code]').val(zipNo); //우편번호
+		$('input[name=addr]').val(addr); //기본주소
+		$('input[name=addr_detail]').val(addr2); //상세주소
+	}
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="POST" action="/member/portal/form.do"
+			enctype="multipart/form-data">
+			<input type="hidden" name="qs" th:value="${paramMap.qr }" /> 
+			<input type="hidden" name="user_id" th:value="${view.user_id }" /> 
+			<input type="hidden" name="tel" value="${view.tel}" /> 
+			<input type="hidden" name="hp" th:value="${view.hp }" /> 
+			<input type="hidden" name="email" th:value="${view.email }" /> 
+			<input type="hidden" name="favor_portal" value="${view.favor_portal }" />
+			<div class="cont_box">
+				<h3 class="h301 mt0">기본정보</h3>
+				<table class="tbl_view">
+					<caption>상세 보기</caption>
+					<colgroup>
+						<col style="width: 13%" />
+						<col style="width: 30%" />
+						<col style="width: 13%" />
+						<col />
+						<col style="width: 14%" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th scope="row">아이디</th>
+							<td>훈련중</td>
+							<th scope="row">가입일</th>
+							<td>2018-01-15</td>
+						</tr>
+						<tr>
+							<th scope="row">회원구분</th>
+							<td>
+							<th:block th:if="${view.member_category eq '1' }" th:text="'일반회원'"></th:block>
+							<th:block th:if="${view.member_category eq '2' }" th:text="'어린이회원'"></th:block>
+							<th:block th:if="${view.member_category eq '3' }" th:text="'외국인회원'"></th:block>
+							</td>
+							<th scope="row">가입구분</th>
+							<td>
+							
+							<th:block th:if="${view.join_category eq '1' }" th:text="|실명인증 (인증번호 : ${view.member_key == null ? ' - ' : view.member_key} )|" >
+							
+							</th:block>
+								<th:block th:unless="${view.join_category eq '1' }" th:text="'실명인증'" >
+							I-PIN
+							</th:block>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">이름</th>
+							<td th:text="${view.name}"></td>
+							<th scope="row">성별</th>
+							<td th:text="${view.sex eq 'M' ? '남자' : '여자' }"></td>
+						</tr>
+						<tr>
+							<th scope="row">출생년도</th>
+							<td colspan="3" th:text="${view.birth_year }"></td>
+						</tr>
+						<tr>
+						<th scope="row">권한</th>
+							<td >
+								<select name="userRole">
+									<th:block th:each="item : ${userRoleList }" >
+										<option value="${item.value }" ${view.role eq item.value ? 'selected="selected"' : '' }>[[${item.name}]]</option>
+									</th:block>
+								</select>
+						    </td>
+							<th scope="row">마일리지</th>
+							<td th:text="|${view.point } P|"></td>
+						</tr>
+						<tr>
+							<th scope="row">개인정보 <br />재동의 여부</th>
+							<td >
+							<div class="inputBox">
+									<ul>
+										<li style="display: inline-block;">
+										<input  type="radio" name="private_agreement_yn" value="Y" ${view.private_agreement_yn  eq 'Y' ? 'checked="checked"' : '' } id="item3" /> 
+										<em></em>
+										<label for="item3"> 동의</label>
+									 <input type="radio" name="private_agreement_yn" value="N" ${view.private_agreement_yn  eq 'Y' ? 'checked="checked"' : '' } id="item4" /> 
+										<em></em>
+										<label for="item4"> 미동의</label>
+										</li>
+										
+									</ul>
+									</div>
+							
+							
+							</td>
+							<th scope="row">재 동의일자</th>
+							<td th:text="${view.private_agreement_date}"></td>
+						</tr>
+						<tr>
+							<th scope="row">로그인 실패횟수</th>
+							<td th:text="${view.fail_cnt}"></td>
+							<th scope="row">비밀번호 변경일</th>
+							<td th:text="${view.pwd_chg_date }"></td>
+						</tr>
+							<tr>
+							<th scope="row">최종 로그인</th>
+							<td th:text="${view.login_date}"></td>
+							<th scope="row">최종로그아웃</th>
+							<td th:text="${view.logout_date}" ></td>
+						</tr>
+							<tr>
+							<th scope="row">휴대폰 번호</th>
+							<td colspan="3">
+								<select name="hp1">
+					<th:block th:each="item : ${phoneList}">
+						<option value="${item.value}" ${view.hp1 eq item.value ? 'selected="selected"' : '' }>[[${item.name }]]</option>
+					</th:block>
+				</select>
+				-
+				<input type="text" name="hp2" th:value="${view.hp2}" maxlength="4" style="width:50px;" />
+				-
+				<input type="text" name="hp3" th:value="${view.hp3}" maxlength="4" style="width:50px;" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">E-MAIL</th>
+							<td colspan="3">
+								<input type="text" name="email1" th:value="${view.email1}" style="width:150px;" />
+				@
+				<input type="text" name="email2" th:value="${view.email2}" style="width:150px;" />
+
+				<select name="email3">
+					<option value="">직접입력</option>
+					<c:forEach items="${mailList }" var="item">
+						<option value="${item.value }" ${view.email2 eq item.value ? 'selected="selected"' : '' }>${item.name }</option>
+					</c:forEach>
+				</select></td>
+						</tr>
+						<tr>
+							<th scope="row">뉴스레터</th>
+							<td colspan="3">
+							<div class="inputBox">
+									<ul>
+										<li style="display: inline-block;">
+										<input  type="radio" name="newsletter_yn" value="Y" ${view.newsletter_yn eq 'Y' ? 'checked="checked"' : '' } id="item1" /> 
+										<em></em>
+										<label for="item1"> 수신</label>
+									 <input type="radio" name="newsletter_yn" value="N" ${view.newsletter_yn ne 'Y' ? 'checked="checked"' : '' } id="item2" /> 
+										<em></em>
+										<label for="item2"> 미수신</label>
+										</li>
+										
+									</ul>
+									</div>
+						</td>
+						</tr>
+						<tr>
+							<th scope="row">거주지역</th>
+							<td colspan="3">
+				<select name="addr_sido">
+					<option value=""   ${empty view.addr_sido ? 'selected="selected"' : '' }>- 선택 -</option>
+					<option value="서울특별시"  ${view.addr_sido eq '서울특별시' ? 'selected="selected"' : '' } >서울특별시</option>
+					<option value="부산광역시"  ${view.addr_sido eq '부산광역시'? 'selected="selected"' : '' }>부산광역시</option>
+					<option value="대구광역시"  ${view.addr_sido eq '대구광역시' ? 'selected="selected"' : '' } >대구광역시</option>
+					<option value="인천광역시"  ${view.addr_sido eq '인천광역시'? 'selected="selected"' : '' } >인천광역시</option>
+					<option value="광주광역시"  ${view.addr_sido eq '광주광역시' ? 'selected="selected"' : '' } >광주광역시</option>
+					<option value="대전광역시"  ${view.addr_sido eq '대전광역시' ? 'selected="selected"' : '' } >대전광역시</option>
+					<option value="울산광역시"  ${view.addr_sido eq '울산광역시' ? 'selected="selected"' : '' } >울산광역시</option>
+					<option value="세종특별자치시" ${view.addr_sido eq '세종특별자치시' ? 'selected="selected"' : '' } >세종특별자치시</option>
+					<option value="경기도"  ${view.addr_sido eq '경기도' ? 'selected="selected"' : '' } >경기도</option>
+					<option value="강원도"  ${view.addr_sido eq '강원도' ? 'selected="selected"' : '' } >강원도</option>
+					<option value="충청북도"  ${view.addr_sido eq '충청북도' ? 'selected="selected"' : '' } >충청북도</option>
+					<option value="충청남도"  ${view.addr_sido eq '충청남도' ? 'selected="selected"' : '' } >충청남도</option>
+					<option value="전라북도"  ${view.addr_sido eq '전라북도' ? 'selected="selected"' : '' } >전라북도</option>
+					<option value="전라남도"  ${view.addr_sido eq '전라남도' ? 'selected="selected"' : '' } >전라남도</option>
+					<option value="경상북도"  ${view.addr_sido eq '경상북도' ? 'selected="selected"' : '' } >경상북도</option>
+					<option value="경상남도"  ${view.addr_sido eq '경상남도' ? 'selected="selected"' : '' } >경상남도</option>
+					<option value="제주특별자치도"  ${view.addr_sido eq '제주특별자치도' ? 'selected="selected"' : '' } >제주특별자치도</option>
+				</select>
+					</td>
+						</tr>
+						<tr>
+						 <th scope="row">네이버 아이디 <br />연동</th>
+							<td>
+							<th:block th:if="${view.sns_naver_id == null  }" th:text="'N'"></th:block>
+							<th:block th:unless="${view.sns_naver_id ==null  }" th:text="'Y'"></th:block>
+						</td>
+						<th scope="row">카카오 아이디 <br />연동</th>
+							<td>
+							<th:block th:if="${ view.sns_kakao_id ==null }" th:text="'N'"></th:block>
+							<th:block th:unless="${view.sns_kakao_id ==null}" th:text="'Y'"></th:block>
+							</td>
+						</tr>
+						
+					</tbody>
+				</table>
+		
+				<div class="btn_center">
+					<a href="#" class="btn_ltype3">수정</a>
+					<a th:href="@{/member/portal/list.do?${paramMap.qr_dec }}" class="btn_ltype3">목록</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>

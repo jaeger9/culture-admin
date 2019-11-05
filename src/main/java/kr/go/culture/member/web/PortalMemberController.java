@@ -74,7 +74,8 @@ public class PortalMemberController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/member/portal/form";
+		//return "/member/portal/form";
+		return "thymeleaf/member/portal/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)
