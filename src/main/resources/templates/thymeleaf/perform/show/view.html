@@ -232,7 +232,7 @@
                         $('input[name=venue2]').val($('input[name=venue]').val());
                         frm.submit();
                     } else if($(this).html() == '목록') {
-                        location.href='/perform/show/list.do?${paramMap.qr_dec }';
+                        location.href='/perform/show/list.do?[[${paramMap[qr_dec]}]]';
                     }
                 });
             });
@@ -246,7 +246,10 @@
         <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
         <!--/* content_header 끝 */-->
         <form name="frm" method="post" action="/perform/show/insert.do" enctype="multipart/form-data">
-        </form>
+            <input type="hidden" name="venue2" value=""/>
+            <input type="hidden" name="mode" value="view"/>
+            <input th:if="${view != null and view.uci != null}" type="hidden" name="uci" th:value="${view.uci}"/>
+
         <div class="cont_box">
             <table class="tbl_view">
                 <caption>과정기본정보</caption>
@@ -574,6 +577,8 @@
                     </tr>
                 </tbody>
             </table>
+
+
             <div class="btn_right">
                 <th:block th:if="${view != null}">
                     <a href="#" class="btn_ltype1">수정</a>
@@ -585,7 +590,7 @@
                 <a href="#" class="btn_ltype3">목록</a>
             </div>
         </div>
-
+        </form>
     </div>
 </body>
 </html>
