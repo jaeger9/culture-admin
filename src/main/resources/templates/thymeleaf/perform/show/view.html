@@ -257,7 +257,7 @@
                 </colgroup>
                 <tbody>
                     <tr>
-                        <th scope="row">제목</th>
+                        <th scope="row"><em>*</em>제목</th>
                         <td colspan="3">
                             <!--/* 수정*/-->
                             <input th:if="${view != null}" type="text" style="width:97%;" title="제목" name="title" id="title" th:value="${view.title}"/>
@@ -266,7 +266,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">장르</th>
+                        <th scope="row"><em>*</em>장르</th>
                         <td colspan="3">
                             <select title="출처 선택" name="genre">
                                 <th:block th:each="list : ${genreList}">
@@ -541,6 +541,39 @@
 
                 </tbody>
             </table>
+
+            <h4 class="h401">줄거리</h4>
+            <table class="tbl_view">
+                <caption>공연/전시 컨텐츠 글쓰기</caption>
+                <colgroup>
+                    <col style="width:15%" />
+                    <col style="width:35%" />
+                    <col style="width:15%" />
+                    <col style="width:35%" />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+
+                            <script type="text/javascript" language="javascript">
+                                var CrossEditor = new NamoSE('txt_contents');
+                                CrossEditor.params.Width = "100%";
+                                CrossEditor.params.Height = "900px";
+                                CrossEditor.params.UserLang = "auto";
+                                CrossEditor.params.UploadFileSizeLimit = "image:10485760";
+                                CrossEditor.params.Font = {"NanumGothic":"나눔고딕","Dotum":"돋움", "Gulim":"굴림", "Batang":"바탕", "Gungsuh":"궁서", "맑은 고딕":"맑은 고딕"  ,"David":"David", "MS Pgothic":"MS Pgothic","Simplified Arabic":"Simplified Arabic","SimSun":"SimSun","Arial":"Arial","Courier New":"Courier New", "Tahoma":"Tahoma", "Times New Roman":"Times New Roman", "verdana":"Verdana"};
+                                CrossEditor.EditorStart();
+                                function OnInitCompleted(e){
+                                    e.editorTarget.SetBodyValue(document.getElementById("txt_contents").value);
+                                }
+                            </script>
+                            <textarea id="txt_contents" name="description" title="initText" style="display:none;"><th:block th:text="${view != null ? #strings.escapeXml(view.description) : ''}"></th:block></textarea>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
 
     </div>
