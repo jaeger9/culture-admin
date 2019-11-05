@@ -6,48 +6,48 @@
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
 <script type="text/javascript">
-$(function () {
+	$(function() {
 
-	var frm = $('form[name=frm]');
-	var page_no = frm.find('input[name=page_no]');
-	var withdraw_date_start = frm.find('input[name=withdraw_date_start]');
-	var withdraw_date_end = frm.find('input[name=withdraw_date_end]');
-	var search_type = frm.find('select[name=search_type]');
-	var search_word = frm.find('input[name=search_word]');
-	var search_btn = frm.find('button[name=search_btn]');
+		var frm = $('form[name=frm]');
+		var page_no = frm.find('input[name=page_no]');
+		var withdraw_date_start = frm.find('input[name=withdraw_date_start]');
+		var withdraw_date_end = frm.find('input[name=withdraw_date_end]');
+		var search_type = frm.find('select[name=search_type]');
+		var search_word = frm.find('input[name=search_word]');
+		var search_btn = frm.find('button[name=search_btn]');
 
-	var search = function () {
-		frm.submit();
-	};
-	
-	new Pagination({
-		view		:	'#pagination',
-		page_count	:	'[[${count }]]',
-		page_no		:	'[[${paramMap.page_no }]]',
-		callback	:	function(pageIndex, e) {
-			page_no.val(pageIndex + 1);
-			search();
-			return false;
-		}
-	});
+		var search = function() {
+			frm.submit();
+		};
 
-	new Datepicker(withdraw_date_start, withdraw_date_end);
+		new Pagination({
+			view : '#pagination',
+			page_count : '[[${count }]]',
+			page_no : '[[${paramMap.page_no }]]',
+			callback : function(pageIndex, e) {
+				page_no.val(pageIndex + 1);
+				search();
+				return false;
+			}
+		});
 
-	search_word.keypress(function(event) {
-		if (event.which == 13) {
-			event.preventDefault();
+		new Datepicker(withdraw_date_start, withdraw_date_end);
+
+		search_word.keypress(function(event) {
+			if (event.which == 13) {
+				event.preventDefault();
+				page_no.val(1);
+				search();
+			}
+		});
+
+		search_btn.click(function() {
 			page_no.val(1);
 			search();
-		}
-	});
+			return false;
+		});
 
-	search_btn.click(function () {
-		page_no.val(1);
-		search();
-		return false;
 	});
-
-});
 </script>
 </head>
 <body>
@@ -59,7 +59,7 @@ $(function () {
 		<!--/* content_header 끝 */-->
 
 
-		<form name="frm" method="get" action="/member/portal/list.do">
+		<form name="frm" method="get" action="/member/portalWithdraw/list.do">
 			<div class="search_box">
 				<!-- search -->
 				<input type="hidden" name="page_no" value="${paramMap[page_no]}" />
@@ -68,15 +68,16 @@ $(function () {
 					<tbody>
 						<tr>
 							<th scope="row">탈퇴일</th>
-							<td colspan="3"><input type="text" name="withdraw_date_start" th:value="${paramMap[withdraw_date_start] }" />
-							 <span>~</span> 
-							 <input type="text" name="withdraw_date_end" th:value="${paramMap[withdraw_date_end] }" /></td>
+							<td colspan="3"><input type="text"
+								name="withdraw_date_start"
+								th:value="${paramMap[withdraw_date_start] }" /> <span>~</span>
+								<input type="text" name="withdraw_date_end"
+								th:value="${paramMap[withdraw_date_end] }" /></td>
 						</tr>
 						<tr>
 							<th scope="row">검색어</th>
-							<td colspan="3">
-							<input type="text" name="search_word" th:value="${paramMap[search_word] }" />
-							</td>
+							<td colspan="3"><input type="text" name="search_word"
+								th:value="${paramMap[search_word] }" /></td>
 						</tr>
 					</tbody>
 				</table>
@@ -88,25 +89,25 @@ $(function () {
 			<div class="cont_box">
 				<div class="list_header">
 					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
-				
+
 				</div>
 				<!-- list -->
 				<table class="tbl_list">
 					<caption>게시판 글 목록</caption>
 					<colgroup>
-							<col style="width:8%" />
-			<col style="width:25%" />
-			<col style="width:15%" />
-			<col />
-			<col style="width:12%" />
+						<col style="width: 8%" />
+						<col style="width: 25%" />
+						<col style="width: 15%" />
+						<col />
+						<col style="width: 12%" />
 					</colgroup>
 					<thead>
 						<tr>
-						<th scope="col">번호</th>
-				<th scope="col">구분</th>
-				<th scope="col">아이디</th>
-				<th scope="col">사유</th>
-				<th scope="col">탈퇴일</th>
+							<th scope="col">번호</th>
+							<th scope="col">구분</th>
+							<th scope="col">아이디</th>
+							<th scope="col">사유</th>
+							<th scope="col">탈퇴일</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -117,42 +118,35 @@ $(function () {
 						</th:block>
 						<th:block th:each="item, status : ${list}">
 							<tr>
-								<td>
-									<th:block th:text="${#numbers.formatInteger(count - (paramMap[page_no] - 1) * paramMap[list_unit] - status.index,'3','COMMA')}"></th:block>
+								<td><th:block th:text="${#numbers.formatInteger( (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
 								</td>
-								
-								<td>
-								<th:block th:if="${item.withdraw_cause == null}" th:text="'탈퇴회원'"> 
-									</th:block>
-									<th:block th:unless="${item.withdraw_cause == null}" th:text="${item.withdraw_cause } ">
-									</th:block>
-								</td>
-								<td class="subject">
-									<th:block th:text="${item.user_id }">  </th:block>
-									
-								</td>
-								<td>
-									<th:block th:if="${item.content == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.content == null}" th:text="${item.content} ">
-									</th:block>
-								</td>
-								<td>
-									<th:block th:if="${item.withdraw_date  == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.withdraw_date  == null}" th:text="${item.withdraw_date } ">
-									</th:block>
-								</td>
-							
+
+								<td><th:block th:if="${item.withdraw_cause == null}"
+										th:text="'탈퇴회원'">
+									</th:block> <th:block th:unless="${item.withdraw_cause == null}"
+										th:text="${item.withdraw_cause } ">
+									</th:block></td>
+								<td class="subject"><th:block th:text="${item.user_id }">
+									</th:block></td>
+								<td><th:block th:if="${item.content == null}" th:text="'-'">
+									</th:block> <th:block th:unless="${item.content == null}"
+										th:text="${item.content} ">
+									</th:block></td>
+								<td><th:block th:if="${item.withdraw_date  == null}"
+										th:text="'-'">
+									</th:block> <th:block th:unless="${item.withdraw_date  == null}"
+										th:text="${item.withdraw_date } ">
+									</th:block></td>
+
 							</tr>
 						</th:block>
 					</tbody>
 				</table>
 				<!-- //list -->
 				<!-- paginate -->
-				<div  id="pagination"></div>
+				<div id="pagination"></div>
 				<!-- //paginate -->
-				
+
 			</div>
 		</form>
 	</div>

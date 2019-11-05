@@ -6,48 +6,48 @@
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
 <script type="text/javascript">
-$(function () {
+	$(function() {
 
-	var frm = $('form[name=frm]');
-	var page_no = frm.find('input[name=page_no]');
-	var join_date_start = frm.find('input[name=join_date_start]');
-	var join_date_end = frm.find('input[name=join_date_end]');
-	var search_type = frm.find('select[name=search_type]');
-	var search_word = frm.find('input[name=search_word]');
-	var search_btn = frm.find('button[name=search_btn]');
+		var frm = $('form[name=frm]');
+		var page_no = frm.find('input[name=page_no]');
+		var join_date_start = frm.find('input[name=join_date_start]');
+		var join_date_end = frm.find('input[name=join_date_end]');
+		var search_type = frm.find('select[name=search_type]');
+		var search_word = frm.find('input[name=search_word]');
+		var search_btn = frm.find('button[name=search_btn]');
 
-	var search = function () {
-		frm.submit();
-	};
-	
-	new Pagination({
-		view		:	'#pagination',
-		page_count	:	'[[${count }]]',
-		page_no		:	'[[${paramMap.page_no }]]',
-		callback	:	function(pageIndex, e) {
-			page_no.val(pageIndex + 1);
-			search();
-			return false;
-		}
-	});
+		var search = function() {
+			frm.submit();
+		};
 
-	new Datepicker(join_date_start, join_date_end);
+		new Pagination({
+			view : '#pagination',
+			page_count : '[[${count }]]',
+			page_no : '[[${paramMap.page_no }]]',
+			callback : function(pageIndex, e) {
+				page_no.val(pageIndex + 1);
+				search();
+				return false;
+			}
+		});
 
-	search_word.keypress(function(event) {
-		if (event.which == 13) {
-			event.preventDefault();
+		new Datepicker(join_date_start, join_date_end);
+
+		search_word.keypress(function(event) {
+			if (event.which == 13) {
+				event.preventDefault();
+				page_no.val(1);
+				search();
+			}
+		});
+
+		search_btn.click(function() {
 			page_no.val(1);
 			search();
-		}
-	});
+			return false;
+		});
 
-	search_btn.click(function () {
-		page_no.val(1);
-		search();
-		return false;
 	});
-
-});
 </script>
 </head>
 <body>
@@ -59,7 +59,7 @@ $(function () {
 		<!--/* content_header 끝 */-->
 
 
-		<form name="frm" method="get" action="/member/portal/list.do">
+		<form name="frm" method="get" action="/member/portalDormancy/list.do">
 			<div class="search_box">
 				<!-- search -->
 				<input type="hidden" name="page_no" value="${paramMap[page_no]}" />
@@ -68,17 +68,21 @@ $(function () {
 					<tbody>
 						<tr>
 							<th scope="row">가입일</th>
-							<td colspan="3"><input type="text" name="join_date_start" th:value="${paramMap[join_date_start] }" />
-							 <span>~</span> 
-							 <input type="text" name="join_date_end" th:value="${paramMap[join_date_end] }" /></td>
+							<td colspan="3"><input type="text" name="join_date_start"
+								th:value="${paramMap[join_date_start] }" /> <span>~</span> <input
+								type="text" name="join_date_end"
+								th:value="${paramMap[join_date_end] }" /></td>
 						</tr>
 						<tr>
 							<th scope="row">검색어</th>
 							<td colspan="3"><select name="search_type">
 									<option value="all">전체</option>
-									<option value="user_id" ${paramMap[search]_type  eq 'user_id' ? 'selected="selected"' : '' }>아이디</option>
-									<option value="name" ${paramMap.[search]_type eq 'name'	? 'selected="selected"' : '' }>이름</option>
-									<option value="email" ${paramMap.[search]_type eq 'email'	? 'selected="selected"' : '' }>이메일</option>
+									<option value="user_id" ${paramMap[search]_type
+										eq 'user_id' ? 'selected="selected"' : '' }>아이디</option>
+									<option value="name" ${paramMap.[search]_type
+										eq 'name'	? 'selected="selected"' : '' }>이름</option>
+									<option value="email" ${paramMap.[search]_type
+										eq 'email'	? 'selected="selected"' : '' }>이메일</option>
 							</select> <input type="text" name="search_word" placeholder="검색어 입력"
 								th:value="${paramMap[search_word] }" /></td>
 						</tr>
@@ -93,27 +97,28 @@ $(function () {
 				<div class="list_header">
 					<!-- <p class="totalCnt">총 <span><fmt:formatNumber value="${count }" pattern="###,###" /></span>건</p> -->
 					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
-					<p style=" display: inline-block;float: right; padding: 10px 0 0" th:text="|업데이트 시간 [${ batchUpdateDate }]|"></p>
+					<p style="display: inline-block; float: right; padding: 10px 0 0"
+						th:text="|업데이트 시간 [${ batchUpdateDate }]|"></p>
 				</div>
 				<!-- list -->
 				<table class="tbl_list">
 					<caption>게시판 글 목록</caption>
 					<colgroup>
-							<col style="width:10%" />
-			<col style="width:15%" />
-			<col style="width:15%" />
-			<col />
-			<col />
-			<col />
+						<col style="width: 10%" />
+						<col style="width: 15%" />
+						<col style="width: 15%" />
+						<col />
+						<col />
+						<col />
 					</colgroup>
 					<thead>
 						<tr>
-						<th scope="col">번호</th>
-				<th scope="col">아이디</th>
-				<th scope="col">이름</th>
-				<th scope="col">휴면전환날짜</th>
-				<th scope="col">가입날짜</th>
-				<th scope="col">최종로그인날짜</th>
+							<th scope="col">번호</th>
+							<th scope="col">아이디</th>
+							<th scope="col">이름</th>
+							<th scope="col">휴면전환날짜</th>
+							<th scope="col">가입날짜</th>
+							<th scope="col">최종로그인날짜</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -124,53 +129,39 @@ $(function () {
 						</th:block>
 						<th:block th:each="item, status : ${list}">
 							<tr>
-								<td>
-									<th:block th:text="${#numbers.formatInteger(count - (paramMap[page_no] - 1) * paramMap[list_unit] - status.index,'3','COMMA')}"></th:block>
+								<td><th:block th:text="${#numbers.formatInteger(   (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
 								</td>
-								<td>
-								[[${item.user_id }]]
-								</td>
-								<td>
-								<th:block th:if="${item.name == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.name == null}" th:text="${item.name} ">
-									</th:block>
-								</td>
-								<td class="subject">
-									<th:block th:if="${item.dormancy_date == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.dormancy_date == null}" th:text="${item.dormancy_date} ">
-									</th:block>
-								</td>
-								<td>
-									<th:block th:if="${item.join_date == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.join_date == null}" th:text="${item.join_date} ">
-									</th:block>
-								</td>
-								<td>
-									<th:block th:if="${item.login_date == null}" th:text="'-'"> 
-									</th:block>
-									<th:block th:unless="${item.login_date == null}" th:text="${item.login_date} ">
-									</th:block>
-								</td>
-							
+								<td>[[${item.user_id }]]</td>
+								<td><th:block th:if="${item.name == null}" th:text="'-'">
+									</th:block> <th:block th:unless="${item.name == null}"
+										th:text="${item.name} ">
+									</th:block></td>
+								<td class="subject"><th:block
+										th:if="${item.dormancy_date == null}" th:text="'-'">
+									</th:block> <th:block th:unless="${item.dormancy_date == null}"
+										th:text="${item.dormancy_date} ">
+									</th:block></td>
+								<td><th:block th:if="${item.join_date == null}"
+										th:text="'-'">
+									</th:block> <th:block th:unless="${item.join_date == null}"
+										th:text="${item.join_date} ">
+									</th:block></td>
+								<td><th:block th:if="${item.login_date == null}"
+										th:text="'-'">
+									</th:block> <th:block th:unless="${item.login_date == null}"
+										th:text="${item.login_date} ">
+									</th:block></td>
 							</tr>
 						</th:block>
 					</tbody>
 				</table>
 				<!-- //list -->
 				<!-- paginate -->
-				<div  id="pagination"></div>
+				<div id="pagination"></div>
 				<!-- //paginate -->
-				
+
 			</div>
 		</form>
 	</div>
-
-
-
-
-
 </body>
 </html>
