@@ -412,6 +412,133 @@
                             <input th:unless="${view != null}" type="text" style="width:97%;" title="제작진" name="prfcrew" id="prfcrew" />
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row">소개이미지1</th>
+                        <td colspan="3">
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+
+                                <input type="file" name="styurl1" title="파일선택" />
+
+                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                                <!--/* 수정*/-->
+                                <input th:if="${view != null}" type="hidden" name="file_delete_styurl1"  th:value="${view.styurl1}"/>
+                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl1" id="imagedelete_styurl1" value="Y"/><em></em><label for="imagedelete_styurl1">삭제</label>
+
+                                <!--/* 신규등록*/-->
+                                <input th:unless="${view != null}" type="hidden" name="file_delete_styurl1"/>
+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">소개이미지2</th>
+                        <td colspan="3">
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+
+                                <input type="file" name="styurl2" title="파일선택" />
+
+                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                                <!--/* 수정*/-->
+                                <input th:if="${view != null}" type="hidden" name="file_delete_styurl2"  th:value="${view.styurl2}"/>
+                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl2" id="imagedelete_styurl2" value="Y"/><em></em><label for="imagedelete_styurl2">삭제</label>
+
+                                <!--/* 신규등록*/-->
+                                <input th:unless="${view != null}" type="hidden" name="file_delete_styurl2"/>
+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">소개이미지3</th>
+                        <td colspan="3">
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+
+                                <input type="file" name="styurl3" title="파일선택" />
+
+                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                                <!--/* 수정*/-->
+                                <input th:if="${view != null}" type="hidden" name="file_delete_styurl3"  th:value="${view.styurl3}"/>
+                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl3" id="imagedelete_styurl3" value="Y"/><em></em><label for="imagedelete_styurl3">삭제</label>
+
+                                <!--/* 신규등록*/-->
+                                <input th:unless="${view != null}" type="hidden" name="file_delete_styurl3"/>
+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">소개이미지4</th>
+                        <td colspan="3">
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+
+                                <input type="file" name="styurl4" title="파일선택" />
+
+                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                                <!--/* 수정*/-->
+                                <input th:if="${view != null}" type="hidden" name="file_delete_styurl4"  th:value="${view.styurl4}"/>
+                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl4" id="imagedelete_styurl4" value="Y"/><em></em><label for="imagedelete_styurl4">삭제</label>
+
+                                <!--/* 신규등록*/-->
+                                <input th:unless="${view != null}" type="hidden" name="file_delete_styurl4"/>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">제3자<br/>공개동의여부</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <th:block th:if="${view !=null}" th:text="${view.open_api_agree}" />
+                            <!--/* 신규등록*/-->
+                            <th:block th:unless="${view !=null}">
+                                <ul class="itemlist">
+                                    <li><input type="radio" name="open_api_agree" id="value" checked="checked" value="Y"/><em></em> <label for="value">동의</label></li>
+                                    <li><input type="radio" name="open_api_agree" id="noAgree" value="N" /><em></em> <label for="미동의">URL</label></li>
+                                </ul>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr th:if="${view != null}">
+                        <th scope="row">출처</th>
+                        <td colspan="3" th:text="${view.site_name_value}"> </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">승인여부</th>
+                        <td colspan="3">
+                            <ul class="itemlist">
+                                <li><input type="radio" name="approval" id="W" checked="checked" value="W"/><em></em> <label for="W">대기</label></li>
+                                <li><input type="radio" name="approval" id="Y" value="Y" /><em></em> <label for="Y">승인</label></li>
+                                <li><input type="radio" name="approval" id="N" value="N" /><em></em> <label for="N">미승인</label></li>
+                            </ul>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${view !=null and view.uci !=null}">
+                        <th scope="row">모바일사용여부</th>
+                        <td colspan="3">
+                            <ul class="itemlist">
+                                <li><input type="radio" name="mobile_yn" id="mobile_yn_y" value="Y" th:attr="checked=${view.mdescription != null ? 'true' : 'false' }"/><em></em> <label for="mobile_yn_y">사용</label></li>
+                                <li><input type="radio" name="mobile_yn" id="mobile_yn_n" value="N" th:attr="checked=${view.mdescription == null ? 'true' : 'false' }"/><em></em> <label for="mobile_yn_n">사용안함</label></li>
+                            </ul>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">다운로드</th>
+                        <td colspan="3">
+                            <th:block th:if="${view != null and view.web_accessibility_file != null} ">
+                                <a th:href="@{http://www.culture.go.kr/download.do?(filename=${view.web_accessibility_file},orgname=${view.web_accessibility_file_org })}" th:text="첨부파일 다운로드" target="_blank"></a>
+                            </th:block>
+                            <th:block th:unless="${view != null and view.web_accessibility_file != null}" >-</th:block>
+                        </td>
+                    </tr>
+
                 </tbody>
             </table>
         </div>
