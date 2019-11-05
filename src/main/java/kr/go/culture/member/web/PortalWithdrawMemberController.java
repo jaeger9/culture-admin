@@ -29,7 +29,8 @@ public class PortalWithdrawMemberController {
 		model.addAttribute("count", (Integer) service.readForObject("portalWithdrawMember.count", paramMap));
 		model.addAttribute("list", service.readForList("portalWithdrawMember.list", paramMap));
 
-		return "/member/portalWithdraw/list";
+		//return "/member/portalWithdraw/list";
+		return "thymeleaf/member/portalWithdraw/list";
 	}
 
 }

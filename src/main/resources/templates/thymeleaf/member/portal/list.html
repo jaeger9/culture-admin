@@ -152,7 +152,7 @@
 						<th:block th:each="item, status : ${list}">
 							<tr>
 								<td>
-									<th:block th:text="${#numbers.formatInteger(count - (paramMap[page_no] - 1) * paramMap[list_unit] - status.index,'3','COMMA')}"></th:block>
+									<th:block th:text="${#numbers.formatInteger((count - ( paramMap[page_no] - 1) * paramMap[list_unit] - status.index),'3','COMMA')}"></th:block>
 								</td>
 								<td><a th:href="@{/member/portal/form.do(user_id=${item.user_id},qs=${paramMap[qs]})}">
 										[[${item.user_id}]] </a></td>
@@ -175,8 +175,7 @@
 								<td>
 									<th:block th:text="${item.role}" />
 								</td>
-								<td>
-								<!--< th:block th:text="${#calendars.format(item.join_date, 'dd/MMM/yyyy HH:mm')}" /> --> 
+								<td th:text="${item.join_date}" >
 									<!--  <c:out value="${item.join_date}" default="-" />-->
 								</td>
 							</tr>
@@ -187,7 +186,7 @@
 				<!-- paginate -->
 				<div  id="pagination"></div>
 				<!-- //paginate -->
-				<div class="btnBox textRight" style="margin-left: 1000px;">
+				<div class="btnBox textRight" style="display: block ; text-align: right;">
 					<span class="btn dark"> 
 					<a  th:href="@{/member/portal/sendMail.do}" class="btn_stype3">안내메일 발송</a>
 					</span> <span class="btn dark"> 
