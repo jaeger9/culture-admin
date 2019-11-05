@@ -46,7 +46,8 @@ public class PortalMemberController {
 		model.addAttribute("count", (Integer) service.readForObject("portalMember.count", paramMap));
 		model.addAttribute("list", service.readForList("portalMember.list", paramMap));
 
-		return "/member/portal/list";
+		//return "/member/portal/list";
+		return "thymeleaf/member/portal/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)

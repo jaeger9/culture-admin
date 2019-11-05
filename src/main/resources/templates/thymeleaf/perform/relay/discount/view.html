@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+
+var callback = {
+		rdfMetadata : function (res) {
+			/*
+				JSON.stringify(res) = {
+					"cateType"	:	"F"
+					,"orgCode"	:	"NLKF02"
+					,"orgId"	:	86
+					,"category"	:	"도서"
+					,"name"		:	"국립중앙도서관"
+				}
+			*/
+			if (res == null) {
+				alert('CallBack Res Null');
+				return false;
+			} 
+			//{"url":"","grade":"","extent":"","venue":"홍대 축제4","location":"02","genre":1,"rights":"최용준","time":"12:00 ~ 14:00","referenceidentifierorg":"","referenceidentifier":"fes4.jpg","enddt":20141231,"startdt":20140101,"period":"2014-01-01~2014-12-31","title":"최용준 축제4","type":50,"uci":"92513744511758932","seq":97176}
+			console.log(JSON.stringify(res));
+			$('#preformCopy').show();
+			
+			//공연 uci
+			if(res.uci) {$('input[name=uci]').val(res.uci);}
+			else {alert('공연 uci 값이 존재하지 않습니다.'); return false;}
+
+			//공연 url
+			$('input[name=rul]').val(res.url);
+			
+			//공연 장소
+			$('input[name=place]').val(res.venue);
+			
+			//이미지
+			if(res.referenceIdentifier){
+				$('#selectedPerformImg').attr('src', res.referenceIdentifier);
+				$('input[name=img_url]').val(res.referenceIdentifier);
+				$('input[name=img_yn]').val('N');
+			}
+			if(res.referenceIdentifierOrg){
+				$('#selectedPerformImg').attr('src', '/upload/rdf/' + res.referenceIdentifierOrg);
+				$('input[name=img_file]').val(res.referenceIdentifierOrg);
+				$('input[name=img_yn]').val('Y');
+			}
+			
+/* 			if(res.referenceIdentifier || res.referenceIdentifierOrg)$('input[name=img_yn]').val('Y');
+			else $('input[name=img_yn]').val('N'); */
+			
+			if(res.url)$('input[name=url]').val(res.url);//공연 url
+			if(res.startDt)$('input[name=start_date]').val(res.startDt);//공연 시작일
+			if(res.endDt)$('input[name=end_date]').val(res.endDt);//공연 시작일
+			
+			//공연정보
+			$('#performInfo').empty();//다 지우고
+			
+			if(res.title){
+				$('#performInfo').append('제목 : '+ res.title + '</br>');
+				$('input[name=title]').val(res.title);
+			}
+			if(res.time)$('#performInfo').append('시간 : '+ res.time + '</br>');
+			if(res.venue)$('#performInfo').append('장소 : '+ res.venue + '</br>');
+			if(res.extent)$('#performInfo').append('런닝타임: '+ res.extent + '</br>');
+			if(res.grade)$('#performInfo').append('연령 : '+ res.grade + '</br>');
+			if(res.rights)$('#performInfo').append('주최 : '+ res.rights + '</br>');
+			if(res.reference)$('#performInfo').append('제목 : '+ res.reference + '</br>');
+			
+			return true;
+		},relayGroup : function(res) { 
+			if (res == null) {
+				alert('CallBack Res Null');
+				return false;
+			};
+			
+			$('input[name=name]').val(res.name);
+			$('input[name=company_seq]').val(res.seq);
+		}
+};
+
+$(function () {
+
+	var frm = $('form[name=frm]');
+	var title		= frm.find('input[name=title]');
+	var name		= frm.find('input[name=name]');
+	//layout
+	
+	//radio check
+	if('[[${view.approval}]]')$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+	if('${view.note1}')$('input:radio[name="note1"][value="${view.note1}"]').prop('checked', 'checked');
+	
+	//select selected
+	if('${view.genre}')$("select[name=genre]").val('${view.genre}').attr("selected", "selected");
+	if('[[${view.discount}]]')$("select[name=discount]").val('[[${view.discount}]]').attr("selected", "selected");
+	
+		
+	//URL 미리보기
+	goLink = function() { 
+		window.open($('input[name=url]').val());
+	}
+	
+	//공연상 선택
+	$('span.btn.whiteS a').each(function(){
+	  	$(this).click(function(){
+	    	if( $(this).html() == '선택'){
+	      		window.open('/popup/relayGroup.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+	    	} else if( $(this).html() == '공연선택'){
+	      		window.open('/popup/rdfMetadataPerform.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+	    	} 
+	  	});
+	});
+	
+	frm.submit(function(){
+		//DB NOT NULL 기준 체크
+		if(title.val() ==''){
+			alert('공연 선택하세요');
+			title.focus();
+			return false;
+		}
+
+		if(name.val() ==''){
+			alert('기관/단체명 입력하세요');
+			name.focus();
+			return false;
+		}
+		
+		return true;
+	});
+	
+	//수정 , 삭제 , 등록 
+	$('span > a').each(function() {
+    	$(this).click(function() { 
+        	if($(this).html() == '수정') { 
+        		if (!confirm('수정하시겠습니까?')) {
+        			return false;
+        		}
+        		frm.attr('action' ,'/perform/relay/discount/update.do');
+        		frm.submit();
+        	} else if($(this).html() == '삭제') {
+        		if (!confirm('삭제 하시겠습니까?')) {
+        			return false;
+        		}
+        		frm.attr('action' ,'/perform/relay/discount/delete.do');
+        		frm.submit();
+        	} else if($(this).html() == '등록') {
+        		if (!confirm('등록하시겠습니까?')) {
+        			return false;
+        		}
+        		frm.attr('action' ,'/perform/relay/discount/insert.do');
+        		frm.submit();
+        	} else if($(this).html() == '목록') {
+        		location.href='/perform/relay/discount/list.do';
+        	}   		
+    	});
+	});
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="post"
+			action="/perform/relay/discount/insert.do"
+			enctype="multipart/form-data">
+			<div class="cont_box">
+				<div class="layer_cont">
+					<!-- <th:block th:if="not empty ${view.seq}">
+			<input type="hidden" name="seq" value="${view.seq}"/>
+		</th:block> -->
+					<p class="ess_making">
+						별표(<em>*</em>) 항목은 필수입력 항목입니다.
+					</p>
+					<table class="tbl_view">
+
+						<colgroup>
+							<col style="width: 13%" />
+							<col />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th scope="row"><em>*</em>공연 전시 제목</th>
+								<td><input type="text" name="title" id="title"
+									style="width: 600px" th:value="${view.title}" readonly>
+									<a href="#url" class="btn_stype3">공연선택</a></td>
+							</tr>
+							<tr>
+							</tr>
+							<tr>
+								<th scope="row"><em>*</em> 기관/단체명</th>
+								<td><input type="text" name="name" id="name"
+									style="width: 624px" th:value="${view.name}" readonly>
+									<input type="hidden" name="company_seq" id="company_seq"
+									style="width: 624px" th:value="${view.company_seq}"> 
+									<a href="#{url}" class="btn_stype3">선택</a></td>
+							</tr>
+							<tr>
+								<th scope="row">선택한<br />공연/전시 정보
+								</th>
+								<td><input type="hidden" name="uci" th:value="${view.uci}" />
+									<input type="hidden" name="url" th:value="${view.url}" /> <input
+									type="hidden" name="start_date" th:value="${view.start_date}" />
+									<input type="hidden" name="end_date"
+									th:value="${view.start_date}" /> <input type="hidden"
+									name="img_url" th:value="${view.img_url}" /> <input
+									type="hidden" name="img_file" th:value="${view.img_file}" /> <input
+									type="hidden" name="img_yn" th:value="${view.img_yn}" /> <input
+									type="hidden" name="place" th:value="${view.place}" /> <input
+									type="hidden" value="1" name="category"> <input
+									type="hidden" name="img_url" th:value="${view.img_url}" /> <span
+									id="preformCopy"> <th:block th:if="${!view.seq.empty}">
+											<th:block th:if="${ 'Y' eq view.img_yn }">
+												<th:block th:if="${ !view.img_file.empty}">
+													<img id="selectedPerformImg"
+														th:src="@(/upload/rdf/${view.img_file})"
+														style="width: 225px; height: 282px" />
+												</th:block>
+											</th:block>
+											<th:block th:if="${ 'N' eq view.img_yn}">
+												<th:block th:if="${ !view.img_url.empty}">
+													<img id="selectedPerformImg" src="${view.img_url}"
+														style="width: 225px; height: 282px" />
+												</th:block>
+											</th:block>
+										</th:block> <th:block th:if="${view.seq.empty}">
+											<img id="selectedPerformImg" src="" />
+										</th:block> <br />
+										<div id="performInfo">
+											<th:block th:if="${!view.title.empty}"
+												th:text="|제목:${view.title }|">
+											</th:block>
+											<br />
+											<th:block th:if="${!view.url.empty }"
+												th:text="|URL : ${view.url}|"></th:block>
+											<br />
+											<th:block th:if="${!view.img_yn.empty }"
+												th:text="|내부이미지 :${view.img_yn}|"></th:block>
+											<br />
+											<th:block th:if="${!view.start_date.empty }"
+												th:text="|시작일 : ${view.start_date }|"></th:block>
+											<br />
+											<th:block th:if="${!view.end_date.empty }"
+												th:text="|종료일:${view.end_date }|"></th:block>
+											<br />
+										</div>
+								</span></td>
+							</tr>
+							<tr>
+								<th scope="row"><em>*</em>할인률</th>
+								<td><select title="할인률 선택하세요" name="discount">
+										<option value="10">10%</option>
+										<option value="15">15%</option>
+										<option value="20">20%</option>
+										<option value="25">25%</option>
+										<option value="30">30%</option>
+										<option value="35">35%</option>
+										<option value="40">40%</option>
+										<option value="50">50%</option>
+										<option value="60">60%</option>
+										<option value="1">1%</option>
+										<option value="2">2%</option>
+										<option value="3">3%</option>
+										<option value="4">4%</option>
+										<option value="5">5%</option>
+										<option value="6">6%</option>
+										<option value="7">7%</option>
+										<option value="8">8%</option>
+										<option value="9">9%</option>
+										<option value="10">10%</option>
+										<option value="11">11%</option>
+										<option value="12">12%</option>
+										<option value="13">13%</option>
+										<option value="14">14%</option>
+										<option value="15">15%</option>
+										<option value="16">16%</option>
+										<option value="17">17%</option>
+										<option value="18">18%</option>
+										<option value="19">19%</option>
+										<option value="20">20%</option>
+										<option value="21">21%</option>
+										<option value="22">22%</option>
+										<option value="23">23%</option>
+										<option value="24">24%</option>
+										<option value="25">25%</option>
+										<option value="26">26%</option>
+										<option value="27">27%</option>
+										<option value="28">28%</option>
+										<option value="29">29%</option>
+										<option value="30">30%</option>
+										<option value="31">31%</option>
+										<option value="32">32%</option>
+										<option value="33">33%</option>
+										<option value="34">34%</option>
+										<option value="35">35%</option>
+										<option value="36">36%</option>
+										<option value="37">37%</option>
+										<option value="38">38%</option>
+										<option value="39">39%</option>
+										<option value="40">40%</option>
+										<option value="41">41%</option>
+										<option value="42">42%</option>
+										<option value="43">43%</option>
+										<option value="44">44%</option>
+										<option value="45">45%</option>
+										<option value="46">46%</option>
+										<option value="47">47%</option>
+										<option value="48">48%</option>
+										<option value="49">49%</option>
+										<option value="50">50%</option>
+										<option value="51">51%</option>
+										<option value="52">52%</option>
+										<option value="53">53%</option>
+										<option value="54">54%</option>
+										<option value="55">55%</option>
+										<option value="56">56%</option>
+										<option value="57">57%</option>
+										<option value="58">58%</option>
+										<option value="59">59%</option>
+										<option value="60">60%</option>
+										<option value="61">61%</option>
+										<option value="62">62%</option>
+										<option value="63">63%</option>
+										<option value="64">64%</option>
+										<option value="65">65%</option>
+										<option value="66">66%</option>
+										<option value="67">67%</option>
+										<option value="68">68%</option>
+										<option value="69">69%</option>
+										<option value="70">70%</option>
+										<option value="71">71%</option>
+										<option value="72">72%</option>
+										<option value="73">73%</option>
+										<option value="74">74%</option>
+										<option value="75">75%</option>
+										<option value="76">76%</option>
+										<option value="77">77%</option>
+										<option value="78">78%</option>
+										<option value="79">79%</option>
+										<option value="80">80%</option>
+										<option value="81">81%</option>
+										<option value="82">82%</option>
+										<option value="83">83%</option>
+										<option value="84">84%</option>
+										<option value="85">85%</option>
+										<option value="86">86%</option>
+										<option value="87">87%</option>
+										<option value="88">88%</option>
+										<option value="89">89%</option>
+										<option value="90">90%</option>
+										<option value="91">91%</option>
+										<option value="92">92%</option>
+										<option value="93">93%</option>
+										<option value="94">94%</option>
+										<option value="95">95%</option>
+										<option value="96">96%</option>
+										<option value="97">97%</option>
+										<option value="98">98%</option>
+										<option value="99">99%</option>
+										<option value="100">100%</option>
+								</select></td>
+							</tr>
+							<tr>
+								<th scope="row"><em>*</em>승인여부</th>
+								<td>
+									<div class="inputBox">
+									<ul>
+										<li>
+										<input type="radio" id="item1" name="approval" value="W" checked /> 
+										<em></em>
+										<label for="item1"> 대기</label>
+										</li>								
+										<li>
+									 <input type="radio" name="approval" id="item2" value="Y" /> 
+										<em></em>
+										<label for="item2"> 승인</label>
+										</li>
+										<li>
+									 <input type="radio" name="approval"  id="item3" value="N" /> 
+										<em></em>
+										<label for="item3"> 미승인</label>
+										</li>	
+									</ul>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="btnBox" style="margin-top: 10px ; margin-left: 1240px">
+						<th:block th:if='${!view.empty}'>
+							<span class="btn white"><a class="btn_stype3">수정</a></span>
+							<span class="btn white"><a class="btn_stype3">삭제</a></span>
+						</th:block>
+						<th:block th:unless='${!view.empty}'>
+							<span class="btn white"><a  class="btn_stype3">등록</a></span>
+						</th:block>
+						<span class="btn gray"><a  class="btn_stype3">목록</a></span>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>

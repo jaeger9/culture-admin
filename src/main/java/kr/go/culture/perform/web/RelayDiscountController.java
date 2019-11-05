@@ -32,9 +32,11 @@ public class RelayDiscountController {
 		model.addAttribute("list",
 				ckDatabaseService.readForList("relay_discount.list", paramMap));
 
-		return "/perform/relay/discount/list";
+		//return "/perform/relay/discount/list";
+		return "thymeleaf/perform/relay/discount/list";
 	}
 
+	
 	@RequestMapping("view.do")
 	public String view(HttpServletRequest request, ModelMap model)
 			throws Exception {
@@ -47,7 +49,8 @@ public class RelayDiscountController {
 		if (paramMap.containsKey("seq")) 
 			model.addAttribute("view",ckDatabaseService.readForObject("relay_discount.view", paramMap));
 		
-		return "/perform/relay/discount/view";
+		//return "/perform/relay/discount/view";
+		return "thymeleaf/perform/relay/discount/view";
 	}
 	
 	@RequestMapping("statusUpdate.do")
