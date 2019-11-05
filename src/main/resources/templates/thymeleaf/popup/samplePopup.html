@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/popup}">
+<head>
+    <title>KCISA 문화포털 통합관리시스템</title>
+</head>
+<body>
+    <div id="layerwrap" layout:fragment="layerwrap" >
+
+        <!--/* 여기안에 팝업내용 시작 */-->
+
+
+        <h2>실시과정등록</h2>
+        <div class="layer_cont">
+            <table class="tbl_view">
+                <caption>실시과정등록</caption>
+                <colgroup>
+                    <col style="width:13%" />
+                    <col style="width:37%" />
+                    <col style="width:13%" />
+                    <col />
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">과정명</th>
+                    <td colspan="3">기초소양교과</td>
+                </tr>
+                <tr>
+                    <th scope="row">훈련기간</th>
+                    <td colspan="3">
+                        <input type="text" style="width:100px;" title="훈련기간 시작일자" class="disabled">
+                        <a href="#" class="ico_cal">달력</a>
+                        ~
+                        <input type="text" style="width:100px;" title="훈련기간 마지막일자" class="disabled">
+                        <a href="#" class="ico_cal">달력</a>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">사전평가 실시</th>
+                    <td>
+                        <ul class="itemlist">
+                            <li><input type="radio" id="item1" name="radio" checked="checked" /><em></em> <label for="item1">실시</label></li>
+                            <li><input type="radio" id="item2" name="radio" /><em></em> <label for="item2">미실시</label></li>
+                        </ul>
+                    </td>
+                    <th scope="row">사전평가 복사</th>
+                    <td>
+                        <select style="width:340px;" title="회차선택">
+                            <option value="">회차 선택</option>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="btn_center">
+                <a href="#" class="btn_ltype1">저장</a>
+                <a href="#" class="btn_ltype3">닫기</a>
+            </div>
+        </div>
+        <a href="#" class="close">닫기</a>
+
+        <!--/* 여기안에 팝업내용 끝 */-->
+
+    </div>
+</body>
+</html>

@@ -88,7 +88,8 @@ public class ShowController {
 			model.addAttribute("view", showView);
 		}
 
-		return "/perform/show/view";
+//		return "/perform/show/view";
+		return "thymeleaf/perform/show/view";
 	}
 
 	@RequestMapping("statusUpdate.do")

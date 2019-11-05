@@ -2,8 +2,420 @@
 <html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/admin}">
 <head>
     <title>KCISA 문화포털 통합관리시스템</title>
+    <script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script><!--/* todo 추후 에디터 변경 (김현준) */-->
+
+    <script type="text/javascript">
+        var action = "";
+
+        var callback = {
+            place : function (res) {
+                if (res == null) {
+                    return false;
+                }
+
+                $('input[name=venue]').val(res.cul_name);
+                $('input[name=location]').val(res.cul_addr);
+            },
+            culturegroup : function(res){
+                if(res==null){
+                    return false;
+                }
+                $('input[name=rights]').val(res.title);
+            }
+        };
+
+        $(function () {
+
+            $('input[name=uploadFile]').on('change', function(){
+                $('.inputText:not(.styurl)').val($(this).val().substr(12));
+            })
+
+            $('input[name^=styurl]').on('change',function(){
+                var className=$(this).attr("name");
+                $('.'+className).val($(this).val().substr(12));
+            });
+
+            var frm = $('form[name=frm]');
+            var reg_date_start = frm.find('input[name=reg_start]');
+            var reg_date_end = frm.find('input[name=reg_end]');
+
+            var title		= frm.find('input[name=title]');
+            var url		= frm.find('input[name=url]');
+            var venue		= frm.find('input[name=venue]');
+            var time		= frm.find('input[name=time]');
+            var extent		= frm.find('input[name=extent]');
+            var grade		= frm.find('input[name=grade]');
+            var rights		= frm.find('input[name=rights]');
+            var charge		= frm.find('input[name=charge]');
+            var reference		= frm.find('input[name=reference]');
+
+
+            changeNote = function(ele) {
+                if(ele) checked = ele.val();
+                else checked = $(':radio[name=note1]:checked').val();
+
+                if(checked == 'Y') {
+                    $('input[name=reference_identifier]').hide();
+                    $('div.fileInputs:not(.styurl)').show();
+                    $('input[name=imagedelete]').parent().show();
+                } else if(checked == 'N') {
+                    $('input[name=reference_identifier]').show();
+                    $('div.fileInputs:not(.styurl)').hide();
+                    $('input[name=imagedelete]').parent().hide();
+                }
+            }
+            //layout
+
+            new Datepicker(reg_date_start, reg_date_end);
+
+            //radio check
+            if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
+            if('${view.note1}')$('input:radio[name="note1"][value="${view.note1}"]').prop('checked', 'checked');
+
+            //select selected
+            if('[[${view[genre]}]]')$("select[name=genre]").val('[[${view[genre]}]]').attr("selected", "selected");
+
+            //썸네일 이미지
+            changeNote();
+
+            $('input[name=note1]').change(function(){
+                changeNote($(this));
+            })
+
+            //URL 미리보기
+            goLink = function() {
+                window.open($('input[name=url]').val());
+            }
+
+            //공연상 선택
+            $('span.btn.whiteS a').each(function(){
+                $(this).click(function(){
+                    if( $(this).data('org') == 'venue'){
+                        window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+                    } else if( $(this).data('org') == 'rights'){
+                        window.open('/popup/culturegroup.do', 'culturegroupPopup', 'scrollbars=yes,width=600,height=630');
+                    }
+                    /* else if( $(this).html() == '장소등록'){
+                        location.href='/facility/place/list.do';
+                    }
+                    else if($(this).html() == '주최등록'){
+                        location.href='/facility/group/list.do';
+                    } */
+                    else if( $(this).html() == '미리보기'){
+                        goLink();
+                    }
+                });
+            });
+
+            frm.submit(function(){
+                //DB NOT NULL 기준 체크
+                if(action == 'delete'){
+                    return true;
+                }
+
+                /*
+                if(title.val() == '') {
+                    alert("제목 입력하세요");
+                    title.focus();
+                    return false;
+                }
+
+                if($('input[name=note1]:checked').val() == 'Y'){
+                    if($('input[name=reference_identifier]').val() == ''){
+                         alert("썸네일 이미지 선택하세요");
+                         $('input[name=reference_identifier]').focus();
+                         return false;
+                    }
+                }
+
+                if($('input[name=note1]:checked').val() == 'N'){
+                    if($('input[name=reference_identifier]').val() == ''){
+                         alert("이미지 경로 입력하세요");
+                         $('input[name=reference_identifier]').focus();
+                         return false;
+                    }
+                }
+
+                if(url.val() ==''){
+                    alert('URL 입력하세요');
+                    url.focus();
+                    return false;
+                }
+
+                if(reg_date_start.val() ==''){
+                    alert('시작일 입력하세요');
+                    reg_date_start.focus();
+                    return false;
+                }
+
+                if(reg_date_end.val() ==''){
+                    alert('종료일 입력하세요');
+                    reg_date_end.focus();
+                    return false;
+                }
+
+                if(venue.val() ==''){
+                    alert('장소를 입력하세요');
+                    venue.focus();
+                    return false;
+                }
+
+                if(time.val() ==''){
+                    alert('시간을 입력하세요');
+                    time.focus();
+                    return false;
+                }
+
+                if(extent.val() ==''){
+                    alert('러닝타임을 입력하세요');
+                    extent.focus();
+                    return false;
+                }
+
+                if(grade.val() ==''){
+                    alert('연령을 입력하세요');
+                    grade.focus();
+                    return false;
+                }
+
+                if(rights.val() ==''){
+                    alert('주최 입력하세요');
+                    rights.focus();
+                    return false;
+                }
+
+                if(charge.val() ==''){
+                    alert('관람료 입력하세요');
+                    charge.focus();
+                    return false;
+                }
+
+                if(reference.val() ==''){
+                    alert('문의 입력하세요');
+                    reference.focus();
+                    return false;
+                }
+                 */
+                return true;
+            });
+
+            //수정 , 삭제 , 등록
+            $('span > button').each(function() {
+                $(this).click(function() {
+                    if($(this).html() == '수정') {
+                        if (!confirm('수정하시겠습니까?')) {
+                            return false;
+                        }
+                        frm.attr('action' ,'/perform/show/update.do');
+                        /* 20151006 : 이용환 : 에디터 변경을 위해 수정
+                        oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+                        */
+                        document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+                        $('input[name=venue2]').val($('input[name=venue]').val());
+                        frm.submit();
+                    } else if($(this).html() == '삭제') {
+                        if (!confirm('삭제 하시겠습니까?')) {
+                            return false;
+                        }
+                        action = "delete";
+                        frm.attr('action' ,'/perform/show/delete.do');
+                        frm.submit();
+                    } else if($(this).html() == '등록') {
+                        if (!confirm('등록하시겠습니까?')) {
+                            return false;
+                        }
+                        frm.attr('action' ,'/perform/show/insert.do');
+                        /* 20151006 : 이용환 : 에디터 변경을 위해 수정
+                        oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+                        */
+                        document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+                        $('input[name=venue2]').val($('input[name=venue]').val());
+                        frm.submit();
+                    } else if($(this).html() == '목록') {
+                        location.href='/perform/show/list.do?${paramMap.qr_dec }';
+                    }
+                });
+            });
+
+        });
+    </script>
 </head>
 <body>
+    <div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
+        <!--/* content_header 시작 */-->
+        <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+        <!--/* content_header 끝 */-->
 
+        <div class="cont_box">
+            <table class="tbl_view">
+                <caption>과정기본정보</caption>
+                <colgroup>
+                    <col style="width:13%" />
+                    <col style="width:37%" />
+                    <col style="width:13%" />
+                    <col>
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="제목" name="title" id="title" th:value="${view.title}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="제목" name="title" id="title" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">장르</th>
+                        <td colspan="3">
+                            <select title="출처 선택" name="genre">
+                                <th:block th:each="list : ${genreList}">
+                                    <option th:value="${list.value}" th:text="${list.name}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">썸네일 이미지</th>
+                        <td colspan="3">
+                            <ul class="itemlist">
+                                <li><input type="radio" name="note1" id="yes" checked="checked" value="Y"/><em></em> <label for="yes">이미지</label></li>
+                                <li><input type="radio" name="note1" id="no" value="N" /><em></em> <label for="no">URL</label></li>
+                            </ul>
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+                                <input type="file" name="uploadFile" title="파일선택" />
+
+                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                                <input type="hidden" name="file_delete"  />
+                                <input type="checkbox" name="imagedelete" id="imagedelete" value="Y"/><em></em><label for="imagedelete">fvvv</label>
+                            </div>
+                        </td>
+
+                        <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+<!--                        <td>-->
+<!--                            <c:if test='${not empty view.reference_identifier_org }'>-->
+<!--                                <img width="40%" alt="썸네일이미지" src="https://www.culture.go.kr/upload/rdf/${view.reference_identifier_org}">-->
+
+<!--                            </c:if>-->
+<!--                        </td>-->
+                        <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                    </tr>
+                    <tr>
+                        <th scope="row">URL</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:90%;" title="url" name="url" id="url" th:value="${view.url}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:90%;" title="url" name="url" id="url" />
+                            <a href="#" class="btn_mtype1">미리보기</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">기간</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:100px;" title="기간 시작일자" name="reg_start" th:value="${view.reg_start}">
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:100px;" title="기간 시작일자" name="reg_start">
+                            <a href="#" class="ico_cal">달력</a>
+                            ~
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:100px;" title="기간 마지막일자" name="reg_end" th:value="${view.reg_end}">
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:100px;" title="기간 마지막일자" name="reg_end">
+                            <a href="#" class="ico_cal">달력</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">공연장소</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:90%;" title="장소" name="venue" id="venue" th:value="${view.venue}" readonly />
+                            <input th:if="${view != null}" type="hidden" name="location" th:value="${view.location}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:90%;" title="장소" name="venue" id="venue" readonly/>
+                            <input th:unless="${view != null}" type="hidden" name="location" />
+                            <a href="#url" class="btn_mtype1" data-org="venue">선택</a>
+                            <a href="/facility/place/view.do" class="btn_mtype1" target="_blank">장소등록</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">시간</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="시간" name="time" id="time" th:value="${view.time}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="시간" name="time" id="time" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">러닝타임</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="러닝타임" name="extent" id="extent" th:value="${view.extent}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="러닝타임" name="extent" id="extent" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">연령</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="연령" name="grade" id="grade" th:value="${view.grade}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="연령" name="grade" id="grade" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">주최</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="주최" name="rights" id="rights" th:value="${view.rights}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="주최" name="rights" id="rights" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">관람료</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="관람료" name="charge" id="charge" th:value="${view.charge}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="관람료" name="charge" id="charge" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">문의</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="문의" name="reference" id="reference" th:value="${view.reference}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="문의" name="reference" id="reference" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">출연진</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="출연진" name="prfcast" id="prfcast" th:value="${view.prfcast}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="출연진" name="prfcast" id="prfcast" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">제작진</th>
+                        <td colspan="3">
+                            <!--/* 수정*/-->
+                            <input th:if="${view != null}" type="text" style="width:97%;" title="제작진" name="prfcrew" id="prfcrew" th:value="${view.prfcrew}"/>
+                            <!--/* 신규등록*/-->
+                            <input th:unless="${view != null}" type="text" style="width:97%;" title="제작진" name="prfcrew" id="prfcrew" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
 </body>
 </html>
