@@ -4,7 +4,9 @@
     <title>KCISA 문화포털 통합관리시스템</title>
     <script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script><!--/* todo 추후 에디터 변경 (김현준) */-->
 
-    <script type="text/javascript">
+    <script type="text/javascript" th:inline="javascript">
+        /* <![CDATA[ */
+
         var action = "";
 
         var callback = {
@@ -68,12 +70,22 @@
 
             new Datepicker(reg_date_start, reg_date_end);
 
-            //radio check
-            if('${view.approval}')$('input:radio[name="approval"][value="${view.approval}"]').prop('checked', 'checked');
-            if('${view.note1}')$('input:radio[name="note1"][value="${view.note1}"]').prop('checked', 'checked');
 
-            //select selected
-            if('[[${view[genre]}]]')$("select[name=genre]").val('[[${view[genre]}]]').attr("selected", "selected");
+
+            if(/*[[ ${view} ]]*/ != null) {
+                //radio check
+                if(/*[[ ${view.approval} ]]*/ != null) {
+                    $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
+                }
+                if(/*[[ ${view.note1} ]]*/ != null) {
+                    $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
+                }
+
+                //select box
+                if(/*[[ ${view.genre} ]]*/ != null) {
+                    $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
+                }
+            }
 
             //썸네일 이미지
             changeNote();
@@ -232,12 +244,13 @@
                         $('input[name=venue2]').val($('input[name=venue]').val());
                         frm.submit();
                     } else if($(this).html() == '목록') {
-                        location.href='/perform/show/list.do?[[${paramMap[qr_dec]}]]';
+                        location.href='/perform/show/list.do?'+[[ ${paramMap[qr_dec]} ]];
                     }
                 });
             });
 
         });
+        /* ]]> */
     </script>
 </head>
 <body>
