@@ -30,7 +30,8 @@ public class PortalDormancyMemberController {
 		model.addAttribute("list", service.readForList("portalDormancyMember.list", paramMap));
 		model.addAttribute("batchUpdateDate", service.readForObject("portalDormancyMember.batchUpdateDate", paramMap));
 
-		return "/member/portalDormancy/list";
+		//return "/member/portalDormancy/list";
+		return "thymeleaf/member/portalDormancy/list";
 	}
 
 }
