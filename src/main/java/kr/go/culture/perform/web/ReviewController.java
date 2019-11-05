@@ -77,7 +77,8 @@ public class ReviewController {
 			throw e;
 		}
 		
-		return "forward:/perform/review/list.do";
+//		return "forward:/perform/review/list.do";
+		return "redirect:/perform/review/list.do";
 	}
 	
 	@RequestMapping("update.do")
