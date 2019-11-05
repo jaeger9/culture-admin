@@ -9,9 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
@@ -40,7 +37,6 @@ import kr.go.culture.common.service.CkDatabaseService;
 import kr.go.culture.common.service.CuldataDatabaseService;
 import kr.go.culture.common.service.FileService;
 import kr.go.culture.common.service.FileService.MenuUploadFilePath;
-import kr.go.culture.common.service.KiissDataBaseService;
 import kr.go.culture.common.util.CommonUtil;
 
 @RequestMapping("/popup")
@@ -267,7 +263,8 @@ public class PopupController {
 		model.addAttribute("count", (Integer) service.readForObject("rdfMetadataCommon.rdfNewcount", paramMap));
 		model.addAttribute("list", service.readForList("rdfMetadataCommon.rdfNewlist", paramMap));
 
-		return "/popup/rdfMetadataNew";
+//		return "/popup/rdfMetadataNew";
+		return "thymeleaf/popup/rdfMetadataNew";
 	}
 		@RequestMapping("/rdfMetadataEvent.do")
 		public String uciPerform1(HttpServletRequest request, ModelMap model) throws Exception {

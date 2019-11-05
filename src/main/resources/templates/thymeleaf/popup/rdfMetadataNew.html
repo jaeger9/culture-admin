@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/popup}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+	$(function() {
+
+		var frm = $('form[name=frm]');
+		var page_no = frm.find('input[name=page_no]');
+		var search_word = frm.find('input[name=search_word]');
+		var search_btn = frm.find('#search_btn');
+		var close_btn = $('#close_btn');
+
+		var search = function() {
+			frm.submit();
+		};
+		
+		new Pagination({
+			view : '#pagination',
+			page_count : '[[${count}]]',
+			page_no : '[[${paramMap.page_no}]]',
+			callback : function(pageIndex, e) {
+				page_no.val(pageIndex + 1);
+				search();
+				return false;
+			}
+		});
+		
+		/* 검색 */
+		search_word.keypress(function(event) {
+			if (event.which == 13) {
+				event.preventDefault();
+				page_no.val(1);
+				search();
+			}
+		});
+
+		/* 검색버튼 클릭 이벤트 */
+		search_btn.click(function() {
+			page_no.val(1);
+			search();
+			return false;
+		});
+		
+		/* 팝업창 닫기 */
+		close_btn.click(function() {
+			window.close();
+			return false;
+		});
+
+		$('.tbl_list a').click(
+				function() {
+					var data = $(this).parent().parent().data();
+
+					if (window.opener && window.opener.callback
+							&& window.opener.callback.rdfMetadata) {
+						window.opener.callback.rdfMetadata(data);
+					}
+
+					window.close();
+					return false;
+				});
+
+	});
+</script>
+</head>
+<body>
+	<div id="layerwrap" layout:fragment="layerwrap">
+
+		<!--/* 여기안에 팝업내용 시작 */-->
+		<div class="layerwrap type2">
+			<h2>공연/전시검색</h2>
+			<div class="layer_cont">
+			
+				<form name="frm" method="get" action="/popup/rdfMetadataNew.do">
+					<input type="hidden" name="page_no" th:value="${paramMap.page_no}" />
+					
+					<!-- search -->
+					<div class="addr_search">
+						<input type="text" name="search_word"
+							placeholder="검색할 공연 제목을 입력해 주세요." title="공연검색" 
+							th:value="${paramMap[search_word]} == null ? '' : ${paramMap.search_word}" />
+							 
+							<a href="#" class="ico_search" id="search_btn">검색</a>
+					</div>
+					<!-- // search -->
+				</form>
+				
+					<p class="result_num">
+						총 <span th:text="${count}"></span>건
+					</p>
+					
+					<table class="tbl_list">
+						<caption>공연/전시 검색</caption>
+						<colgroup>
+							<col style="width: 10%" />
+							<col style="width: 20%" />
+							<col />
+							<col style="width: 30%" />
+						</colgroup>
+
+						<thead>
+							<tr>
+								<th scope="col">번호</th>
+								<th scope="col">분류</th>
+								<th scope="col">제목</th>
+								<th scope="col">기간</th>
+							</tr>
+						</thead>
+
+						<tbody>
+							<tr th:if="${list.isEmpty()}">
+								<td colspan="4">검색된 결과가 없습니다.</td>
+							</tr>
+							<th:block th:each="item, status : ${list}">
+								<tr th:attr="data-seq=${item.seq}
+								,data-uci=${item.uci}
+								,data-type=${item.type}
+								,data-title=${#strings.escapeXml(item.title)}
+								,data-period=${item.period}
+								,data-start-dt=${item.start_dt}
+								,data-end-dt=${item.end_dt }
+								,data-reference-identifier=${item.reference_identifier }
+								,data-reference-identifier-org=${item.reference_identifier_org }
+								,data-time=${#strings.escapeXml(item.time) }
+								,data-rights=${item.rights }
+								,data-genre=${item.genre }
+								,data-location=${item.location }
+								,data-venue=${item.venue }
+								,data-extent=${item.extent }
+								,data-grade=${item.grade }
+								,data-url=${item.url}">
+
+									<td th:with="count=${count - (#conversions.convert(paramMap.page_no, 'Integer')- 1) * paramMap.list_unit - status.index }">
+										<th:block th:text="${#numbers.formatInteger(count, 3, 'COMMA')}"></th:block>
+									</td>
+									
+									<td>
+										<a href="#">
+											<span th:if="${#strings.contains(item.type, '06')}">공연/전시</span>
+											<span th:if="${#strings.contains(item.type, '50')}">행사/축제</span>
+										</a>
+									</td>
+									<td><a href="#" th:text="${item.title}"></a></td>
+									<td th:text="${item.period}"></td>
+								</tr>
+							</th:block>
+						</tbody>
+					</table>
+					<!-- //list -->
+
+					<!-- paginate -->
+					<div id="pagination"></div>
+					<!-- //paginate -->
+
+					<div class="btn_center">
+						<a class="btn_ltype3" id="close_btn">닫기</a>
+					</div>
+			</div>
+		</div>
+		<!--/* 여기안에 팝업내용 끝 */-->
+
+	</div>
+</body>
+</html>
