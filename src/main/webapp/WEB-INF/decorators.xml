@@ -3,6 +3,7 @@
 	<excludes>
 		<pattern>/index.do</pattern>
 		<pattern>/perform/*/*</pattern>
+		<pattern>/member/*/*</pattern>
 		<pattern>/login.do</pattern>
 		<pattern>/logout.do</pattern>
 		<pattern>/loginfailed.do</pattern>
