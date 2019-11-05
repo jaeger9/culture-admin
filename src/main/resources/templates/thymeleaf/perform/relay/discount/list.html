@@ -208,11 +208,7 @@
 				<input type="hidden" name="updateStatus" value="" />
 				<div class="list_header">
 					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
-					<div class="btnBox" style="float: right; display: inline-block;">
-						<a type="button" class="btn_stype3">승인</a> <a type="button"
-							class="btn_stype3">미승인</a> <a type="button" class="btn_stype3">삭제</a>
-						<a class="btn_stype3" th:href="@{#url}">등록</a>
-					</div>
+				
 
 				</div>
 				<!-- list -->
@@ -257,8 +253,13 @@
 				</table>
 				<!-- //list -->
 				<!-- paginate -->
-				<div class="paginate" id="pagination"> </div>
+				<div  id="pagination"> </div>
 				<!-- //paginate -->
+					<div class="btnBox" style="margin-left: 1200px;">
+						<a type="button" class="btn_stype3">승인</a> <a type="button"
+							class="btn_stype3">미승인</a> <a type="button" class="btn_stype3">삭제</a>
+						<a class="btn_stype3" th:href="@{#url}">등록</a>
+					</div>
 			</div>
 		</form>
 	</div>
