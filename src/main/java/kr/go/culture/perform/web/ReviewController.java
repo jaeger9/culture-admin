@@ -60,7 +60,8 @@ public class ReviewController {
 			
 		}
 
-		return "/perform/review/view";
+//		return "/perform/review/view";
+		return "thymeleaf/perform/review/view";
 	}
 	
 	@RequestMapping("statusUpdate.do")
