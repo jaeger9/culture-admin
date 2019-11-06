@@ -103,12 +103,19 @@
             //URL 미리보기
             goLink = function() {
                 var url = $('#url').val();
-                window.open(url);
+
+                if(url !='' && url != undefined && url != null) {
+                    window.open(url);
+                } else {
+                    alert('URL을 입력하여 주세요');
+                    $('#url').focus();
+                    return false;
+                }
             }
 
             // 공연장소 '선택' 버튼 클릭
             callPlacePopup = function () {
-                window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+                window.open('/popup/place.do', 'placePopup', 'scrollbars=no,width=700,height=730');
             }
 
             frm.submit(function(){
