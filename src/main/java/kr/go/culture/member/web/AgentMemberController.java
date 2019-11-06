@@ -37,7 +37,8 @@ public class AgentMemberController {
 		model.addAttribute("count", (Integer) service.readForObject("agentMember.count", paramMap));
 		model.addAttribute("list", service.readForList("agentMember.list", paramMap));
 
-		return "/member/agent/list";
+		//return "/member/agent/list";
+		return "thymeleaf/member/agent/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)
