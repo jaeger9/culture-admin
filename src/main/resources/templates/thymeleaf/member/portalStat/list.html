@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+$(function () {
+
+	var frm					=	$('form[name=frm]');
+	var view				=	frm.find('input[name=view]');
+	var member_type			=	frm.find('input[name=member_type]');
+	var date_format			=	frm.find('input[name=date_format]');
+	var display_date_start	=	frm.find('input[name=display_date_start]');
+	var display_date_end	=	frm.find('input[name=display_date_end]');
+	var search_btn			=	frm.find('button[name=search_btn]');
+
+	var search = function () {
+		frm.submit();
+	};
+	
+	new Datepicker(display_date_start, display_date_end);
+
+	search_btn.click(function () {
+		view.val("list");
+		search();
+		return false;
+	});
+	
+	$('.excel_btn').click(function () {
+		view.val("excel");
+		search();
+		return false;
+	});
+
+	if (member_type.filter(':checked').size() == 0) {
+		member_type.eq(0).click();
+	}
+	if (date_format.filter(':checked').size() == 0) {
+		date_format.eq(0).click();
+	}
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+
+
+		<form name="frm" method="get" action="/member/portal/list.do">
+			<div class="search_box">
+				<input type="hidden" name="page_no" th:value="${paramMap[page_no]}" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>검색</caption>
+					<tbody>
+						<tr>
+							<th scope="row">유형</th>
+							<td>
+								
+								<input type="radio" name="member_type" value="newmember" id="num1"		${paramMap[member_type] ne 'newmember' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num1">신규회원</label>
+								<input type="radio" name="member_type" value="withdraw"	id="num2"	${paramMap[member_type] eq 'withdraw' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num2">탈퇴회원</label>
+								<input type="radio" name="member_type" value="login"	id="num3"	${paramMap[member_type] eq 'login' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num3">접속현황</label>
+							</td>
+						</tr>
+							<tr>
+							<th scope="row">구분</th>
+							<td>
+							<input type="radio" name="date_format" value="YYYY-MM-DD" id="num4"	${paramMap[date_format] eq 'YYYY-MM-DD' or empty paramMap.date_format ? 'checked="checked"' : '' } /> 
+							<em></em>
+							<label for="num4">일별</label>
+							<input type="radio" name="date_format" value="YYYY-MM" id="num5" ${paramMap[date_format] eq 'YYYY-MM' ? 'checked="checked"' : '' } /> 
+							<em></em>
+							<label for="num5">월별</label>
+							<input type="radio" name="date_format" value="YYYY"	 id="num6" ${paramMap[date_format] eq 'YYYY' ? 'checked="checked"' : '' } /> 
+							<em></em>
+							<label for="num6">년별</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">기간</th>
+							<td colspan="3">
+							<input type="text" name="display_date_start" th:value="${paramMap[display_date_start] }" />
+							<span>~</span>
+							<input type="text" name="display_date_end" th:value="${paramMap[display_date_end] }" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="search_btn">
+					<a class="btn_search" name="search_btn">검색</a>
+				</div>
+			</div>
+			<!-- //search -->
+			<div class="cont_box">
+				<!-- list -->
+				<table class="tbl_list">
+					<caption>게시판 글 목록</caption>
+					<colgroup>
+						<col style="width:15%" />
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col">일자</th>
+							<th scope="col">회원수(명)</th>	
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:if="${list.empty}">
+							<tr>
+								<td colspan="8">검색된 결과가 없습니다.</td>
+							</tr>
+						</th:block>
+					 <th:block th:with="count = 0">
+						<th:block th:each="item, status : ${list}">
+							<span th:with="count = ${count + item.cnt}">
+							<tr>
+								<td>
+									<th:block th:if="${item.dt == null}" th:text="-'" />
+									<th:block th:unless="${item.dt == null}" th:text="${item.dt}" />
+								</td>
+								<td>
+									<th:block th:text="${#numbers.formatInteger(item.cnt,'3','COMMA')}"></th:block>
+								</td>
+							</tr>
+						</th:block>
+							<tr>
+								<td colspan="2" >
+									<th:block th:text="|합계 : ${#numbers.formatInteger((count ),'3','COMMA')} 명 |" />
+								</td>
+							</tr>
+							</span>
+						</th:block>
+						
+						<!-- th:block 체크 필요 -->
+					</tbody>
+				</table>
+				<!-- //list -->
+				<!-- paginate -->
+				<div id="pagination"></div>
+				<!-- //paginate -->
+				<div class="btnBox textRight" style="padding: 10px 0 0 ; text-align: right;" >
+					<span class="btn dark" >
+					<a href="#" class="btn_stype3">엑셀 다운로드</a></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>

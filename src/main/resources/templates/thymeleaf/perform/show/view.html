@@ -70,22 +70,21 @@
 
             new Datepicker(reg_date_start, reg_date_end);
 
+            /*[# th:if="${view != null}"]*/
 
-
-            if(/*[[ ${view} ]]*/ != null) {
-                //radio check
-                if(/*[[ ${view.approval} ]]*/ != null) {
-                    $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
-                }
-                if(/*[[ ${view.note1} ]]*/ != null) {
-                    $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
-                }
-
-                //select box
-                if(/*[[ ${view.genre} ]]*/ != null) {
-                    $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
-                }
+            //radio check
+            if(/*[[ ${view.approval} ]]*/ null) {
+                $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
             }
+            if(/*[[ ${view.note1} ]]*/ null) {
+                $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
+            }
+            //select box
+            if(/*[[ ${view.genre} ]]*/ null) {
+                $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
+            }
+
+            /*[/]*/
 
             //썸네일 이미지
             changeNote();
@@ -94,9 +93,17 @@
                 changeNote($(this));
             })
 
+            // http 자동 붙이기
+            $("#url").change(function() {
+                if (!/^http:\/\//.test(this.value)) {
+                    this.value = "http://" + this.value;
+                }
+            });
+
             //URL 미리보기
             goLink = function() {
-                window.open($('input[name=url]').val());
+                var url = $('#url').val();
+                window.open(url);
             }
 
             //공연상 선택
@@ -325,7 +332,7 @@
                             <input th:if="${view != null}" type="text" style="width:90%;" title="url" name="url" id="url" th:value="${view.url}"/>
                             <!--/* 신규등록*/-->
                             <input th:unless="${view != null}" type="text" style="width:90%;" title="url" name="url" id="url" />
-                            <a href="#" class="btn_mtype1">미리보기</a>
+                            <a href="#preview" th:onclick="|javascript:goLink()|" class="btn_mtype1">미리보기</a>
                         </td>
                     </tr>
                     <tr>
@@ -515,7 +522,7 @@
                             <th:block th:unless="${view !=null}">
                                 <ul class="itemlist">
                                     <li><input type="radio" name="open_api_agree" id="value" checked="checked" value="Y"/><em></em> <label for="value">동의</label></li>
-                                    <li><input type="radio" name="open_api_agree" id="noAgree" value="N" /><em></em> <label for="미동의">URL</label></li>
+                                    <li><input type="radio" name="open_api_agree" id="noAgree" value="N" /><em></em> <label for="noAgree">미동의</label></li>
                                 </ul>
                             </th:block>
                         </td>
