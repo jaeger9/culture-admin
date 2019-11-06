@@ -59,7 +59,8 @@ public class QnaController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/customer/qna/form";
+		//return "/customer/qna/form";
+		return "thymeleaf/customer/qna/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)
