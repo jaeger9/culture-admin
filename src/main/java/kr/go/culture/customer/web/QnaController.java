@@ -34,7 +34,8 @@ public class QnaController {
 		model.addAttribute("count", (Integer) service.readForObject("qna.count", paramMap));
 		model.addAttribute("list", service.readForList("qna.list", paramMap));
 
-		return "/customer/qna/list";
+		//return "/customer/qna/list";
+		return "thymeleaf/customer/qna/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+$(function () {
+
+	var frm = $('form[name=frm]');
+	var page_no = frm.find('input[name=page_no]');
+	var category = frm.find('select[name=category]');
+	var status = frm.find('input[name=status]');
+	var reg_date_start = frm.find('input[name=reg_date_start]');
+	var reg_date_end = frm.find('input[name=reg_date_end]');
+	var search_type = frm.find('select[name=search_type]');
+	var search_word = frm.find('input[name=search_word]');
+	var search_btn = frm.find('a[name=search_btn]');
+	
+	var search = function () {
+		frm.submit();
+	};
+	
+	new Pagination({
+		view		:	'#pagination',
+		page_count	:	'[[${count }]]',
+		page_no		:	'[[${paramMap[page_no] }]]',
+		callback	:	function(pageIndex, e) {
+			page_no.val(pageIndex + 1);
+			search();
+			return false;
+		}
+	});
+
+	new Datepicker(reg_date_start, reg_date_end);
+	new Checkbox('input[name=seqsAll]', 'input[name=seqs]');
+
+	search_word.keypress(function(event) {
+		if (event.which == 13) {
+			event.preventDefault();
+			page_no.val(1);
+			search();
+		}
+	});
+
+	search_btn.click(function () {
+		page_no.val(1);
+		search();
+		return false;
+	});
+
+	// 승인 여부
+	var ajaxApproval = function (approval) {
+		approval = approval == 'Y' ? 'Y' : 'N';
+		var approvalText = approval == 'Y' ? '승인' : '미승인';
+		
+		var seqs = $('input[name=seqs]:checked');
+
+		if (!confirm(approvalText + ' 처리 하시겠습니까?')) {
+			return false;
+		}
+		if (seqs.size() == 0) {
+			alert('선택된 항목이 없습니다.');
+			return false;
+		}
+
+		var param = {
+			approval : approval
+		};
+
+		if (seqs.size() > 0) {
+			param.seqs = [];
+			
+			$('input[name=seqs]:checked').each(function () {
+				param.seqs.push( $(this).val() );
+			});
+		}
+
+		$.ajax({
+			url			:	'/customer/qna/approval.do'
+			,type		:	'post'
+			,data		:	$.param(param, true)
+			,dataType	:	'json'
+			,success : function( res ) {
+
+				if (res.success) {
+					alert(approvalText + " 처리가 완료 되었습니다.");
+					location.reload();
+				} else {
+					alert(approvalText + " 처리가 실패 되었습니다.");
+				}
+			}
+			,error : function(data, status, err) {
+				alert(approvalText + " 처리가 실패 되었습니다.");
+			}
+		});
+
+	};
+
+	$('.approval_y_btn').click(function () {
+		ajaxApproval('Y');
+		return false;
+	});
+
+	$('.approval_n_btn').click(function () {
+		ajaxApproval('N');
+		return false;
+	});
+
+	$('.delete_btn').click(function () {
+
+		var seqs = $('input[name=seqs]:checked');
+
+		if (!confirm('삭제하시겠습니까?')) {
+			return false;
+		}
+		if (seqs.size() == 0) {
+			alert('선택된 항목이 없습니다.');
+			return false;
+		}
+
+		var param = {};
+
+		if (seqs.size() > 0) {
+			param.seqs = [];
+			
+			$('input[name=seqs]:checked').each(function () {
+				param.seqs.push( $(this).val() );
+			});
+		}
+
+		$.ajax({
+			url			:	'/customer/qna/delete.do'
+			,type		:	'post'
+			,data		:	$.param(param, true)
+			,dataType	:	'json'
+			,success	:	function (res) {
+				if (res.success) {
+					alert("삭제가 완료 되었습니다.");
+					location.reload();
+				} else {
+					alert("삭제 실패 되었습니다.");
+				}
+			}
+			,error : function(data, status, err) {
+				alert("삭제 실패 되었습니다.");
+			}
+		});
+
+		return false;
+	});
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+
+
+		<form name="frm" method="get" action="/customer/qna/list.do">
+			<div class="search_box">
+				<input type="hidden" name="page_no" th:value="${paramMap[page_no]}" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>게시판 글 검색</caption>
+					<tbody>
+						<tr>
+							<th scope="row">구분</th>
+							<td>
+							<select name="category">
+							<option value="">전체</option>
+							<option value="0" ${paramMap.category eq '0' ? "selected='selected'" :''}>소식</option>
+							<option value="1" ${paramMap.category eq '1' ? "selected='selected'" :''}>형사/교육</option>
+							<option value="2" ${paramMap.category eq '2' ? "selected='selected'" :''}>공연/전시</option>
+							<option value="3" ${paramMap.category eq '3' ? "selected='selected'" :''}>문화동영상</option>
+							<option value="4" ${paramMap.category eq '4' ? "selected='selected'" :''}>문화추천</option>
+							<option value="5" ${paramMap.category eq '5' ? "selected='selected'" :''}>전통디자인</option>
+							<option value="6" ${paramMap.category eq '6' ? "selected='selected'" :''}>이벤트</option>
+							<option value="7" ${paramMap.category eq '7' ? "selected='selected'" :''}>오픈API</option>
+							<option value="8" ${paramMap.category eq '8' ? "selected='selected'" :''}>기타</option>
+						</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">승인여부</th>
+							<td>
+								<input type="radio" id="num4" name="status" value="" ${empty paramMap.status ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num4">전체</label>
+								<input type="radio" id="num3" name="status" value="W" ${paramMap.status eq 'W' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num3">대기</label>
+								<input type="radio" id="num2" name="status" value="Y" ${paramMap.status eq 'Y' ? 'checked="checked"' : '' } />
+								<em></em>
+								<label for="num2"> 승인</label>
+								<input type="radio" id="num1" name="status" value="N" ${paramMap.status eq 'N' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num1">미승인</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">답변여부</th>
+							<td>
+								<input type="radio" id="num5" name="public_yn" value="" ${paramMap.public_yn.empty  ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num5">전체</label>
+								<input type="radio" id="num6" name="public_yn" value="N" ${paramMap[public_yn] eq 'N' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num6">답변대기</label>
+								<input type="radio" id="num7" name="public_yn" value="Y" ${paramMap.[public_yn] eq 'Y' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="num7">답변완료</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">등록일</th>
+							<td colspan="3">
+							<input type="text" name="reg_date_start" th:value="${paramMap[reg_date_start] }" />
+							 <span>~</span> 
+							 <input type="text" name="reg_date_end" th:value="${paramMap[reg_date_end] }" /></td>
+						</tr>
+						<tr>
+							<th scope="row">검색어</th>
+							<td colspan="3"><select name="search_type">
+									<option value="all">전체</option>
+									<option value="title" ${paramMap[search_type] eq 'title' ? 'selected="selected"' : '' }>제목</option>
+							<option value="description" ${paramMap[search_type] eq 'description' ? 'selected="selected"' : '' }>내용</option>
+								
+							</select> 
+							<input type="text" name="search_word" placeholder="검색어 입력" th:value="${paramMap[search_word] }" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="search_btn">
+					<a class="btn_search" name="search_btn">검색</a>
+				</div>
+			</div>
+			<!-- //search -->
+			<div class="cont_box">
+				<div class="list_header">
+					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
+				</div>
+				<!-- list -->
+				<table class="tbl_list">
+					<caption>게시판 글 목록</caption>
+					<colgroup>
+						<col style="width:4%" />
+						<col style="width:8%" />
+						<col style="width:18%" />
+						<col />
+						<col style="width:12%" />
+						<col style="width:12%" />
+						<col style="width:6%" />
+						<col style="width:6%" />
+						<col style="width:6%" />
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col"><input type="checkbox" name="seqsAll" /><em></em></th>
+							<th scope="col">번호</th>
+							<th scope="col">구분</th>
+							<th scope="col">제목</th>
+							<th scope="col">등록자</th>
+							<th scope="col">등록일</th>
+							<th scope="col">조회수</th>
+							<th scope="col">답변 여부</th>
+							<th scope="col">승인 여부</th>
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:if="${list.empty}">
+							<tr>
+								<td colspan="8">검색된 결과가 없습니다.</td>
+							</tr>
+						</th:block>
+						<th:block th:each="item, status : ${list}">
+							<tr>
+							<td>
+							<input type="checkbox"  name="seqs" value="${item.seq }"  /> 
+								<em></em>
+							</td>
+								<td><th:block th:text="${#numbers.formatInteger(   (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
+								</td>
+								<td>
+								<th:block th:if="${item.category eq '0'}">소식</th:block>
+								<th:block th:if="${item.category eq '1'}">행사/교육</th:block>
+								<th:block th:if="${item.category eq '2'}">공연/전시</th:block>
+								<th:block th:if="${item.category eq '3'}">문화동영상</th:block>
+								<th:block th:if="${item.category eq '4'}">문화추천</th:block>
+								<th:block th:if="${item.category eq '5'}">전통디자인</th:block>
+								<th:block th:if="${item.category eq '6'}">이벤트</th:block>
+								<th:block th:if="${item.category eq '7'}">오픈 API</th:block>
+								<th:block th:if="${item.category eq '8'}">기타</th:block>
+				</td>
+				<td class="subject">
+					<a th:href="@{/customer/qna/form.do(seq=${item.seq },qs=${paramMap[qs] })}">
+						[[${item.title }]]
+					</a>
+				</td>
+				<td>
+					[[${item.user_id }]]
+				</td>
+				<td>
+					[[${item.reg_date }]]
+				</td>
+				<td>
+				<th:block th:text="${#numbers.formatInteger( item.cnt,  '3',  'COMMA')}"></th:block>
+				</td>
+				<td>
+					<th:block>
+						<th:block th:if="${item.public_yn == 'N' }">대기</th:block>
+						<th:block th:unless="${item.public_yn == 'N' }">완료</th:block>
+					</th:block>
+				</td>
+				<td>
+					<th:block>
+						<th:block th:if="${item.status == 'W' }">대기</th:block>
+						<th:block th:if="${item.status == 'N' }">미승인</th:block>
+						<th:block th:if="${item.status != 'N' && item.status != 'W'}">승인</th:block>
+					</th:block>
+				</td>
+							</tr>
+						</th:block>
+					</tbody>
+				</table>
+				<!-- //list -->
+				<!-- paginate -->
+				<div id="pagination"></div>
+				<!-- //paginate -->
+				
+				<div class="btnBox textRight"
+					style="display: block; text-align: right;">
+					<span ><a href="#" class="approval_y_btn btn_stype3">승인</a></span>
+					<span ><a href="#" class="approval_n_btn btn_stype3">미승인</a></span>
+					<span ><a href="#" class="delete_btn btn_stype3">삭제</a></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
