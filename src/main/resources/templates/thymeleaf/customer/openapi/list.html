@@ -103,7 +103,7 @@ $(function () {
 		<!--/* content_header 끝 */-->
 
 
-		<form name="frm" method="get" action="/customer/faq/list.do">
+		<form name="frm" method="get" action="/customer/openapi/list.do">
 			<div class="search_box">
 				<input type="hidden" name="page_no" th:value="${paramMap[page_no]}" />
 				<!-- search -->
@@ -115,9 +115,9 @@ $(function () {
 							<td>
 							<select name="category">
 							<option value="">전체</option>
-								<c:forEach items="${categoryList }" var="j">
-									<option value="${j }" ${paramMap.category eq j ? 'selected="selected"' : '' }>${j }</option>
-								</c:forEach>
+								<th:block th:each=" j : ${categoryList }">
+									<option value="${j }" ${paramMap.category eq j ? 'selected="selected"' : '' }>[[${j}]]</option>
+								</th:block>
 						</select>
 							</td>
 						</tr>

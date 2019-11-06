@@ -61,7 +61,8 @@ public class OpenapiController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/customer/openapi/form";
+		//return "/customer/openapi/form";
+		return "thymeleaf/customer/openapi/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)
