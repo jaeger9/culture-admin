@@ -96,7 +96,8 @@ public class PortalStatMemberController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("list", service.readForList("portalStatMember.list", paramMap));
 
-		return "/member/portalStat/" + view;
+		//return "/member/portalStat/" + view;
+		return "thymeleaf/member/portalStat/" + view;
 	}
 
 }

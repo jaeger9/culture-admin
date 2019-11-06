@@ -214,6 +214,7 @@
 							<th scope="row">마일리지</th>
 							<td th:text="|${view.point } P|"></td>
 						</tr>
+						<!-- 	[[${view.newsletter_yn}]] radio button 값이 있는대 체크가안됨 뉴스레터, 개인정보 재동의 여부 체크 필요 -->
 						<tr>
 							<th scope="row">개인정보 <br />재동의 여부</th>
 							<td >
@@ -271,9 +272,9 @@
 
 				<select name="email3">
 					<option value="">직접입력</option>
-					<c:forEach items="${mailList }" var="item">
-						<option value="${item.value }" ${view.email2 eq item.value ? 'selected="selected"' : '' }>${item.name }</option>
-					</c:forEach>
+					<th:block th:each=" item: ${mailList }">
+						<option value="${item.value }" ${view.email2 eq item.value ? 'selected="selected"' : '' } th:text="${item.name}"></option>
+					</th:block>
 				</select></td>
 						</tr>
 						<tr>
@@ -281,15 +282,17 @@
 							<td colspan="3">
 							<div class="inputBox">
 									<ul>
-										<li style="display: inline-block;">
-										<input  type="radio" name="newsletter_yn" value="Y" ${view.newsletter_yn eq 'Y' ? 'checked="checked"' : '' } id="item1" /> 
+										<li>
+										<input  type="radio" name="newsletter_yn" value="Y" ${view.newsletter_yn  == 'Y' ? 'checked="checked"' : '' } id="item1" /> 
 										<em></em>
 										<label for="item1"> 수신</label>
-									 <input type="radio" name="newsletter_yn" value="N" ${view.newsletter_yn ne 'Y' ? 'checked="checked"' : '' } id="item2" /> 
+									 	<input type="radio" name="newsletter_yn" value="N" ${view.newsletter_yn == 'N' ? 'checked="checked"' : '' } id="item2" /> 
 										<em></em>
 										<label for="item2"> 미수신</label>
-										</li>
 										
+										<!-- 	[[${view.newsletter_yn}]] radio button 값이 있는대 체크가안됨 뉴스레터, 개인정보 재동의 여부 체크 필요 -->
+									
+										</li>
 									</ul>
 									</div>
 						</td>
