@@ -35,7 +35,8 @@ public class PointController {
 		model.addAttribute("count", (Integer) service.readForObject("point.count", paramMap));
 		model.addAttribute("list", service.readForList("point.list", paramMap));
 
-		return "/member/point/list";
+		//return "/member/point/list";
+		return "thymeleaf/member/point/list";
 	}
 	
 	@RequestMapping("/policy/list.do")
