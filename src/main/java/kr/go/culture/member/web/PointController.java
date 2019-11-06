@@ -47,7 +47,8 @@ public class PointController {
 		model.addAttribute("count", (Integer) service.readForObject("point.policyCount", paramMap));
 		model.addAttribute("list", service.readForList("point.policyList", paramMap));
 
-		return "/member/point/policy/list";
+		//return "/member/point/policy/list";
+		return "thymeleaf/member/point/policy/list";
 	}
 	
 	@RequestMapping(value = "/policy/form.do", method = RequestMethod.GET)
@@ -63,7 +64,8 @@ public class PointController {
 
 			if (resultMap == null) {
 				SessionMessage.empty(request);
-				return "redirect:/member/point/policy/list.do";
+				//return "redirect:member/point/policy/list.do";
+				return "redirect:thymeleaf/member/point/policy/list.do";
 			}
 		}else {
 			maxCountForRegistration=(Integer)service.readForObject("point.policyCountForMax", paramMap);
@@ -72,7 +74,8 @@ public class PointController {
 		model.addAttribute("maxCountForRegistration",maxCountForRegistration);
 		model.addAttribute("view", resultMap);
 
-		return "/member/point/policy/form";
+		//return "/member/point/policy/form";
+		return "thymeleaf/member/point/policy/form";
 	}
 
 	@RequestMapping(value = "/policy/form.do", method = RequestMethod.POST)
@@ -99,7 +102,8 @@ public class PointController {
 				
 			}else {
 				SessionMessage.empty(request);
-				return "redirect:/member/point/policy/list.do";				
+				//return "redirect:/member/point/policy/list.do";
+				return "redirect:thymeleaf/member/point/policy/list.do";
 			}
 		}
 
