@@ -71,19 +71,17 @@
             new Datepicker(reg_date_start, reg_date_end);
 
             /*[# th:if="${view != null}"]*/
-
-            //radio check
-            if(/*[[ ${view.approval} ]]*/ null) {
-                $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
-            }
-            if(/*[[ ${view.note1} ]]*/ null) {
-                $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
-            }
-            //select box
-            if(/*[[ ${view.genre} ]]*/ null) {
-                $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
-            }
-
+                //radio check
+                if(/*[[ ${view.approval} ]]*/ null) {
+                    $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
+                }
+                if(/*[[ ${view.note1} ]]*/ null) {
+                    $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
+                }
+                //select box
+                if(/*[[ ${view.genre} ]]*/ null) {
+                    $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
+                }
             /*[/]*/
 
             //썸네일 이미지
@@ -91,12 +89,14 @@
 
             $('input[name=note1]').change(function(){
                 changeNote($(this));
-            })
+            });
 
             // http 자동 붙이기
             $("#url").change(function() {
-                if (!/^http:\/\//.test(this.value)) {
-                    this.value = "http://" + this.value;
+                if(this.value !='' && this.value != undefined && this.value != null) {
+                    if (!/^http:\/\//.test(this.value)) {
+                        this.value = "http://" + this.value;
+                    }
                 }
             });
 
@@ -106,25 +106,10 @@
                 window.open(url);
             }
 
-            //공연상 선택
-            $('span.btn.whiteS a').each(function(){
-                $(this).click(function(){
-                    if( $(this).data('org') == 'venue'){
-                        window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
-                    } else if( $(this).data('org') == 'rights'){
-                        window.open('/popup/culturegroup.do', 'culturegroupPopup', 'scrollbars=yes,width=600,height=630');
-                    }
-                    /* else if( $(this).html() == '장소등록'){
-                        location.href='/facility/place/list.do';
-                    }
-                    else if($(this).html() == '주최등록'){
-                        location.href='/facility/group/list.do';
-                    } */
-                    else if( $(this).html() == '미리보기'){
-                        goLink();
-                    }
-                });
-            });
+            // 공연장소 '선택' 버튼 클릭
+            callPlacePopup = function () {
+                window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=600,height=630');
+            }
 
             frm.submit(function(){
                 //DB NOT NULL 기준 체크
@@ -360,7 +345,7 @@
                             <!--/* 신규등록*/-->
                             <input th:unless="${view != null}" type="text" style="width:90%;" title="장소" name="venue" id="venue" readonly/>
                             <input th:unless="${view != null}" type="hidden" name="location" />
-                            <a href="#url" class="btn_mtype1" data-org="venue">선택</a>
+                            <a href="#callPlacePopup" th:onclick="|javascript:callPlacePopup()|" class="btn_mtype1" data-org="venue">선택</a>
                             <a href="/facility/place/view.do" class="btn_mtype1" target="_blank">장소등록</a>
                         </td>
                     </tr>
