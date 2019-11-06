@@ -940,7 +940,8 @@ public class PopupController {
 	public String jusoPopup(HttpServletRequest request, ModelMap model) throws Exception {
 		ParamMap paramMap = new ParamMap(request);
 		model.addAttribute("paramMap", paramMap);
-		return "popup/jusoPopup";
+//		return "popup/jusoPopup";
+		return "thymeleaf/popup/jusoPopup";
 	}
 	
 	

@@ -12,6 +12,7 @@
 		글 수정/삭제
 		답변등록
 		댓글 삭제
+		관리 메뉴 레이어
 -->
 <script type="text/javascript">
 	$(function() {
@@ -26,7 +27,7 @@
 			
 			$(this).click( function() { 
 				
-				if ($(this).html() == '수정') { 
+				if ($(this).html() == '수정') {
 					
 					if (!confirm('수정하시겠습니까?')) return false;
 						
@@ -86,7 +87,7 @@
 			$(this).click( function() {
 				
 				if ($(this).html() == '공연/전시 선택') {
-					window.open( '/popup/rdfMetadataNew.do', 'webzinePopup', 'scrollbars=yes,width=700,height=600');
+					window.open( '/popup/rdfMetadataNew.do', 'webzinePopup', 'scrollbars=no, resizable=no, width=700, height=700');
 				}
 				
 			});
@@ -163,7 +164,7 @@
 							<th scope="row">내용</th>
 							<td colspan="3">
 								
-								<script type="text/javascript">
+								<!-- <script type="text/javascript">
 									var CrossEditor = new NamoSE('contents');
 									CrossEditor.params.Width = "100%";
 									CrossEditor.params.Height = "400px";
@@ -190,7 +191,7 @@
 									function OnInitCompleted(e) {
 										e.editorTarget.SetBodyValue(document.getElementById("contents").value);
 									}
-								</script> 
+								</script>  -->
 								
 								<textarea id="contents" name="content" style="width: 100%; height: 400px; display: none;">
 									<!--<c:out value="${view.content }" escapeXml="true" /> -->
@@ -247,8 +248,9 @@
 								<div class="right">
 									<span class="ico_write">관리 메뉴</span>
 									<!-- 관리 메뉴 레이어 -->
-									<span class="wrt_wrap"> <!-- <a href="#">수정</a> --> 
-									<a href="#">삭제</a>
+									<span class="wrt_wrap"> 
+										<!-- <a href="#">수정</a> --> 
+										<a href="#">삭제</a>
 									</span>
 									<!-- //관리 메뉴 레이어 -->
 								</div>

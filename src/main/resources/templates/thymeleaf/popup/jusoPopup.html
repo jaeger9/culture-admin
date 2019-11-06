@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/popup}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+
+<script type="text/javascript">
+	$(function () {
+		
+		var roadFullAddr  = '[[${param.roadFullAddr}]]';
+		var roadAddrPart1 = '[[${param.roadAddrPart1}]]';
+		var roadAddrPart2 = '[[${param.roadAddrPart2}]]';
+		var engAddr 	  = '[[${param.engAddr}]]';
+		var jibunAddr 	  = '[[${param.jibunAddr}]]';
+		var zipNo   	  = '[[${param.zipNo}]]';
+		var addrDetail 	  = '[[${param.addrDetail}]]';
+		var admCd 		  = '[[${param.admCd}]]';
+		var rnMgtSn 	  = '[[${param.rnMgtSn}]]';
+		var bdMgtSn  	  = '[[${param.bdMgtSn}]]';
+
+		
+		var url = location.href;
+		//var confmKey = "TESTJUSOGOKR";
+		var confmKey = "U01TX0FVVEgyMDE2MDcwODExMDM1MTEzNjcw";
+		var inputYn = "[[${param.inputYn}]]";
+		
+		if(inputYn != "Y") {
+			document.form.confmKey.value = confmKey;
+			document.form.returnUrl.value = url;
+			document.form.action="http://www.juso.go.kr/addrlink/addrLinkUrl.do"; //인터넷망
+			document.form.submit();
+		}
+		else {
+			var arrData = roadFullAddr.split(" ");
+			var sido = arrData[0];
+			var gugun = arrData[1];
+			/* var pattern = /[군|구]$/;
+			gugun = (pattern.test(arrData[2])) ? gugun +" "+ arrData[2] : gugun; */
+			
+			opener.jusoCallBack(sido, gugun, roadAddrPart1, addrDetail, zipNo);
+			window.close();
+		}
+	});
+</script>
+</head>
+
+<body>
+    <div id="layerwrap" layout:fragment="layerwrap" >
+        <!--/* 여기안에 팝업내용 시작 */-->
+		<form id="form" name="form" method="post">
+			<input type="hidden" id="confmKey" name="confmKey" value=""/>
+			<input type="hidden" id="returnUrl" name="returnUrl" value=""/>
+			<!-- 해당시스템의 인코딩타입이 EUC-KR일경우에만 추가 START-->
+			<!-- 
+			<input type="hidden" id="encodingType" name="encodingType" value="EUC-KR"/>
+			 -->
+			<!-- 해당시스템의 인코딩타입이 EUC-KR일경우에만 추가 END-->
+			</form>
+			
+        <!--/* 여기안에 팝업내용 끝 */-->
+    </div>
+</body>
+</html>

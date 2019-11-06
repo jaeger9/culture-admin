@@ -61,7 +61,8 @@ public class RelayGroupController {
 		if (paramMap.containsKey("seq")) 
 			model.addAttribute("view",ckDatabaseService.readForObject("relay_gourp.view", paramMap));
 		
-		return "/perform/relay/group/view";
+//		return "/perform/relay/group/view";
+		return "thymeleaf/perform/relay/group/view";
 	}
 	
 	@RequestMapping("statusUpdate.do")

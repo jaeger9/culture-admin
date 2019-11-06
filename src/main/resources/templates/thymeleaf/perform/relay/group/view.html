@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript" src="/editor/js/HuskyEZCreator.js" charset="utf-8"></script>
+<script type="text/javascript">
+var action = "";
+
+var callback = {
+		postalcode :function(res) {
+			//{"buil_num2":"","buil_num1":"","road_name":"","zip_code":152090,"gi_num2":"","gi_num1":"","dong_name1":"개봉동","gu_name":"구로구","sido_name":"서울"}
+			
+			if (res == null) {
+				alert('callback data null');
+				return false;
+			}
+			var zip_code = res.zip_code.toString();
+			
+			$('input[name=zip_code]').val(zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
+			$('input[name=addr1]').val(res.sido_name + ' ' + res.gu_name + ' ' + res.dong_name1);
+		}
+}
+
+$(function () {
+
+	var frm = $('form[name=frm]');
+	
+	var name	 = frm.find('input[name=name]');
+	var homepage = frm.find('input[name=homepage]');
+	var tel		 = frm.find('input[name=tel]');
+	var zip_code = frm.find('input[name=zip_code]');
+	var addr1	 = frm.find('input[name=addr1]');
+	var addr2	 = frm.find('input[name=addr2]');
+	
+	//layout
+	
+	// radio check
+	if('[[${view.zip_yn}]]')	$('input:radio[name="zip_yn"][value="[[${view.zip_yn}]]"]').prop('checked', 'checked');
+	if('[[${view.approval}]]') 	$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+	
+	//URL 미리보기
+	goLink = function() {
+		window.open($('input[name=homepage]').val(),'homepage' , 'width=570, height=420');
+	}
+	
+	// 공연상 선택
+	$('.tbl_view a').each(function() {
+		
+	  	$(this).click(function() {
+	    	if( $(this).html() == '선택') {
+	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=400,height=300');
+	    	}
+	    	else if( $(this).html() == '우편번호찾기') {
+	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
+	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
+	    	} 
+	    	else if( $(this).html() == '미리보기') {
+	    		goLink();
+	    	}
+	  	});
+	});
+	
+	// upload file 변경시 fake file div text 변경
+	$('input[name=uploadFile]').each(function() {
+		$(this).change(function() {
+			$(this).next().find('input.inputText').val($(this).val());
+		});
+	});
+	
+	frm.submit(function() {
+		//DB NOT NULL 기준 체크
+		if(action == 'delete') {
+			return true;
+		}
+		
+		if(name.val() =='') {
+			alert('기관/단체명 입력하세요');
+			name.focus();
+			return false;
+		}
+
+		if(homepage.val() =='') {
+			alert('홈페이지 입력하세요');
+			homepage.focus();
+			return false;
+		}
+
+		if(tel.val() =='') {
+			alert('전화번호 입력하세요');
+			tel.focus();
+			return false;
+		}
+		
+		if(zip_code.val() =='') {
+			alert('우편번호 선택하세요');
+			zip_code.focus();
+			return false;
+		}
+
+		if(addr1.val() =='') {
+			alert('주소 선택하세요');
+			addr1.focus();
+			return false;
+		}
+
+		if(addr2.val() =='') {
+			alert('상세주소 입력하세요');
+			addr2.focus();
+			return false;
+		}
+		
+		return true;
+	});
+	
+	//수정 , 삭제 , 등록 
+	$('#grp_view_btns > a').each(function() {
+    	
+		$(this).click(function() {
+			if($(this).html() == '수정') { 
+
+        		if (!confirm('수정하시겠습니까?')) return false;
+        		frm.attr('action' ,'/perform/relay/group/update.do');
+        		frm.submit();
+        	} 
+        	else if($(this).html() == '삭제') {
+
+        		if (!confirm('삭제 하시겠습니까?')) return false;
+        		
+        		action = "delete";
+        		frm.attr('action' ,'/perform/relay/group/delete.do');
+        		frm.submit();
+        	} 
+        	else if($(this).html() == '등록') {
+        		
+        		if (!confirm('등록하시겠습니까?')) return false;
+        		frm.attr('action' ,'/perform/relay/group/insert.do');
+        		frm.submit();
+        	} 
+        	else if($(this).html() == '목록') {
+        		location.href='/perform/relay/group/list.do';
+        	}   		
+    	});
+	});
+	
+});
+
+//도로명주소 Open Api
+function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
+	$('input[name=zip_code]').val(zipNo);	//우편번호
+	$('input[name=addr1]').val(addr);		//기본주소
+	$('input[name=addr2]').val(addr2);		//상세주소
+}
+</script>
+
+</head>
+<body>
+<div id="contents" layout:fragment="contents"
+	th:with="currentMenu=${currentMenu}">
+	<!--/* content_header 시작 */-->
+	<th:block
+		th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+	<!--/* content_header 끝 */-->
+	<div class="cont_box">
+		
+		<form name="frm" method="post" action="/perform/relay/group/insert.do" enctype="multipart/form-data">
+				
+			<input th:unless="${#strings.isEmpty(view.seq)}" type="hidden" name="seq" th:value="${view.seq}"/>
+			
+			<table class="tbl_view" summary="공연 참여 단체 작성">
+				<caption>참여공연단체 등록/수정</caption>
+				
+				<colgroup>
+					<col style="width:15%" />
+					<col style="width:35%" />
+					<col style="width:15%" />
+					<col style="width:35%" />
+				</colgroup>
+				
+				<tbody>
+					<tr>
+						<th scope="row">기관/단체명</th>
+						<td colspan="3">
+							<input type="text" name="name" id="name" th:value="${view.name}" style="width:70%;">
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">홈페이지</th>
+						<td colspan="3">
+							<input type="text" name="homepage" id="homepage" th:value="${view.homepage}" style="width:70%;">
+							<a href="#" class="btn_stype1">미리보기</a>
+<!-- 						<span class="btn whiteS"><button>유효성검사</button></span> -->
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">전화번호</th>
+						<td colspan="3">
+							<input type="text" name="tel" id="tel" th:value="${view.tel}">
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">썸네일 이미지</th>
+						<td colspan="3">
+							<div>
+								<input type="file" name="uploadFile" title="파일선택" />
+								<div class="fakefile">
+									<input type="text" title="" class="inputText" />
+									<a href="#" class="btn_stype1">찾아보기</a>
+<!-- 								<span class="btn whiteS"><button>찾아보기</button></span> -->
+								</div>
+							</div>
+							<th:block th:if="${#strings.isEmpty(view.thumb_url)}">
+								<div class="inputBox">
+									<input type="hidden" name="file_delete" th:value="${view.thumb_url}" />
+									<label><input type="checkbox" name="imagedelete" th:value="Y" /> <strong>삭제</strong>[[${view.thumb_url}]]</label>
+									<input type="hidden" name="thumb_url" th:value="${view.thumb_url }"/>
+								</div>
+							</th:block>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">상세주소</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<a href="#" class="btn_stype1">우편번호찾기</a>
+<!-- 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span> -->
+								<div style="display:none">
+									<label><input type="radio" th:value="63" name="zip_yn" checked/>지번주소</label>
+									<label><input type="radio" th:value="64" name="zip_yn"/>도로명주소</label>
+								</div>
+							</div>
+							<div class="inputBox">
+								<input type="text" name="zip_code" th:value="${view.zip_code }" />
+								<input type="text" name="addr1" th:value="${view.addr1 }" style="width:45%;" />
+							</div>
+							<div>
+								<input type="text" name="addr2" th:value="${view.addr2 }" style="width:70%;"/>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">순번</th>
+						<td colspan="3">
+							<select name='order_seq' id='order_seq' class="inputSelectStyle">
+								<th:block th:each="num : ${#numbers.sequence(1, 50)}">
+									<option th:value="${num}" th:selected="${view.order_seq == num}" th:text="${num}"></option>
+								</th:block>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">승인여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" name="approval" th:value="W" checked/><em></em> 대기</label>
+								<label><input type="radio" name="approval" th:value="Y"/><em></em> 승인</label>
+								<label><input type="radio" name="approval" th:value="N"/><em></em> 미승인</label>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+		
+		<div class="btn_right" id="grp_view_btns">
+			<th:block th:if="${#strings.isEmpty(view)}">
+				<a href="#" class="btn_ltype3">수정</a>
+				<a href="#" class="btn_ltype3">삭제</a>
+			</th:block>
+			<th:block th:unless="${#strings.isEmpty(view)}">
+				<a href="#" class="btn_ltype3">등록</a>
+				<a href="#" class="btn_ltype3">목록</a>
+			</th:block>
+		</div>
+
+
+
+
+	</div>
+</div>
+</body>
+</html>
