@@ -14,7 +14,7 @@
 		var join_date_end = frm.find('input[name=join_date_end]');
 		var search_type = frm.find('select[name=search_type]');
 		var search_word = frm.find('input[name=search_word]');
-		var search_btn = frm.find('button[name=search_btn]');
+		var search_btn = frm.find('a[name=search_btn]');
 		var grp_cer_flag = frm.find('select[name=grp_cer_flag]');
 
 		var search = function() {
@@ -91,8 +91,9 @@
 										<th:block th:if="${paramMap[role] eq item.value }">
 										</th:block>
 										[[${item.name}]]</option> -->
-										
-										<option th:value="${item.value }" ${paramMap[role] eq item.value  ? 'selected="selected"' : '' }>[[${item.name}]]</option>
+
+										<option th:value="${item.value }" ${paramMap[role] eq
+											item.value  ? 'selected="selected"' : '' }>[[${item.name}]]</option>
 									</th:block>
 							</select></td>
 						</tr>
@@ -100,16 +101,19 @@
 							<th scope="row">검색어</th>
 							<td colspan="3"><select name="search_type">
 									<option value="all">전체</option>
-									<option value="user_id" ${paramMap[search]_type  eq 'user_id' ? 'selected="selected"' : '' }>아이디</option>
-									<option value="name" ${paramMap.[search]_type eq 'name'	? 'selected="selected"' : '' }>이름</option>
-									<option value="email" ${paramMap.[search]_type eq 'email'	? 'selected="selected"' : '' }>이메일</option>
+									<option value="user_id" ${paramMap[search]_type
+										eq 'user_id' ? 'selected="selected"' : '' }>아이디</option>
+									<option value="name" ${paramMap.[search]_type
+										eq 'name'	? 'selected="selected"' : '' }>이름</option>
+									<option value="email" ${paramMap.[search]_type
+										eq 'email'	? 'selected="selected"' : '' }>이메일</option>
 							</select> <input type="text" name="search_word" placeholder="검색어 입력"
 								th:value="${paramMap[search_word] }" /></td>
 						</tr>
 					</tbody>
 				</table>
 				<div class="search_btn">
-					<a href="#" class="btn_search" name="search_btn">검색</a>
+					<a class="btn_search" name="search_btn">검색</a>
 				</div>
 			</div>
 			<!-- //search -->
@@ -140,7 +144,7 @@
 							<th scope="col">마일리지</th>
 							<th scope="col">가입구분</th>
 							<th scope="col">권한</th>
-							<th scope="col">가입일</th>
+							<th scope="col">가입일</th>	
 						</tr>
 					</thead>
 					<tbody>
@@ -151,32 +155,28 @@
 						</th:block>
 						<th:block th:each="item, status : ${list}">
 							<tr>
-								<td>
-									<th:block th:text="${#numbers.formatInteger(count - (paramMap[page_no] - 1) * paramMap[list_unit] - status.index,'3','COMMA')}"></th:block>
+								<td><th:block
+										th:text="${#numbers.formatInteger(   (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
 								</td>
-								<td><a href="/member/portal/form.do?user_id=${item.user_id}&qs=${paramMap[qs]}">
+								<td><a
+									th:href="@{/member/portal/form.do(user_id=${item.user_id},qs=${paramMap[qs]})}">
 										[[${item.user_id}]] </a></td>
-								<td><a href="/member/portal/form.do?user_id=${item.user_id }&qs=${paramMap[qs] }">
-										[[${item.name}]] </a>
+								<td><a
+									th:href="@{/member/portal/form.do(user_id=${item.user_id },qs=${paramMap[qs]})}">
+										[[${item.name}]] </a></td>
+								<td class="subject"><a
+									th:href="@{/member/portal/form.do(user_id=${item.user_id }, qs=${paramMap[qs]})}">
+										[[${item.email}]] </a></td>
+								<td><th:block
+										th:text="|${#numbers.formatInteger(item.point,'3','COMMA')} P |"></th:block>
 								</td>
-								<td class="subject">
-									<a href="/member/portal/form.do?user_id=${item.user_id }&qs=${paramMap[qs] }">
-										[[${item.email}]] </a>
-								</td>
-								<td>
-									<th:block th:text="|${#numbers.formatInteger(item.point,'3','COMMA')} P |"></th:block>
-								</td>
-								<td>
-									<th:block th:if="${item.join_category_name == null}" th:text="-"> 
-									</th:block>
-									<th:block th:unless="${item.join_category_name == null}" th:text="${item.join_category_name} ">
-									</th:block>
-								</td>
-								<td>
-									<th:block th:text="${item.role}" />
-								</td>
-								<td>
-								<!--<th:block th:text="${#dates.format(item.join_date, 'yyyy/mm/dd' )}" /> -->
+								<td><th:block th:if="${item.join_category_name == null}"
+										th:text="'-'">
+									</th:block> <th:block th:unless="${item.join_category_name == null}"
+										th:text="${item.join_category_name} ">
+									</th:block></td>
+								<td><th:block th:text="${item.role}" /></td>
+								<td th:text="${item.join_date}">
 									<!--  <c:out value="${item.join_date}" default="-" />-->
 								</td>
 							</tr>
@@ -185,23 +185,23 @@
 				</table>
 				<!-- //list -->
 				<!-- paginate -->
-				<div class="paginate" id="pagination"></div>
+				<div id="pagination"></div>
 				<!-- //paginate -->
-				<div class="btnBox textRight">
-					<span class="btn dark"> <a href="/member/portal/sendMail.do">안내메일
+				
+				
+				<div class="btnBox textRight"
+					style="display: block; text-align: right;">
+					<span class="btn dark"> <a
+						th:href="@{/member/portal/sendMail.do}" class="btn_stype3">안내메일
 							발송</a>
-					</span> <span class="btn dark"> <a href="#url"
+					</span> <span class="btn dark"> <a href="#url" class="btn_stype3"
 						onclick="excelDown(); return false;">웹진수신회원 다운로드</a></span> <span
-						class="btn dark"><a href="#url"
-						onclick="excelDown2(); return false;">회원정보 다운로드</a></span>
+						class="btn dark"> <a href="#url"
+						onclick="excelDown2(); return false;" class="btn_stype3">회원정보
+							다운로드</a></span>
 				</div>
 			</div>
 		</form>
 	</div>
-
-
-
-
-
 </body>
 </html>

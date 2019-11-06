@@ -34,7 +34,9 @@ public class FaqController {
 		model.addAttribute("count", (Integer) service.readForObject("faq.count", paramMap));
 		model.addAttribute("list", service.readForList("faq.list", paramMap));
 
-		return "/customer/faq/list";
+		
+		//return "/customer/faq/list";
+		return "thymeleaf/customer/faq/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)
@@ -55,7 +57,8 @@ public class FaqController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/customer/faq/form";
+		//return "/customer/faq/form";
+		return "thymeleaf/customer/faq/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)

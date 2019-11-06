@@ -4,6 +4,9 @@
 	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	layout:decorate="~{layout/admin}">
 <head>
+<!-- 
+		todo - 최신순/조회순 쿼리 없음
+-->
 <title>KCISA 문화포털 통합관리시스템</title>
 <script type="text/javascript">
 	$(function() {
@@ -24,7 +27,6 @@
 		// layout
 		new Datepicker(reg_date_start, reg_date_end);
 
-		
 		// paging
 		var p = new Pagination({
 			view : '#pagination',
@@ -46,13 +48,13 @@
 			$("select[name=searchGubun]").val('[[${paramMap[searchGubun]}]]').attr("selected", "selected");
 		if ('[[${paramMap[approval]}]]')
 			$("select[name=approval]").val('[[${paramMap[approval]}]]').attr("selected", "selected");
-		
+
 		// sort_type  *********수정중
 		<!--/* 
-		if('[[${paramMap.sort_type}]]' != '') {
-			if ('[[${paramMap.sort_type}]]' == 'hit') $("select[name='sort_type'] option:eq(1)").attr("selected", "selected");
-		}
-		*/-->
+			if('[[${paramMap.sort_type}]]' != '') {
+				if ('[[${paramMap.sort_type}]]' == 'hit') $("select[name='sort_type'] option:eq(1)").attr("selected", "selected");
+			}
+		 */-->
 
 		// 검색
 		$('#searchButton').click(function() {
@@ -65,46 +67,49 @@
 		}
 
 		// 상세
-		$('div.tableList table tbody tr td').each(
-				function() {
-					if (!$(this).find('input').attr('type')) {
-						$(this).click( function() {
-							view($(this).parent().first().find('input').attr('type', 'checkbox').val());
-						});
-					}
+		$('.tbl_list tbody tr td').each( function() {
+			
+			if (!$(this).find('input').attr('type')) {
+				$(this).click( function() {
+					view($(this).parent().first().find('input').attr('type', 'checkbox').val());
 				});
-
+			}
+			
+		});
+		
 		view = function(seq) {
 			url = '/perform/review/view.do';
-			if (seq) url += '?seq=' + seq;
+			if (seq)
+				url += '?seq=' + seq;
 
 			location.href = url;
 		}
 
-		// 최신순 , 조회순 *********수정중
+		// 최신순 , 조회순 ********* 쿼리 필요
 		$("select[name='sort_type']").change(search);
 
-		
-		// 등록 & 상세
-		$('span.btn.dark.fr').click(function() { view(); });
+		// 등록 & 상세 -> 사용안함. a태그 url로 직접 이동됨
+		// $('span.btn.dark.fr').click(function() { view(); });
 
 		// 승인 , 미승인 , 삭제 이벤트 
 		$('div.btn_right > a').each(function() {
 
 			$(this).click(function() {
 
-				if ($(this).text() == '삭제') {
+				if ($(this).text() == '삭제') 
+				{
 					if (!confirm('삭제 하시겠습니까?')) return false;
-
 					deleteSites();
-				}
-				else if ($(this).text() == '승인') {
+				} 
+				else if ($(this).text() == '승인') 
+				{
 					if (!confirm('승인 처리 하시겠습니까?')) return false;
 
 					$('input[name=updateStatus]').val('Y');
 					updateStatus();
-				}
-				else if ($(this).text() == '미승인') {
+				} 
+				else if ($(this).text() == '미승인') 
+				{
 					if (!confirm('미승인 처리 하시겠습니까?')) return false;
 
 					$('input[name=updateStatus]').val('N');
@@ -116,7 +121,8 @@
 		// 승인 , 미승인
 		updateStatus = function() {
 
-			if (getCheckBoxCheckCnt() == 0) {
+			if (getCheckBoxCheckCnt() == 0) 
+			{
 				if ($('input[name=updateStatus]').val() == 'N') alert('미승인할 코드를 선택하세요');
 				if ($('input[name=updateStatus]').val() == 'Y') alert('승인할 코드를 선택하세요');
 				return false;
@@ -127,7 +133,6 @@
 
 		// 삭제
 		deleteSites = function() {
-
 			if (getCheckBoxCheckCnt() == 0) {
 				alert('삭제할 코드를 선택하세요');
 				return false;
@@ -146,6 +151,7 @@
 			frm.attr('action', url);
 			frm.submit();
 		};
+
 	});
 </script>
 
@@ -155,7 +161,7 @@
 		<!-- content_header 시작 -->
 		<th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
 		<!-- content_header 끝 -->
-		
+
 		<div class="cont_box">
 
 			<form name="frm" method="get" action="/perform/review/list.do">
@@ -178,7 +184,7 @@
 								<th scope="row">등록일</th>
 								<td colspan="3">
 									<input type="text" name="reg_start" th:value="${paramMap[reg_start]} == null ? '' :  ${paramMap[reg_start]}" />
-									<span>~</span> 
+									<span>~</span>
 									<input type="text" name="reg_end" th:value="${paramMap[reg_end]} == null ? '' :  ${paramMap[reg_end]}" />
 								</td>
 							</tr>
@@ -192,15 +198,17 @@
 										<option th:value="W">대기</option>
 									</select>
 								</td>
+								
 								<th scope="row">검색어</th>
-								<td>	
+								<td>
 									<select name="searchGubun">
 										<option th:value="all">전체</option>
 										<option th:value="title">제목</option>
 										<option th:value="content">내용</option>
 										<option th:value="user_id">작성자</option>
 									</select>
-									<input type="text" name="keyword" title="검색어 입력" th:value="${paramMap[keyword]} == null ? '' :  ${paramMap[keyword]}" />
+									<input type="text" name="keyword" title="검색어 입력"
+									   	   th:value="${paramMap[keyword]} == null ? '' :  ${paramMap[keyword]}" />
 								</td>
 							</tr>
 						</tbody>
@@ -208,15 +216,15 @@
 
 					<div class="search_btn">
 						<a class="btn_search" id="searchButton" role="button">검색</a>
-						<!-- <button class="btn_search" name="searchButton" type="button">검색</button> -->
 					</div>
 				</div>
 				<!-- //search -->
 
-
 				<!-- 건수  -->
 				<div class="list_header">
-					<p class="totalCnt">총 <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}"></span>건</p>
+					<p class="totalCnt">
+						총 <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}"></span>건
+					</p>
 					<div class="right">
 						<select name="sort_type" style="width: 200px;" title="카테고리선택">
 							<option value="latest">최신순</option>
@@ -224,69 +232,68 @@
 						</select>
 					</div>
 				</div>
+
+				<!-- 리스트 -->
+				<table class="tbl_list" summary="게시판 글 목록">
+					<caption>게시판 글 목록</caption>
+
+					<colgroup>
+						<col style="width: 3%" />
+						<col style="width: 5%" />
+						<col style="width: 20%" />
+						<col style="width: 20%" />
+						<col style="width: 3%" />
+
+						<col style="width: 8%" />
+						<col style="width: 5%" />
+						<col style="width: 8%" />
+						<col style="width: 5%" />
+					</colgroup>
+
+					<thead>
+						<tr>
+							<th scope="col"><input type="checkbox" name="seqAll"
+								title="리스트 전체 선택" /><em></em></th>
+							<th scope="col">번호</th>
+							<th scope="col">제목</th>
+							<th scope="col">공연/전시제목</th>
+							<th scope="col">평점</th>
+
+							<th scope="col">작성자</th>
+							<th scope="col">조회수</th>
+							<th scope="col">등록일</th>
+							<th scope="col">승인여부</th>
+						</tr>
+					</thead>
+
+					<tbody>
+						<th:block th:each="item, status : ${list}">
+							<tr>
+								<td> <input type="checkbox" name="seq" th:value="${item.seq}  == null ? '' : ${item.seq}" /><em></em> </td>
+								<td th:text="${count-(10*(#conversions.convert(paramMap.page_no,'Integer')-1))-status.index}"></td>
+								<td> <a th:href="|/perform/review/view.do?seq=${item.seq}|" th:utext="${item.title}"></a> </td>
+								<td th:utext="${item.preform_name}"></td>
+								<td th:text="${item.score}"></td>
+
+								<td th:text="${item.user_id}"></td>
+								<td th:text="${item.view_cnt}"></td>
+								<td th:text="${item.reg_date}"></td>
+								<td th:text="${item.approval}"></td>
+							</tr>
+						</th:block>
+					</tbody>
+				</table>
+				<!-- //list -->
 			</form>
 
-			<!-- 리스트 -->
-			<table class="tbl_list" summary="게시판 글 목록">
-				<caption>게시판 글 목록</caption>
-				
-				<colgroup>
-					<col style="width: 3%" />
-					<col style="width: 5%" />
-					<col style="width: 20%" />
-					<col style="width: 20%" />
-					<col style="width: 3%" />
+			<div id="pagination"></div>
 
-					<col style="width: 8%" />
-					<col style="width: 5%" />
-					<col style="width: 8%" />
-					<col style="width: 5%" />
-				</colgroup>
-				
-				<thead>
-					<tr>
-						<th scope="col"><input type="checkbox" name="seqAll" title="리스트 전체 선택" /><em></em></th>
-						<th scope="col">번호</th>
-						<th scope="col">제목</th>
-						<th scope="col">공연/전시제목</th>
-						<th scope="col">평점</th>
-						
-						<th scope="col">작성자</th>
-						<th scope="col">조회수</th>
-						<th scope="col">등록일</th>
-						<th scope="col">승인여부</th>
-					</tr>
-				</thead>
-				
-				<tbody>
-					<th:block th:each="item, status : ${list}">
-						<tr>
-							<td>
-								<input type="checkbox" name="seq" th:value="${item.seq}  == null ? '' : ${item.seq}" /><em></em>
-							</td>
-							<td th:text="${count-(10*(#conversions.convert(paramMap.page_no,'Integer')-1))-status.index}"></td>
-							<td><a th:href="|/perform/review/view.do?seq=${item.seq}|" th:text="${item.title}"></a></td>
-							<td>[[${item.preform_name}]]</td>
-							<td>[[${item.score}]]</td>
-							
-							<td>[[${item.user_id}]]</td>
-							<td>[[${item.view_cnt}]]</td>
-							<td>[[${item.reg_date}]]</td>
-							<td>[[${item.approval}]]</td>
-						</tr>
-					</th:block>
-				</tbody>
-			</table>
-			<!-- //list -->
-			
-			<div id="pagination">
-			</div>
 			<div class="btn_right">
-				<a class="btn_ltype3" role="button">승인</a>
-				<a class="btn_ltype3" role="button">미승인</a>
+				<a class="btn_ltype3" role="button">승인</a> 
+				<a class="btn_ltype3" role="button">미승인</a> 
 				<a class="btn_ltype3" role="button">삭제</a>
 			</div>
-			
+
 		</div>
 		<!-- //cont_box -->
 	</div>

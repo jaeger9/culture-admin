@@ -193,7 +193,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		<tr>
 			<th scope="row">이름</th>
 			<td>
-				${view.name }
+				${view.name}
 			</td>
 			<th scope="row">성별</th>
 			<td>
@@ -241,7 +241,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		<tr>
 			<th scope="row">로그인 실패횟수</th>
 			<td>
-				${view.fail_cnt }
+				${view.fail_cnt}
 			</td>
 			<th scope="row">비밀번호 변경일</th>
 			<td>
@@ -251,11 +251,11 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 		<tr>
 			<th scope="row">최종 로그인</th>
 			<td>
-				${view.login_date }
+				${view.login_date}
 			</td>
 			<th scope="row">최종 로그아웃</th>
 			<td>
-				${view.logout_date }
+				${view.logout_date}
 			</td>
 		</tr>
 		<%-- <tr>
@@ -337,7 +337,8 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo){
 			<th scope="row">
 				네이버 아이디<br/>연동
 			</th>
-			<td><c:choose>
+			<td>
+			<c:choose>
 				<c:when test="${empty view.sns_naver_id }">
 					N
 				</c:when>

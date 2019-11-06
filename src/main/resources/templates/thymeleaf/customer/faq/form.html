@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+$(function () {
+
+	// 에디터 HTML 적용
+	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+//	nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+	
+	var frm			=	$('form[name=frm]');
+	var seq			=	frm.find('input[name=seq]');
+	var title		=	frm.find('input[name=title]');
+	var category	=	frm.find('select[name=category]');
+	var content		=	frm.find('textarea[name=content]');
+	var status		=	frm.find('input[name=status]');
+
+	frm.submit(function () {
+		// frm.serialize()
+		//oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+
+		if (seq.val() != '') {
+			if (!confirm('수정하시겠습니까?')) {
+				return false;
+			}
+		}
+		if (title.val() == '') {
+			title.focus();
+			alert('제목을 입력해 주세요.');
+			return false;
+		}
+		if (status.filter(':checked').size() == 0) {
+			status.eq(0).focus();
+			alert('승인여부를 선택해 주세요.');
+			return false;
+		}
+		return true;
+	});
+
+	// 등록/수정
+	$('.insert_btn').click(function () {
+		frm.submit();
+		return false;
+	});
+	
+	// 삭제
+	if ($('.delete_btn').size() > 0) {
+		$('.delete_btn').click(function () {
+			// 삭제
+			if (!confirm('삭제하시겠습니까?')) {
+				return false;
+			}
+			if (seq.val() == '') {
+				alert('seq가 존재하지 않습니다.');
+				return false;
+			}
+
+			var param = {
+				seqs : [ seq.val() ]
+			};
+
+			$.ajax({
+				url			:	'/customer/faq/delete.do'
+				,type		:	'post'
+				,data		:	$.param(param, true)
+				,dataType	:	'json'
+				,success	:	function (res) {
+					if (res.success) {
+						alert("삭제가 완료 되었습니다.");
+						location.href = $('.list_btn').attr('href');
+
+					} else {
+						alert("삭제 실패 되었습니다.");
+					}
+				}
+				,error : function(data, status, err) {
+					alert("삭제 실패 되었습니다.");
+				}
+			});
+
+			return false;
+		});		
+	}
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="POST" action="/customer/faq/form.do"
+			enctype="multipart/form-data">
+			<input type="hidden" name="qs" value="${paramMap[qr] }" /> 
+			<input type="hidden" name="user_id" value="${view.user_id }" /> 
+			<input type="hidden" name="tel" value="${view.tel}" /> 
+			<input type="hidden" name="hp" value="${view.hp }" /> 
+			<input type="hidden" name="email" value="${view.email }" /> 
+			<input type="hidden" name="favor_portal" value="${view.favor_portal }" />
+			<div class="cont_box">
+				<table class="tbl_view">
+					<caption>상세 보기</caption>
+					<input type="hidden" name="qs" value="${paramMap[qr] }" />
+					<input type="hidden" name="seq" value="${view.seq }" />
+					<colgroup>
+						<col style="width:15%" />
+						<col style="width:35%" />
+						<col style="width:15%" />
+						<col style="width:35%" />
+					</colgroup>
+					<tbody>
+					<th:block th:if="${ !view.seq.empty }">
+						<tr>
+							<th scope="row">고유번호</th>
+							<td colspan="3">
+							[[${view.seq }]]
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">등록자</th>
+							<td>
+							<th:block th:text="${view.reg_user == null ? '-' : view.reg_user}" ></th:block>
+							</td>
+							<th scope="row">등록/수정일</th>
+							<td>
+							<th:block th:text="${view.reg_date == null ? '-' : view.reg_date}"></th:block>
+							/
+							<th:block th:text="${view.upd_date == null ? '-' : view.upd_date}"></th:block>
+							</td>
+						</tr>
+						</th:block>
+						<tr>
+							<th scope="row">구분</th>
+							<td colspan="3">
+							<select name="category">
+							<option value="0" ${view.category eq '0' ? "selected='selected'" : ''}>회원가입</option>
+							<option value="1" ${view.category eq '1' ? "selected='selected'" : ''} >로그인</option>
+							<option value="2" ${view.category eq '2' ? "selected='selected'" : ''} >문화포털 서비스</option>
+							<option value="3" ${view.category eq '3' ? "selected='selected'" : ''}>통합검색</option>
+							<option value="4" ${view.category eq '4' ? "selected='selected'" : ''} >문화PD</option>
+							<option value="5" ${view.category eq '5' ? "selected='selected'" : ''} >문화7거리</option>
+							<option value="6" ${view.category eq '6' ? "selected='selected'" : ''} >UPC</option>
+							<option value="7" ${view.category eq '7' ? "selected='selected'" : ''} >전통문양신청</option>
+							<option value="8" ${view.category eq '8' ? "selected='selected'" : ''} >오픈 API</option>
+						</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">제목</th>
+							<td colspan="3">
+							<input type="text" name="title" th:value="${view.title }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">내용</th>
+							<td colspan="3">
+						<textarea id="contents" name="content" style="width:100%;height:400px;display:none;" th:value="${view.content }" >
+						</textarea>
+							<script type="text/javascript" language="javascript">
+							var CrossEditor = new NamoSE('contents');
+							CrossEditor.params.Width = "100%";
+							CrossEditor.params.Height = "400px";
+							CrossEditor.params.UserLang = "auto";
+							CrossEditor.params.UploadFileSizeLimit = "image:10485760";
+							CrossEditor.params.Font = {"NanumGothic":"나눔고딕","Dotum":"돋움", "Gulim":"굴림", "Batang":"바탕", "Gungsuh":"궁서", "맑은 고딕":"맑은 고딕"  ,"David":"David", "MS Pgothic":"MS Pgothic","Simplified Arabic":"Simplified Arabic","SimSun":"SimSun","Arial":"Arial","Courier New":"Courier New", "Tahoma":"Tahoma", "Times New Roman":"Times New Roman", "verdana":"Verdana"};
+							CrossEditor.EditorStart();
+							function OnInitCompleted(e){
+								e.editorTarget.SetBodyValue(document.getElementById("contents").value);
+							}
+						</script>
+							
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">승인여부</th>
+							<td colspan="3"></td>
+						</tr>
+						
+						
+						
+					</tbody>
+				</table>
+		
+				<div class="btn_center">
+					<span class="btn white"><a href="#" class="insert_btn btn_ltype3">[[${ view.seq.empty ? '등록' : '수정' }]]</a></span>
+					<c:if test="${not empty view.seq }">
+						<span class="btn white"><a href="#" class="delete_btn btn_ltype3">삭제</a></span>
+					</c:if>
+					<span class="btn gray">
+					<a href="/customer/faq/list.do?${paramMap.qr_dec}" class="list_btn btn_ltype3">목록</a></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
