@@ -163,9 +163,8 @@
 						<tr>
 							<th scope="row">내용</th>
 							<td colspan="3">
-								
-								<!-- <script type="text/javascript">
-									var CrossEditor = new NamoSE('contents');
+								<script type="text/javascript">
+									var CrossEditor = new NamoSE('txt_contents');
 									CrossEditor.params.Width = "100%";
 									CrossEditor.params.Height = "400px";
 									CrossEditor.params.UserLang = "auto";
@@ -189,14 +188,11 @@
 									};
 									CrossEditor.EditorStart();
 									function OnInitCompleted(e) {
-										e.editorTarget.SetBodyValue(document.getElementById("contents").value);
+										e.editorTarget.SetBodyValue(document.getElementById("txt_contents").value);
 									}
-								</script>  -->
-								
-								<textarea id="contents" name="content" style="width: 100%; height: 400px; display: none;">
-									<!--<c:out value="${view.content }" escapeXml="true" /> -->
-									[[${view.content}]]
-								</textarea>
+								</script>
+
+								<textarea id="txt_contents" name="content" style="width: 100%; height: 400px; display: none;"><th:block th:text="${view != null ? #strings.escapeXml(view.content) : ''}"></th:block></textarea>
 							</td>
 						</tr>
 						<tr>
