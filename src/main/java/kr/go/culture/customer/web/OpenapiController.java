@@ -123,7 +123,10 @@ public class OpenapiController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("list", service.readForList("openapiOperation.list", paramMap));
 
-		return "/customer/openapi/operation";
+		
+		
+		//return "/customer/openapi/operation";
+		return "thymeleaf/customer/openapi/operation";
 	}
 
 	@RequestMapping(value = "/operation.do", method = RequestMethod.POST)
