@@ -47,7 +47,8 @@ public class RelayGroupController {
 		model.addAttribute("list",
 				ckDatabaseService.readForList("relay_gourp.list", paramMap));
 
-		return "/perform/relay/group/list";
+//		return "/perform/relay/group/list";
+		return "thymeleaf/perform/relay/group/list";
 	}
 
 	@RequestMapping("view.do")
