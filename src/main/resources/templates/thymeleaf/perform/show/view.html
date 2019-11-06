@@ -293,18 +293,22 @@
                     </tr>
                     <tr>
                         <th scope="row">썸네일 이미지</th>
-                        <td colspan="3">
+                        <td colspan="2">
                             <ul class="itemlist">
                                 <li><input type="radio" name="note1" id="yes" checked="checked" value="Y"/><em></em> <label for="yes">이미지</label></li>
                                 <li><input type="radio" name="note1" id="no" value="N" /><em></em> <label for="no">URL</label></li>
                             </ul>
                             <!--/* todo 파일관련 (김현준) */-->
-                            <div style="margin-top: 5px;">
+                            <div style="margin-top: 5px;" class="fileInputs">
                                 <input type="file" name="uploadFile" title="파일선택" />
 
-                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
-                                <input type="hidden" name="file_delete"  />
-                                <input type="checkbox" name="imagedelete" id="imagedelete" value="Y"/><em></em><label for="imagedelete">fvvv</label>
+                                <th:block th:if="${view != null and view.note1 eq 'Y'}">
+
+                                    <input type="hidden" name="file_delete"  th:value="${view.reference_identifier_org}"/>
+                                    <label for="imagedelete"><input type="checkbox" name="imagedelete" id="imagedelete" value="Y"/><em></em>삭제</label> <th:block th:text="${view.reference_identifier_org}"></th:block>
+                                    <input type="hidden" name="reference_identifier_name" th:value="${view.reference_identifier_org }"/>
+                                    <a th:href="@{https://www.culture.go.kr/upload/rdf/{filename}(filename=${view.reference_identifier_org}) }" target="_blank" class="text_blueline">이미지 새창으로 확인</a>
+                                </th:block>
                             </div>
                         </td>
 
