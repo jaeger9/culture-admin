@@ -311,15 +311,9 @@
                                 </th:block>
                             </div>
                         </td>
-
-                        <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
-<!--                        <td>-->
-<!--                            <c:if test='${not empty view.reference_identifier_org }'>-->
-<!--                                <img width="40%" alt="썸네일이미지" src="https://www.culture.go.kr/upload/rdf/${view.reference_identifier_org}">-->
-
-<!--                            </c:if>-->
-<!--                        </td>-->
-                        <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
+                        <td>
+                            <img th:if="${view.reference_identifier_org != null}" width="40%" alt="썸네일이미지" th:src="@{https://www.culture.go.kr/upload/rdf/{filename}(filename=${view.reference_identifier_org})}" />
+                        </td>
                     </tr>
                     <tr>
                         <th scope="row">URL</th>
