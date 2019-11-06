@@ -8,8 +8,6 @@
 <script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script><!--/* todo 추후 에디터 변경 (김현준) */-->
 <!-- 
 	todo
-		에디터 변경
-		글 수정/삭제
 		답변등록
 		댓글 삭제
 		관리 메뉴 레이어
@@ -19,31 +17,26 @@
 		var frm = $('form[name=frm]');
 
 		// radio check
-		if ('[[${view.approval}]]') 
-			$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+		if ('[[${view.approval}]]') $('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
 
 		// 수정 , 삭제 , 등록 
 		$('#button-box a').each( function() {
 			
 			$(this).click( function() { 
-				
 				if ($(this).html() == '수정') {
-					
 					if (!confirm('수정하시겠습니까?')) return false;
-						
 					frm.attr('action', '/perform/review/update.do');
-					document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+					document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
 					frm.submit();
 				}
 				else if ($(this).html() == '삭제') {
-					
 					if (!confirm('삭제 하시겠습니까?')) return false;
 					
 					frm.attr('action','/perform/review/delete.do');
 					frm.submit();
 				}
 				else if ($(this).html() == '답변등록') {
-					url = "/perform/review/answer/view.do?seq=${view.seq}";
+					url = "/perform/review/answer/view.do?seq=[[${view.seq}]]";
 					location.href = url;
 				} 
 				else if ($(this).html() == '목록') {
@@ -192,7 +185,9 @@
 									}
 								</script>
 
-								<textarea id="txt_contents" name="content" style="width: 100%; height: 400px; display: none;"><th:block th:text="${view != null ? #strings.escapeXml(view.content) : ''}"></th:block></textarea>
+								<textarea id="txt_contents" name="content" style="width: 100%; height: 400px; display: none;">
+									<th:block th:text="${view != null ? view.content : ''}"></th:block>
+								</textarea>
 							</td>
 						</tr>
 						<tr>

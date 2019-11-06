@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
+<script type="text/javascript">
+$(function () {
+
+	var frm = $('form[name=frm]');
+	
+	//layout
+	
+	// 에디터 HTML 적용
+	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+	//	nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+
+	//수정 , 삭제 , 등록 
+	$('#button-box a').each(function() {
+    	$(this).click(function() { 
+        	if($(this).html() == '등록') {
+        		if (!confirm('등록하시겠습니까?')) return false;
+        		frm.attr('action' , '/perform/review/answer/insert.do');
+//        		oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+               	document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
+        		frm.submit();
+        	}
+        	else if($(this).html() == '목록') {
+        		location.href='/perform/review/list.do';
+        	}
+    	});
+	});
+	
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<div class="cont_box">
+
+			<form name="frm" method="post" action="/perform/review/answer/insert.do">
+				<input type="hidden" name="parent_seq" 	 th:value="${paramMap.seq}" />
+				<input type="hidden" name="review_level" th:value="${view.review_level}" /> 
+				<input type="hidden" name="review_order" th:value="${view.review_order}" /> 
+				<input type="hidden" name="uci" 		 th:value="${view.uci}" />
+
+				<table class="tbl_view">
+					<caption>답글 등록</caption>
+					<colgroup>
+						<col style="width: 17%" />
+						<col style="width: 33%" />
+						<col style="width: 15%" />
+						<col style="width: 35%" />
+					</colgroup>
+
+					<tbody>
+						<tr>
+							<th scope="row">제목</th>
+							<td colspan="3"><input type="text" name="title" style="width: 99%" /></td>
+						</tr>
+						<tr>
+							<th scope="row">내용</th>
+							<td colspan="3">
+								<script type="text/javascript" language="javascript">
+								var CrossEditor = new NamoSE('txt_contents');
+								CrossEditor.params.Width = "100%";
+								CrossEditor.params.Height = "400px";
+								CrossEditor.params.UserLang = "auto";
+								CrossEditor.params.UploadFileSizeLimit = "image:10485760";
+								CrossEditor.params.Font = {
+									"NanumGothic" : "나눔고딕",
+									"Dotum" : "돋움",
+									"Gulim" : "굴림",
+									"Batang" : "바탕",
+									"Gungsuh" : "궁서",
+									"맑은 고딕" : "맑은 고딕",
+									"David" : "David",
+									"MS Pgothic" : "MS Pgothic",
+									"Simplified Arabic" : "Simplified Arabic",
+									"SimSun" : "SimSun",
+									"Arial" : "Arial",
+									"Courier New" : "Courier New",
+									"Tahoma" : "Tahoma",
+									"Times New Roman" : "Times New Roman",
+									"verdana" : "Verdana"
+								};
+								CrossEditor.EditorStart();
+								function OnInitCompleted(e) {
+									e.editorTarget.SetBodyValue(document.getElementById("txt_contents").value);
+								}
+							</script>
+							
+							<textarea id="txt_contents" name="content" style="width: 100%; height: 400px; display: none;"></textarea>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+
+			<div class="btn_right" id="button-box">
+				<a class="btn_ltype3">등록</a>
+				<a class="btn_ltype1">목록</a>
+			</div>
+
+		</div>
+		<!-- //cont_box -->
+	</div>
+</body>
+</html>

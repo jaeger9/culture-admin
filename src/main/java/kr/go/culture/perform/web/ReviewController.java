@@ -77,8 +77,7 @@ public class ReviewController {
 			throw e;
 		}
 		
-//		return "forward:/perform/review/list.do";
-		return "redirect:/perform/review/list.do";
+		return "forward:/perform/review/list.do";
 	}
 	
 	@RequestMapping("update.do")
@@ -147,7 +146,8 @@ public class ReviewController {
 					ckDatabaseService.readForObject("review.view", paramMap));
 		}
 
-		return "/perform/review/answerView";
+//		return "/perform/review/answerView";
+		return "thymeleaf/perform/review/answerView";
 	}
 	
 	@RequestMapping("answer/insert.do")
