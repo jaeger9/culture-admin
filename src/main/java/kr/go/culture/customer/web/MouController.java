@@ -59,8 +59,9 @@ public class MouController {
 
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
-
-		return "/customer/mou/form";
+		
+		//return "/customer/mou/form";
+		return "thymeleaf/customer/mou/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)
