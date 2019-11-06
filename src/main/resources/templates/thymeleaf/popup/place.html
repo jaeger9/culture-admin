@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/popup}">
+<head>
+    <title>KCISA 문화포털 통합관리시스템</title>
+    <script type="text/javascript">
+        $(function () {
+
+            var frm = $('form[name=frm]');
+            var page_no = frm.find('input[name=page_no]');
+            var search_word = frm.find('input[name=name]');
+
+            var search = function () {
+                frm.submit();
+            };
+
+            new Pagination({
+                view		:	'#pagination',
+                page_count	:	'[[${count}]]',
+                page_no		:	'[[${paramMap.page_no}]]',
+                callback	:	function(pageIndex, e) {
+                    page_no.val(pageIndex + 1);
+                    search();
+                    return false;
+                }
+            });
+
+            search_word.keypress(function(event) {
+                if (event.which == 13) {
+                    event.preventDefault();
+                    page_no.val(1);
+                    search();
+                }
+            });
+
+            $('#search_btn').click(function () {
+                page_no.val(1);
+                search();
+                return false;
+            });
+
+            $('#close_btn').click(function () {
+                window.close();
+                return false;
+            });
+
+            $('.tbl_list a').click(function () {
+                var data = $(this).parent().parent().data();
+
+                if (window.opener && window.opener.callback && window.opener.callback.place) {
+                    window.opener.callback.place( data );
+                } else
+                    alert('callback function undefined');
+
+                window.close();
+                return false;
+            });
+        });
+    </script>
+<body>
+    <div id="layerwrap" layout:fragment="layerwrap">
+
+        <!--/* 여기안에 팝업내용 시작 */-->
+        <div class="layerwrap type2">
+            <h2>공연장소검색</h2>
+            <div class="layer_cont">
+
+                <form name="frm" method="get" action="/popup/place.do">
+                    <input type="hidden" name="page_no" th:value="${paramMap.page_no}" />
+
+                    <!-- search -->
+                    <div class="addr_search">
+                        <input type="text" name="name"
+                               placeholder="검색할 공연장명을 입력해 주세요." title="공연장 검색"
+                               th:value="${paramMap[name]} == null ? '' : ${paramMap.name}" />
+
+                        <a href="#" class="ico_search" id="search_btn">검색</a>
+                    </div>
+                    <!-- // search -->
+
+                <p class="result_num">
+                    총 <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}"></span>건
+                </p>
+
+                <table class="tbl_list">
+                    <caption>공연/전시 검색</caption>
+                    <colgroup>
+                        <col style="width: 10%" />
+                        <col style="width: 60%" />
+                        <col />
+                    </colgroup>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">고유<br/>번호</th>
+                            <th scope="col">문화공간명</th>
+                            <th scope="col">위치</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${list.isEmpty()}">
+                            <td colspan="3">검색된 결과가 없습니다.</td>
+                        </tr>
+                        <th:block th:each="item : ${list}">
+                            <tr th:attr="data-cul_name=${item.cul_name},data-cul_addr=${item.cul_addr}">
+                                <td th:text="${item.cul_seq}"></td>
+                                <td><a href="#" th:name="${item.cul_name}" th:location="${item.cul_addr}" th:text="${item.cul_name != null and item.cul_name != '' ? item.cul_name : '-'}"></a></td>
+                                <td th:text="${item.cul_place}"></td>
+                            </tr>
+                        </th:block>
+
+
+                    </tbody>
+                </table>
+                <!-- //list -->
+
+                <!-- paginate -->
+                <div id="pagination"></div>
+                <!-- //paginate -->
+
+                <div class="btn_center">
+                    <a href="#close" class="btn_ltype3" id="close_btn">닫기</a>
+                </div>
+                </form>
+            </div>
+        </div>
+        <!--/* 여기안에 팝업내용 끝 */-->
+    </div>
+</body>
+</html>
