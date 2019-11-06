@@ -146,7 +146,8 @@ public class PopupController {
 			logger.error(e.getMessage());
 			throw e;
 		}
-		return "popup/place";
+//		return "popup/place";
+		return "thymeleaf/popup/place";
 	}
 
 	@RequestMapping("/coordinate.do")
