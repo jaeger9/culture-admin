@@ -5,13 +5,14 @@
 	layout:decorate="~{layout/admin}">
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
-<script type="text/javascript" src="/editor/js/HuskyEZCreator.js" charset="utf-8"></script>
-<script type="text/javascript">
+<!-- <script type="text/javascript" src="/editor/js/HuskyEZCreator.js" charset="utf-8"></script> -->
+<script type="text/javascript" th:inline="javascript">
+/* <![CDATA[ */
+	
 var action = "";
 
 var callback = {
 		postalcode :function(res) {
-			//{"buil_num2":"","buil_num1":"","road_name":"","zip_code":152090,"gi_num2":"","gi_num1":"","dong_name1":"개봉동","gu_name":"구로구","sido_name":"서울"}
 			
 			if (res == null) {
 				alert('callback data null');
@@ -22,31 +23,35 @@ var callback = {
 			$('input[name=zip_code]').val(zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
 			$('input[name=addr1]').val(res.sido_name + ' ' + res.gu_name + ' ' + res.dong_name1);
 		}
-}
+};
 
 $(function () {
-
-	var frm = $('form[name=frm]');
 	
+	var frm 	 = $('form[name=frm]');
 	var name	 = frm.find('input[name=name]');
 	var homepage = frm.find('input[name=homepage]');
 	var tel		 = frm.find('input[name=tel]');
 	var zip_code = frm.find('input[name=zip_code]');
 	var addr1	 = frm.find('input[name=addr1]');
 	var addr2	 = frm.find('input[name=addr2]');
-	
-	//layout
-	
-	// radio check
-	if('[[${view.zip_yn}]]')	$('input:radio[name="zip_yn"][value="[[${view.zip_yn}]]"]').prop('checked', 'checked');
-	if('[[${view.approval}]]') 	$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+
+
+	/*[# th:if="${view != null}"]*/
+		//radio check
+		if(/*[[ ${view.zip_yn} ]]*/ null) {
+			$('input:radio[name="zip_yn"][value=[[ @{${view[zip_yn]}} ]] ]').prop('checked', 'checked');
+		}
+		if(/*[[ ${view.approval} ]]*/ null) {
+			$('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
+		} 
+	/*[/]*/
 	
 	//URL 미리보기
 	goLink = function() {
 		window.open($('input[name=homepage]').val(),'homepage' , 'width=570, height=420');
 	}
 	
-	// 공연상 선택
+	// 단체 선택
 	$('.tbl_view a').each(function() {
 		
 	  	$(this).click(function() {
@@ -54,15 +59,38 @@ $(function () {
 	      		window.open('/popup/place.do', 'placePopup', 'scrollbars=yes,width=400,height=300');
 	    	}
 	    	else if( $(this).html() == '우편번호찾기') {
-	    		//window.open('/popup/postalcode.do?zip_yn=' + $('input[name=zip_yn]:checked').val(),'postalcodePopup' , 'scrollbars=yes,width=500,height=420');
 	    		window.open('/popup/jusoPopup.do','postalcodePopup' , 'width=570, height=420, scrollbars=yes, resizable=yes');
-	    	} 
+	    	}
 	    	else if( $(this).html() == '미리보기') {
 	    		goLink();
 	    	}
 	  	});
 	});
 	
+	// 썸네일 이미지 업로드 방식 선택
+	changeNote = function(ele) {
+		
+		if(ele) checked = ele.val();
+		else checked = $(':radio[name=note1]:checked').val();
+		
+		if(checked == 'Y') {
+             $('input[name=reference_identifier]').hide();
+             $('div.fileInputs:not(.styurl)').show();
+             $('input[name=imagedelete]').parent().show();
+        }
+		else if(checked == 'N') {
+             $('input[name=reference_identifier]').show();
+             $('div.fileInputs:not(.styurl)').hide();
+             $('input[name=imagedelete]').parent().hide();
+        }
+    }
+    changeNote();
+    
+    // 업로드 방식 radio클릭 시
+    $('input[name=note1]').change(function(){
+        changeNote($(this));
+    });
+    
 	// upload file 변경시 fake file div text 변경
 	$('input[name=uploadFile]').each(function() {
 		$(this).change(function() {
@@ -72,9 +100,7 @@ $(function () {
 	
 	frm.submit(function() {
 		//DB NOT NULL 기준 체크
-		if(action == 'delete') {
-			return true;
-		}
+		if(action == 'delete') return true;
 		
 		if(name.val() =='') {
 			alert('기관/단체명 입력하세요');
@@ -119,20 +145,16 @@ $(function () {
 	$('#grp_view_btns > a').each(function() {
     	
 		$(this).click(function() {
-			if($(this).html() == '수정') { 
-
+			if($(this).html() == '수정') {
         		if (!confirm('수정하시겠습니까?')) return false;
-        		frm.attr('action' ,'/perform/relay/group/update.do');
+        		frm.attr('action' , '/perform/relay/group/update.do');
         		frm.submit();
         	} 
         	else if($(this).html() == '삭제') {
-
         		if (!confirm('삭제 하시겠습니까?')) return false;
-        		
-        		action = "delete";
         		frm.attr('action' ,'/perform/relay/group/delete.do');
         		frm.submit();
-        	} 
+        	}
         	else if($(this).html() == '등록') {
         		
         		if (!confirm('등록하시겠습니까?')) return false;
@@ -141,7 +163,7 @@ $(function () {
         	} 
         	else if($(this).html() == '목록') {
         		location.href='/perform/relay/group/list.do';
-        	}   		
+        	}
     	});
 	});
 	
@@ -153,6 +175,8 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 	$('input[name=addr1]').val(addr);		//기본주소
 	$('input[name=addr2]').val(addr2);		//상세주소
 }
+
+/* ]]> */
 </script>
 
 </head>
@@ -160,18 +184,15 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 <div id="contents" layout:fragment="contents"
 	th:with="currentMenu=${currentMenu}">
 	<!--/* content_header 시작 */-->
-	<th:block
-		th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+	<th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
 	<!--/* content_header 끝 */-->
 	<div class="cont_box">
 		
-		<form name="frm" method="post" action="/perform/relay/group/insert.do" enctype="multipart/form-data">
-				
-			<input th:unless="${#strings.isEmpty(view.seq)}" type="hidden" name="seq" th:value="${view.seq}"/>
+		<form name="frm" method="post" enctype="multipart/form-data">
+			<input th:if="${view != null}" type="hidden" name="seq" th:value="${view.seq}  "/>
 			
 			<table class="tbl_view" summary="공연 참여 단체 작성">
 				<caption>참여공연단체 등록/수정</caption>
-				
 				<colgroup>
 					<col style="width:15%" />
 					<col style="width:35%" />
@@ -183,41 +204,45 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 					<tr>
 						<th scope="row">기관/단체명</th>
 						<td colspan="3">
-							<input type="text" name="name" id="name" th:value="${view.name}" style="width:70%;">
+							<input type="text" name="name" id="name" th:value="${view == null ? '' : view.name}" style="width:70%;">
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">홈페이지</th>
 						<td colspan="3">
-							<input type="text" name="homepage" id="homepage" th:value="${view.homepage}" style="width:70%;">
+							<input type="text" name="homepage" id="homepage" th:value="${view == null ? '' : view.homepage}" style="width:70%;">
 							<a href="#" class="btn_stype1">미리보기</a>
-<!-- 						<span class="btn whiteS"><button>유효성검사</button></span> -->
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">전화번호</th>
 						<td colspan="3">
-							<input type="text" name="tel" id="tel" th:value="${view.tel}">
+							<input type="text" name="tel" id="tel" th:value="${view == null ? '' : view.tel}">
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">썸네일 이미지</th>
 						<td colspan="3">
-							<div>
-								<input type="file" name="uploadFile" title="파일선택" />
-								<div class="fakefile">
-									<input type="text" title="" class="inputText" />
-									<a href="#" class="btn_stype1">찾아보기</a>
-<!-- 								<span class="btn whiteS"><button>찾아보기</button></span> -->
-								</div>
-							</div>
-							<th:block th:if="${#strings.isEmpty(view.thumb_url)}">
-								<div class="inputBox">
-									<input type="hidden" name="file_delete" th:value="${view.thumb_url}" />
-									<label><input type="checkbox" name="imagedelete" th:value="Y" /> <strong>삭제</strong>[[${view.thumb_url}]]</label>
-									<input type="hidden" name="thumb_url" th:value="${view.thumb_url }"/>
-								</div>
-							</th:block>
+							<ul class="itemlist">
+                                <li><input type="radio" name="note1" id="yes" checked="checked" value="Y"/><em></em> <label for="yes">이미지</label></li>
+                                <li><input type="radio" name="note1" id="no" value="N" /><em></em> <label for="no">URL</label></li>
+                            </ul>
+                            
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div style="margin-top: 5px;">
+                            	<input type="file" name="uploadFile" title="파일선택" />
+
+                                <!--/* 이미지 첨부파일이 있을경우 */-->
+								<th:block th:if="${view !=null and view.thumb_url != null}">
+									<div>
+										<input type="hidden" name="file_delete" th:value="${view.thumb_url}" />
+										
+										<span th:text=${view.thumb_url}></span>
+										<input type="checkbox" name="imagedelete" id="imagedelete" value="Y"/><em></em>
+										<label for="imagedelete"><strong>삭제</strong></label>
+									</div>
+								</th:block>
+                            </div>
 						</td>
 					</tr>
 					<tr>
@@ -225,18 +250,17 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 						<td colspan="3">
 							<div class="inputBox">
 								<a href="#" class="btn_stype1">우편번호찾기</a>
-<!-- 								<span class="btn whiteS"><a href="#url">우편번호찾기</a></span> -->
 								<div style="display:none">
-									<label><input type="radio" th:value="63" name="zip_yn" checked/>지번주소</label>
-									<label><input type="radio" th:value="64" name="zip_yn"/>도로명주소</label>
+									<label><input type="radio" value="63" name="zip_yn" checked/>지번주소</label>
+									<label><input type="radio" value="64" name="zip_yn"/>도로명주소</label>
 								</div>
 							</div>
 							<div class="inputBox">
-								<input type="text" name="zip_code" th:value="${view.zip_code }" />
-								<input type="text" name="addr1" th:value="${view.addr1 }" style="width:45%;" />
+								<input type="text" name="zip_code" th:value="${view == null ? '' : view.zip_code}" />
+								<input type="text" name="addr1" th:value="${view == null ? '' : view.addr1}" style="width:45%;" />
 							</div>
 							<div>
-								<input type="text" name="addr2" th:value="${view.addr2 }" style="width:70%;"/>
+								<input type="text" name="addr2" th:value="${view == null ? '' : view.addr2}" style="width:70%;"/>
 							</div>
 						</td>
 					</tr>
@@ -244,8 +268,14 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 						<th scope="row">순번</th>
 						<td colspan="3">
 							<select name='order_seq' id='order_seq' class="inputSelectStyle">
-								<th:block th:each="num : ${#numbers.sequence(1, 50)}">
-									<option th:value="${num}" th:selected="${view.order_seq == num}" th:text="${num}"></option>
+								<th:block th:each="num, status : ${#numbers.sequence(1, 50)}">
+									<th:block th:if="${view == null}">
+										<option th:value="${num}" th:selected="${num == 1}" th:text="${num}"></option>
+									</th:block>
+
+									<th:block th:if="${view != null}">
+										<option th:value="${num}" th:selected="${view.order_seq == num}" th:text="${num}"></option>
+									</th:block>
 								</th:block>
 							</select>
 						</td>
@@ -265,20 +295,18 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 		</form>
 		
 		<div class="btn_right" id="grp_view_btns">
-			<th:block th:if="${#strings.isEmpty(view)}">
+			<th:block th:if="${view != null}">
 				<a href="#" class="btn_ltype3">수정</a>
 				<a href="#" class="btn_ltype3">삭제</a>
+				<a href="#" class="btn_ltype3">목록</a>
 			</th:block>
-			<th:block th:unless="${#strings.isEmpty(view)}">
+			<th:block th:if="${view == null}">
 				<a href="#" class="btn_ltype3">등록</a>
 				<a href="#" class="btn_ltype3">목록</a>
 			</th:block>
 		</div>
 
-
-
-
-	</div>
+	</div><!-- //cont_box -->
 </div>
 </body>
 </html>
