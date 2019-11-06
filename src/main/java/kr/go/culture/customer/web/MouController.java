@@ -34,7 +34,9 @@ public class MouController {
 		model.addAttribute("count", (Integer) service.readForObject("mou.count", paramMap));
 		model.addAttribute("list", service.readForList("mou.list", paramMap));
 
-		return "/customer/mou/list";
+		//return "/customer/mou/list";
+		return "thymeleaf/customer/mou/list";
+		
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)
