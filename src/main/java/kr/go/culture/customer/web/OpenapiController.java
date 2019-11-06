@@ -38,8 +38,9 @@ public class OpenapiController {
 		model.addAttribute("count", (Integer) service.readForObject("openapi.count", paramMap));
 		model.addAttribute("list", service.readForList("openapi.list", paramMap));
 		model.addAttribute("categoryList", service.readForList("uciOrg.categoryList", null));
-
-		return "/customer/openapi/list";
+		
+		//return "/customer/openapi/list";
+		return "thymeleaf/customer/openapi/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)

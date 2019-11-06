@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+$(function () {
+
+	var frm					=	$('form[name=frm]');
+	var page_no				=	frm.find('input[name=page_no]');
+	var category			=	frm.find('select[name=category]');
+	var create_date_start	=	frm.find('input[name=create_date_start]');
+	var create_date_end		=	frm.find('input[name=create_date_end]');
+	var search_word			=	frm.find('input[name=search_word]');
+	var search_btn			=	frm.find('a[name=search_btn]');
+	
+	var search = function () {
+		frm.submit();
+	};
+	
+	new Pagination({
+		view		:	'#pagination',
+		page_count	:	'[[${count }]]',
+		page_no		:	'[[${paramMap[page_no] }]]',
+		callback	:	function(pageIndex, e) {
+			page_no.val(pageIndex + 1);
+			search();
+			return false;
+		}
+	});
+
+	new Datepicker(create_date_start, create_date_end);
+	new Checkbox('input[name=idsAll]', 'input[name=ids]');
+
+	search_word.keypress(function(event) {
+		if (event.which == 13) {
+			event.preventDefault();
+			page_no.val(1);
+			search();
+		}
+	});
+
+	search_btn.click(function () {
+		page_no.val(1);
+		search();
+		return false;
+	});
+
+	$('.delete_btn').click(function () {
+
+		var ids = $('input[name=ids]:checked');
+
+		if (!confirm('삭제하시겠습니까?')) {
+			return false;
+		}
+		if (ids.size() == 0) {
+			alert('선택된 항목이 없습니다.');
+			return false;
+		}
+
+		var param = {};
+
+		if (ids.size() > 0) {
+			param.ids = [];
+			
+			$('input[name=ids]:checked').each(function () {
+				param.ids.push( $(this).val() );
+			});
+		}
+
+		$.ajax({
+			url			:	'/customer/openapi/delete.do'
+			,type		:	'post'
+			,data		:	$.param(param, true)
+			,dataType	:	'json'
+			,success	:	function (res) {
+				if (res.success) {
+					alert("삭제가 완료 되었습니다.");
+					location.reload();
+				} else {
+					alert("삭제 실패 되었습니다.");
+				}
+			}
+			,error : function(data, status, err) {
+				alert("삭제 실패 되었습니다.");
+			}
+		});
+
+		return false;
+	});
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+
+
+		<form name="frm" method="get" action="/customer/faq/list.do">
+			<div class="search_box">
+				<input type="hidden" name="page_no" th:value="${paramMap[page_no]}" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>게시판 글 검색</caption>
+					<tbody>
+						<tr>
+							<th scope="row">구분</th>
+							<td>
+							<select name="category">
+							<option value="">전체</option>
+								<c:forEach items="${categoryList }" var="j">
+									<option value="${j }" ${paramMap.category eq j ? 'selected="selected"' : '' }>${j }</option>
+								</c:forEach>
+						</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">등록일</th>
+							<td colspan="3">
+							<input type="text" name="create_date_start" th:value="${paramMap[create_date_start] }" />
+							 <span>~</span> 
+							 <input type="text" name="create_date_end" th:value="${paramMap[create_date_end] }" /></td>
+						</tr>
+						<tr>
+							<th scope="row">검색어</th>
+							<td colspan="3">
+							<input type="text" name="search_word" placeholder="검색어 입력" th:value="${paramMap[search_word] }" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="search_btn">
+					<a class="btn_search" name="search_btn">검색</a>
+				</div>
+			</div>
+			<!-- //search -->
+			<div class="cont_box">
+				<div class="list_header">
+					<span class="page_num totalCnt" th:text="|총 ${count}건 |"> </span>
+				</div>
+				<!-- list -->
+				<table class="tbl_list">
+					<caption>게시판 글 목록</caption>
+					<colgroup>
+						<col style="width:4%" />
+						<col style="width:8%" />
+						<col style="width:18%" />
+						<col />
+						<col style="width:12%" />
+						<col style="width:15%" />
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col"><input type="checkbox" name="idsAll" /><em></em></th>
+							<th scope="col">번호</th>
+							<th scope="col">분야</th>
+							<th scope="col">기관명</th>
+							<th scope="col">등록일</th>
+							<th scope="col">오퍼레이션 갯수</th>	
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:if="${list.empty}">
+							<tr>
+								<td colspan="8">검색된 결과가 없습니다.</td>
+							</tr>
+						</th:block>
+						<th:block th:each="item, status : ${list}">
+							<tr>
+								<td>
+									<input type="checkbox" name="ids" value="${item.id }" />
+									<em></em>
+								</td>
+								<td><th:block th:text="${#numbers.formatInteger(   (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
+								</td>
+								<td>
+									[[${item.category }]]
+								</td>
+								<td class="subject">
+									<a th:href="@{/customer/openapi/form.do(id=${item.id },qs=${paramMap[qs] })}">
+										[[${item.name }]]
+									</a>
+								</td>
+								<td>
+								[[${item.create_date }]]
+									
+								</td>
+								<td>
+									<a th:href="@{/customer/openapi/operation.do(openapi_id=${item.id },qs=${paramMap[qs] })}">
+										<th:block th:text="${#numbers.formatInteger(  item.operation_cnt,  '3',  'COMMA')}"></th:block>
+									</a>
+								</td>
+							</tr>
+						</th:block>
+					</tbody>
+				</table>
+				<!-- //list -->
+				<!-- paginate -->
+				<div id="pagination"></div>
+				<!-- //paginate -->
+				
+				<div class="btnBox textRight"
+					style="display: block; text-align: right;">
+				<span class="btn white"><a href="#" class="delete_btn btn_stype3">삭제</a></span>
+				<span class="btn dark fr"><a href="/customer/openapi/form.do?qs=${paramMap.qs }" class="btn_stype3">등록</a></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
