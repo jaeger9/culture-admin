@@ -5,6 +5,7 @@
 	layout:decorate="~{layout/admin}">
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
 <script type="text/javascript">
 $(function () {
 
@@ -22,7 +23,7 @@ $(function () {
 	frm.submit(function () {
 		// frm.serialize()
 		//oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
-		document.getElementById("contents").value = CrossEditor.GetBodyValue("XHTML");
+		document.getElementById("contents_area").value = CrossEditor.GetBodyValue("XHTML");
 
 		if (seq.val() != '') {
 			if (!confirm('수정하시겠습니까?')) {
@@ -162,18 +163,18 @@ $(function () {
 						<tr>
 							<th scope="row">내용</th>
 							<td colspan="3">
-						<textarea id="contents" name="content" style="width:100%;height:400px;display:none;" th:value="${view.content }" >
+						<textarea id="contents_area" name="content" style="width:90%; height:400px;" th:value="${view.content }" th:text="${view.content }" >
 						</textarea>
 							<script type="text/javascript" language="javascript">
-							var CrossEditor = new NamoSE('contents');
-							CrossEditor.params.Width = "100%";
+							var CrossEditor = new NamoSE('contents_area');
+							CrossEditor.params.Width = "90%";
 							CrossEditor.params.Height = "400px";
 							CrossEditor.params.UserLang = "auto";
 							CrossEditor.params.UploadFileSizeLimit = "image:10485760";
 							CrossEditor.params.Font = {"NanumGothic":"나눔고딕","Dotum":"돋움", "Gulim":"굴림", "Batang":"바탕", "Gungsuh":"궁서", "맑은 고딕":"맑은 고딕"  ,"David":"David", "MS Pgothic":"MS Pgothic","Simplified Arabic":"Simplified Arabic","SimSun":"SimSun","Arial":"Arial","Courier New":"Courier New", "Tahoma":"Tahoma", "Times New Roman":"Times New Roman", "verdana":"Verdana"};
 							CrossEditor.EditorStart();
 							function OnInitCompleted(e){
-								e.editorTarget.SetBodyValue(document.getElementById("contents").value);
+								e.editorTarget.SetBodyValue(document.getElementById("contents_area").value);
 							}
 						</script>
 							
@@ -181,7 +182,17 @@ $(function () {
 						</tr>
 						<tr>
 							<th scope="row">승인여부</th>
-							<td colspan="3"></td>
+							<td colspan="3">
+							<input type="radio" id="num1" name="status" value="W" ${view.status eq 'W' or empty view.status ? 'checked="checked"' : '' } /> 
+							<em></em>
+							<label for="num1">대기</label>
+							<input type="radio" id="num2" name="status" value="Y" ${view.status eq 'Y' ? 'checked="checked"' : '' } />
+							<em></em> 
+							<label for="num2">승인</label>
+							<input type="radio" id="num3" name="status" value="N" ${view.status eq 'N' ? 'checked="checked"' : '' } />
+							<em></em> 
+							<label for="num3">미승인</label>
+							</td>
 						</tr>
 						
 						
@@ -190,11 +201,11 @@ $(function () {
 				</table>
 		
 				<div class="btn_center">
-					<span class="btn white"><a href="#" class="insert_btn btn_ltype3">[[${ view.seq.empty ? '등록' : '수정' }]]</a></span>
+					<span ><a href="#" class="insert_btn btn_ltype1">[[${ view.seq.empty ? '등록' : '수정' }]]</a></span>
 					<c:if test="${not empty view.seq }">
-						<span class="btn white"><a href="#" class="delete_btn btn_ltype3">삭제</a></span>
+						<span ><a href="#" class="delete_btn btn_ltype1">삭제</a></span>
 					</c:if>
-					<span class="btn gray">
+					<span >
 					<a href="/customer/faq/list.do?${paramMap.qr_dec}" class="list_btn btn_ltype3">목록</a></span>
 				</div>
 			</div>
