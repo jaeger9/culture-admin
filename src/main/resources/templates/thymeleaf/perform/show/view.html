@@ -429,18 +429,17 @@
                     <tr>
                         <th scope="row">소개이미지1</th>
                         <td colspan="3">
-                            <!--/* todo 파일관련 (김현준) */-->
                             <div style="margin-top: 5px;">
-
                                 <input type="file" name="styurl1" title="파일선택" />
-
-                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
                                 <!--/* 수정*/-->
                                 <input th:if="${view != null}" type="hidden" name="file_delete_styurl1"  th:value="${view.styurl1}"/>
-                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl1" id="imagedelete_styurl1" value="Y"/><em></em><label for="imagedelete_styurl1">삭제</label>
-
                                 <!--/* 신규등록*/-->
                                 <input th:unless="${view != null}" type="hidden" name="file_delete_styurl1"/>
+
+                                <th:block th:if="${view != null and view.styurl1 != null}">
+                                    <input type="hidden" name="file_delete_styurl1" th:value="${view.styurl1}" />
+                                    <input type="checkbox" name="imagedelete_styurl1" id="imagedelete_styurl1" value="Y"/><em></em><label for="imagedelete_styurl1">삭제</label> <th:block th:text="${view.styurl1}"></th:block>
+                                </th:block>
 
                             </div>
                         </td>
@@ -448,18 +447,17 @@
                     <tr>
                         <th scope="row">소개이미지2</th>
                         <td colspan="3">
-                            <!--/* todo 파일관련 (김현준) */-->
                             <div style="margin-top: 5px;">
-
                                 <input type="file" name="styurl2" title="파일선택" />
-
-                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
                                 <!--/* 수정*/-->
                                 <input th:if="${view != null}" type="hidden" name="file_delete_styurl2"  th:value="${view.styurl2}"/>
-                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl2" id="imagedelete_styurl2" value="Y"/><em></em><label for="imagedelete_styurl2">삭제</label>
-
                                 <!--/* 신규등록*/-->
                                 <input th:unless="${view != null}" type="hidden" name="file_delete_styurl2"/>
+
+                                <th:block th:if="${view != null and view.styurl2 != null}">
+                                    <input type="hidden" name="file_delete_styurl2" th:value="${view.styurl2}" />
+                                    <input type="checkbox" name="imagedelete_styurl2" id="imagedelete_styurl2" value="Y"/><em></em><label for="imagedelete_styurl2">삭제</label> <th:block th:text="${view.styurl2}"></th:block>
+                                </th:block>
 
                             </div>
                         </td>
@@ -467,18 +465,17 @@
                     <tr>
                         <th scope="row">소개이미지3</th>
                         <td colspan="3">
-                            <!--/* todo 파일관련 (김현준) */-->
                             <div style="margin-top: 5px;">
-
                                 <input type="file" name="styurl3" title="파일선택" />
-
-                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
                                 <!--/* 수정*/-->
                                 <input th:if="${view != null}" type="hidden" name="file_delete_styurl3"  th:value="${view.styurl3}"/>
-                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl3" id="imagedelete_styurl3" value="Y"/><em></em><label for="imagedelete_styurl3">삭제</label>
-
                                 <!--/* 신규등록*/-->
                                 <input th:unless="${view != null}" type="hidden" name="file_delete_styurl3"/>
+
+                                <th:block th:if="${view != null and view.styurl3 != null}">
+                                    <input type="hidden" name="file_delete_styurl3" th:value="${view.styurl3}" />
+                                    <input type="checkbox" name="imagedelete_styurl3" id="imagedelete_styurl3" value="Y"/><em></em><label for="imagedelete_styurl3">삭제</label> <th:block th:text="${view.styurl3}"></th:block>
+                                </th:block>
 
                             </div>
                         </td>
@@ -486,18 +483,17 @@
                     <tr>
                         <th scope="row">소개이미지4</th>
                         <td colspan="3">
-                            <!--/* todo 파일관련 (김현준) */-->
                             <div style="margin-top: 5px;">
-
                                 <input type="file" name="styurl4" title="파일선택" />
-
-                                <!--/* todo 파일관련 이미지 첨부파일이 있을경우에만 (김현준) */-->
                                 <!--/* 수정*/-->
                                 <input th:if="${view != null}" type="hidden" name="file_delete_styurl4"  th:value="${view.styurl4}"/>
-                                <input th:if="${view != null}" type="checkbox" name="imagedelete_styurl4" id="imagedelete_styurl4" value="Y"/><em></em><label for="imagedelete_styurl4">삭제</label>
-
                                 <!--/* 신규등록*/-->
                                 <input th:unless="${view != null}" type="hidden" name="file_delete_styurl4"/>
+
+                                <th:block th:if="${view != null and view.styurl4 != null}">
+                                    <input type="hidden" name="file_delete_styurl4" th:value="${view.styurl4}" />
+                                    <input type="checkbox" name="imagedelete_styurl4" id="imagedelete_styurl4" value="Y"/><em></em><label for="imagedelete_styurl4">삭제</label> <th:block th:text="${view.styurl4}"></th:block>
+                                </th:block>
 
                             </div>
                         </td>
