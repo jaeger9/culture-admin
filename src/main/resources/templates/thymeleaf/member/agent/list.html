@@ -101,7 +101,7 @@ $(function () {
 		<!--/* content_header 끝 */-->
 
 
-		<form name="frm" method="get" action="/member/portal/list.do">
+		<form name="frm" method="get" action="/member/agent/list.do">
 			<div class="search_box">
 				<input type="hidden" name="page_no" th:value="${paramMap[page_no]}" />
 				<!-- search -->
@@ -182,12 +182,12 @@ $(function () {
 								<td>
 								<th:block th:text="${#numbers.formatInteger(   (count - (#conversions.convert(paramMap[page_no],'Integer') - 1) * paramMap[list_unit] - status.index),  '3',  'COMMA')}"></th:block>
 								</td>
-								<td><a th:href="@{/member/portal/form.do(user_id=${item.user_id},qs=${paramMap[qs]})}">
+								<td><a th:href="@{/member/agent/form.do(user_id=${item.user_id},qs=${paramMap[qs]})}">
 										[[${item.user_id}]] </a></td>
-								<td><a th:href="@{/member/portal/form.do(user_id=${item.user_id },qs=${paramMap[qs]})}">
+								<td><a th:href="@{/member/agent/form.do(user_id=${item.user_id },qs=${paramMap[qs]})}">
 										[[${item.name}]] </a></td>
 								<td class="subject"><a
-									th:href="@{/member/portal/form.do(user_id=${item.user_id }, qs=${paramMap[qs]})}">
+									th:href="@{/member/agent/form.do(user_id=${item.user_id }, qs=${paramMap[qs]})}">
 										[[${item.email}]] </a>
 								</td>
 								<td>

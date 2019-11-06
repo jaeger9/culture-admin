@@ -62,7 +62,8 @@ public class AgentMemberController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/member/agent/form";
+		//return "/member/agent/form";
+		return "thymeleaf/member/agent/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)

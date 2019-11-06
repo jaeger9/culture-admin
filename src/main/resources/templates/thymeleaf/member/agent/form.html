@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+
+var callback = {
+	uciOrg : function (res) {
+		/*
+			JSON.stringify(res) = {
+				"cateType"	:	"F"
+				,"orgCode"	:	"NLKF02"
+				,"orgId"	:	86
+				,"category"	:	"도서"
+				,"name"		:	"국립중앙도서관"
+			}
+		*/
+		if (res == null) {
+			return false;
+		}
+
+		$('input[name=publisher]').val(res.orgCode);
+		$('input[name=creator]').val(res.name);
+	},
+	userId : function (res) {
+		if (res == null) {
+			return false;
+		}
+
+		$('input[name=user_id]').val(res.user_id);
+		$('input[name=user_id_check]').val(1);
+	}
+};
+
+$(function () {
+
+	// 에디터 HTML 적용
+	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+	// nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+	
+	var frm					=	$('form[name=frm]');
+	var user_id				=	frm.find('input[name=user_id]');
+	var user_id_check		=	frm.find('input[name=user_id_check]');
+	var user_id_btn			=	$('.user_id_btn');
+
+	var pwd					=	frm.find('input[name=pwd]');
+	var name				=	frm.find('input[name=name]');
+	
+	var tel1				=	frm.find('select[name=tel1]');
+	var tel2				=	frm.find('input[name=tel2]');
+	var tel3				=	frm.find('input[name=tel3]');
+	var tel					=	frm.find('input[name=tel]');
+	
+	var hp1					=	frm.find('select[name=hp1]');
+	var hp2					=	frm.find('input[name=hp2]');
+	var hp3					=	frm.find('input[name=hp3]');
+	var hp					=	frm.find('input[name=hp]');
+	
+	var email1				=	frm.find('input[name=email1]');
+	var email2				=	frm.find('input[name=email2]');
+	var email				=	frm.find('input[name=email]');
+
+	var publisher			=	frm.find('input[name=publisher]');
+	var creator				=	frm.find('input[name=creator]');
+	var publisher_btn		=	$('.publisher_btn');
+	
+	frm.submit(function () {
+		// frm.serialize()
+		// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+
+		if (user_id.val() == '') {
+			user_id.focus();
+			alert('아이디를 입력해 주세요.');
+			return false;
+		}
+
+		if (user_id_check.val() != 1) {
+			user_id.focus();
+			alert('아이디 중복 검사를 해주세요.');
+			return false;
+		}
+<c:if test="${empty view }">
+		if (pwd.val() == '') {
+			pwd.focus();
+			alert('비밀번호를 입력해 주세요.');
+			return false;
+		}
+</c:if>
+		if (name.val() == '') {
+			name.focus();
+			alert('이름을 입력해 주세요.');
+			return false;
+		}
+
+		if (tel2.val() == '' || tel3.val() == '') {
+			tel2.focus();
+			alert('전화번호를 입력해 주세요.');
+			return false;
+		}
+
+		if (hp2.val() == '' || hp3.val() == '') {
+			hp2.focus();
+			alert('휴대폰번호를 입력해 주세요.');
+			return false;
+		}
+
+		if (email1.val() == '' || email2.val() == '') {
+			email1.focus();
+			alert('이메일을 입력해 주세요.');
+			return false;
+		}
+
+		tel.val( tel1.val() + '-' + tel2.val() + '-' + tel3.val() );
+		hp.val( hp1.val() + '-' + hp2.val() + '-' + hp3.val() );
+		email.val( email1.val() + '@' + email2.val() );
+
+		return true;
+	});
+
+	user_id.keypress(function (e) {
+		user_id_check.val(0);
+	});
+
+	// 아이디 중복
+	user_id_btn.click(function () {
+		Popup.userId( user_id.val() );
+		return false;
+	});
+	
+	// 출처
+	publisher_btn.add(creator).click(function () {
+		Popup.uciOrg();
+		return false;
+	});
+	
+	// 등록/수정
+	$('.insert_btn').click(function () {
+		frm.submit();
+		return false;
+	});
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="POST" action="/member/agent/form.do"
+			enctype="multipart/form-data">
+			<input type="hidden" name="qs" th:value="${paramMap[qr] }" /> 
+			<input type="hidden" name="user_id" th:value="${view.user_id }" /> 
+			<input type="hidden" name="tel" value="${view.tel}" /> 
+			<input type="hidden" name="hp" th:value="${view.hp }" /> 
+			<input type="hidden" name="email" th:value="${view.email }" /> 
+			<input type="hidden" name="favor_portal" value="${view.favor_portal }" />
+			<div class="cont_box">
+				<table class="tbl_view">
+					<caption>상세 보기</caption>
+					<colgroup>
+						<col style="width:15%" />
+						<col style="width:35%" />
+						<col style="width:15%" />
+						<col style="width:35%" />
+					</colgroup>
+					<tbody>
+					<th:block th:if="${!view.empty}">
+						<tr>
+							<th scope="row">아이디</th>
+							<td>[[${view.user_id }]]</td>
+							<th scope="row">가입일</th>
+							<td>[[${view.join_date }]]</td>
+						</tr>
+					</th:block>
+					<th:block th:unless="${!view.empty}">
+						<tr>
+							<th scope="row">아이디</th>
+							<td>
+							<input type="hidden" name="user_id_check" value="0" />
+							<input type="text" name="user_id" value="${view.user_id }"  />
+							<span class="btn whiteS">
+							<a href="#" class="user_id_btn">아이디 중복</a>
+							</span>
+							</td>
+						</tr>
+					</th:block>
+						<tr>
+							<th scope="row">비밀번호</th>
+							<td colspan="3">
+								<input type="password" name="pwd" value=""  />
+								<th:block th:if="${!view.empty}">
+									<span style="padding-left:5px;color:#999;font-size:11px;">(비밀번호 미입력 시 기존 비밀번호로 유지됩니다.)</span>
+								</th:block>				
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">이름</th>
+							<td colspan="3">
+								<input type="text" name="name" th:value="${view.name}"  />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">성별</th>
+							<td colspan="3">
+								<input type="radio" name="sex" value="M" id="m" ${view.sex ne 'F' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="m">남성</label>
+								<input type="radio" name="sex" id="f" value="F" ${view.sex eq 'F' ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label for="f">여성</label>
+							</td>
+						</tr>
+						<!-- radio button 체크 필요 -->
+							<!-- data 확인 필요 -->
+						<tr>
+							<th scope="row">전화번호</th>
+							<td colspan="3">
+								<select name="tel1">
+									<th:block th:each=" item : ${telList}" >
+										<option value="${item.value}" ${view.tel1 eq item.value ? 'selected="selected"' : '' }>[[${item.name}]]</option>
+									</th:block>
+								</select>
+								-
+								<input type="text" name="tel2" value="${view.tel2 == null ? '' : view.tel2}" maxlength="4" style="width:50px;" />
+								-
+								<input type="text" name="tel3" value="${view.tel3 == null ? '' : view.tel3}" maxlength="4" style="width:50px;" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">휴대폰번호</th>
+							<td colspan="3">
+								<select name="hp1">
+									<th:block th:each=" item: ${phoneList }" >
+										<option th:value="${item.value}" ${view.hp1 eq item.value ? 'selected="selected"' : '' }>[[${item.name}]]</option>
+									</th:block>
+								</select>
+								-
+								<input type="text" name="hp2" th:value="${view.hp2 }" maxlength="4" style="width:50px;" />
+								-
+								<input type="text" name="hp3" th:value="${view.hp3 }" maxlength="4" style="width:50px;" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">E-MAIL</th>
+							<td colspan="3">
+								<input type="text" name="email1" th:value="${view.email1 }" style="width:150px;" />
+								@
+								<input type="text" name="email2" th:value="${view.email2 }" style="width:150px;" />
+				
+								<select name="email3">
+									<option value="">직접입력</option>
+									<th:block  th:each=" item : ${mailList }">
+										<option th:value="${item.value }" ${view.email2 eq item.value ? 'selected="selected"' : '' }>[[${item.name}]]</option>
+									</th:block>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">권한</th>
+							<td colspan="3">
+								<input type="radio" name="auth" value="1" ${view.auth eq 1 ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label>기관회원</label>
+								<input type="radio" name="auth" value="2" ${view.auth eq 2 ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label>	교육관리자</label>
+								<input type="radio" name="auth" value="3" ${view.auth eq 3 ? 'checked="checked"' : '' } /> 
+								<em></em>
+								<label>시설관리자</label>
+							</td>
+								<!-- radio button 체크 필요 -->
+						</tr>
+						<tr>
+							<th scope="row">기관</th>
+							<td colspan="3">
+								<input type="hidden" name="publisher" th:value="${view.publisher}" />
+								<input type="text" name="creator" th:value="${view.creator }" readonly="readonly" style="width:580px" />
+								<span ><a href="#" class="publisher_btn btn_ltype3">기관</a></span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">기관명 직접입력</th>
+							<td colspan="3">
+								<input type="text" name="org_nm" th:value="${view.org_nm }" style="width:150px;" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+		
+				<div class="btn_center">
+					<span ><a href="#" class="insert_btn btn_ltype3" >[[${view.user_id.empty ? '등록' : '수정' }]]</a>
+					</span>
+					<span ><a href="/member/agent/list.do?${paramMap[qr_dec]}" class="list_btn btn_ltype3">목록</a></span>
+				
+						<!-- url 확인 필요 -->
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
