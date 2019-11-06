@@ -70,22 +70,21 @@
 
             new Datepicker(reg_date_start, reg_date_end);
 
+            /*[# th:if="${view != null}"]*/
 
-
-            if(/*[[ ${view} ]]*/ != null) {
-                //radio check
-                if(/*[[ ${view.approval} ]]*/ != null) {
-                    $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
-                }
-                if(/*[[ ${view.note1} ]]*/ != null) {
-                    $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
-                }
-
-                //select box
-                if(/*[[ ${view.genre} ]]*/ != null) {
-                    $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
-                }
+            //radio check
+            if(/*[[ ${view.approval} ]]*/ null) {
+                $('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
             }
+            if(/*[[ ${view.note1} ]]*/ null) {
+                $('input:radio[name="note1"][value=[[ @{${view[note1]}} ]] ]').prop('checked', 'checked');
+            }
+            //select box
+            if(/*[[ ${view.genre} ]]*/ null) {
+                $("select[name=genre]").val(/*[[${view[genre]}]]*/).attr("selected", "selected");
+            }
+
+            /*[/]*/
 
             //썸네일 이미지
             changeNote();
