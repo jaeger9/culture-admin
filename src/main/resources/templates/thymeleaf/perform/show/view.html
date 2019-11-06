@@ -298,7 +298,6 @@
                                 <li><input type="radio" name="note1" id="yes" checked="checked" value="Y"/><em></em> <label for="yes">이미지</label></li>
                                 <li><input type="radio" name="note1" id="no" value="N" /><em></em> <label for="no">URL</label></li>
                             </ul>
-                            <!--/* todo 파일관련 (김현준) */-->
                             <div style="margin-top: 5px;" class="fileInputs">
                                 <input type="file" name="uploadFile" title="파일선택" />
 
@@ -311,7 +310,8 @@
                                 </th:block>
                             </div>
                         </td>
-                        <td>
+                        <!--/* todo 추후 썸네일 이미지 선택값에 따른 로직확인 필요. */-->
+                        <td th:if="${view != null and view.note1 eq 'Y'}">
                             <img th:if="${view.reference_identifier_org != null}" width="40%" alt="썸네일이미지" th:src="@{https://www.culture.go.kr/upload/rdf/{filename}(filename=${view.reference_identifier_org})}" />
                         </td>
                     </tr>
