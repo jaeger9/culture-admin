@@ -26,9 +26,12 @@
 		<pattern>/crosseditor/manage/jsp/*.html</pattern>
 		<pattern>/crosseditor/manage/jsp/*.jsp</pattern>
 		<pattern>/smartEdit/js/*</pattern>
+		<pattern>/popup/*.do</pattern>
+		
 	</excludes>
 	<decorator name="popup" page="popup.jsp">
-		<pattern>/popup/*.do</pattern>
+	<!-- 
+		<pattern>/popup/*.do</pattern> -->
 		<pattern>*Popup.do</pattern>
 		<pattern>/magazine/cultureissue/popup/*.do</pattern>
 		<pattern>/campaign/comment/popup/*.do</pattern>
