@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/admin}">
+<head>
+    <title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
+<!--
+	todo 
+		url 미리보기
+		이미지 삭제
+-->
+<script type="text/javascript">
+/* <![CDATA[ */
+
+var callback = {
+		postalcode :function(res) {
+			if (res == null) {
+				alert('callback data null');
+				return false;
+			}
+			var zip_code = res.zip_code.toString();
+			
+			if($('input[name=zip_yn]:checked').val() == 63)
+				setZipCode(res.sido_name, res.gu_name, res.dong_name1, res.gi_num1, res.gi_num2, zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
+			else if($('input[name=zip_yn]:checked').val() == 64)
+				setZipCode(res.sido_name, res.gu_name, res.road_name, res.buil_num1, res.buil_num2, zip_code.substring(0,3)+"-"+zip_code.substring(3,6));
+		}
+};
+
+$(function () {
+
+	var frm 		= $('form[name=frm]');
+	var cul_place	= frm.find('input[name=cul_place]');
+	var cul_place2	= frm.find('input[name=cul_place2]');
+	var name		= frm.find('input[name=name]');
+	var uploadFile	= frm.find('input[name=uploadFile]');
+	var undefined	= frm.find('input[name=undefined]');
+	var title		= frm.find('input[name=title]');
+	var url			= frm.find('input[name=url]');
+	var tel			= frm.find('input[name=tel]');
+	var zip_code	= frm.find('input[name=zip_code]');
+	//2
+	var zip_yn		= frm.find('input[name=zip_yn]');
+	var addr1		= frm.find('input[name=addr1]');
+	var addr2		= frm.find('input[name=addr2]');
+	//3
+	var approval	= frm.find('input[name=approval]');
+	
+	//layout
+	
+	//radio check
+	if('[[${view.zip_yn}]]')	$('input:radio[name="zip_yn"][value="[[${view.zip_yn}]]"]').prop('checked', 'checked');
+	if('[[${view.approval}]]')	$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+	
+	// 썸네일 이미지 업로드 방식 선택
+	changeNote = function(ele) {
+		
+		if(ele) checked = ele.val();
+		else checked = $(':radio[name=note1]:checked').val();
+		
+		if(checked == 'Y') {
+             $('div.fileInputs').show();
+             $('input[name=imagedelete]').parent().show();
+        }
+		else if(checked == 'N') {
+             $('div.fileInputs').hide();
+             $('input[name=imagedelete]').parent().hide();
+        }
+    }
+    changeNote();
+
+    // 업로드 방식 선택 이벤트
+    $('input[name=note1]').change(function() {
+        changeNote($(this));
+    });
+	
+	
+	frm.submit(function() {
+		//DB NOT NULL 기준 체크
+		if($('#group_type_code').val() == '') {
+			alert('단체구분을 입력하세요');
+			$('#group_type_code').focus();
+			return false;
+		}
+		if(name.val() =='') {
+			alert('단체명 입력하세요');
+			name.focus();
+			return false;
+		}
+		if(title.val() =='') {
+			alert('대표작 입력하세요');
+			title.focus();
+			return false;
+		}
+		if(url.val() =='') {
+			alert('홈페이지 입력하세요');
+			url.focus();
+			return false;
+		}
+		if(tel.val() =='') {
+			alert('연락처 입력하세요');
+			tel.focus();
+			return false;
+		}
+		if(zip_code.val() =='') {
+			alert('우편번호 입력하세요');
+			zip_code.focus();
+			return false;
+		}
+		if(addr1.val() =='') {
+			alert('주소 입력하세요');
+			addr1.focus();
+			return false;
+		}
+		if(addr2.val() =='') {
+			alert('상세주소 입력하세요');
+			addr2.focus();
+			return false;
+		}
+		return true;
+	});
+	
+	// http 자동 붙이기
+    $("#url").change(function() {
+        if(this.value !='' && this.value != undefined && this.value != null) {
+            if (!/^http:\/\//.test(this.value)) {
+                this.value = "http://" + this.value;
+            }
+        }
+    });
+	
+    //URL 미리보기
+    goLink = function() {
+        var url = $('#url').val();
+
+        if(url !='' && url != undefined && url != null) {
+            window.open(url);
+        } else {
+            alert('URL을 입력하여 주세요');
+            $('#url').focus();
+            return false;
+        }
+    };
+	
+	// 팝업 - 미리보기, 우편번호찾기
+	$('.tbl_view a').each(function() {
+	  	$(this).click(function() {
+	    	if( $(this).html() == '우편번호찾기') {
+	    		window.open('/popup/jusoPopup.do', 'postalcodePopup', 'width=570, height=420, scrollbars=yes, resizable=yes');
+	    	}
+	    	else if( $(this).html() == '미리보기') {
+	    		goLink();
+	    	}
+	  	});
+	});
+	
+	//수정 , 삭제 , 등록 
+	$('#grp_view_btns a').each(function() {
+		$(this).click(function() {
+			if($(this).html() == '수정') {
+				if(!confirm('수정하시겠습니까?')) return false;
+        		frm.attr('action' ,'/facility/group/update.do');
+        		document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
+        		frm.submit();
+        	}
+			else if($(this).html() == '삭제') {
+        		if(!confirm('삭제 하시겠습니까?')) return false;
+        		frm.attr('action' ,'/facility/group/delete.do');
+        		frm.submit();
+        	}
+			else if($(this).html() == '등록') {
+        		if(!confirm('등록하시겠습니까?')) return false;
+        		frm.attr('action' ,'/facility/group/insert.do');
+        		document.getElementById("txt_contents").value = CrossEditor.GetBodyValue("XHTML");
+        		frm.submit();
+        	}
+			else if($(this).html() == '목록') {
+        		location.href='/facility/group/list.do';
+			}
+    	});
+	});
+	
+	setZipCode = function (sido,gugun, dong, gi_num1, gi_num2,zip_code) {
+		$('input[name=zip_code]').val(zip_code);
+		$('input[name=addr1]').val(sido+ " " +gugun+ " " +dong+ " " +(gi_num2 != "" ? gi_num1+"-"+gi_num2 : gi_num1) );
+	};
+});
+
+//도로명주소 Open Api
+function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
+	$('input[name=zip_code]').val(zipNo);	//우편번호
+	$('input[name=addr1]').val(addr);		//기본주소
+	$('input[name=addr2]').val(addr2);		//상세주소
+}
+/* ]]> */
+</script>
+</head>
+<body>
+<div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
+    <!--/* content_header 시작 */-->
+    <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+    <!--/* content_header 끝 */-->
+    <div class="cont_box">
+    
+		<form name="frm" method="post" action="/facility/place/insert.do" enctype="multipart/form-data">
+			<input th:if="${view != null}" type="hidden" name="seq" th:value="${view.seq}  "/>
+			<input type="hidden" value="서울" name="cul_place"/>
+			<input type="hidden" value="영등포구" name="cul_place2"/>
+			
+			<table class="tbl_view">
+				<caption>문화예술단체 등록/수정</caption>
+				<colgroup>
+					<col style="width:17%" />
+					<col style="width:33%" />
+					<col style="width:15%" />
+					<col style="width:35%" />
+				</colgroup>
+				
+				<tbody>
+					<tr>
+						<th scope="row">단체구분</th>
+						<td colspan="3">
+							<select title="단체구분" name="group_type_code" id="group_type_code">
+								<option value="" th:selected="${view.group_type_code == ''}" >단체구분</option>
+								<th:block th:each="li : ${facilityGroupTypeList}">
+									<option th:value="${li.code}" th:selected="${view.group_type_code == li.code}" th:text="${li.name}"></option>							
+								</th:block>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">기관/단체명</th>
+						<td colspan="3">
+							<input type="text" name="name" id="name" th:value="${view == null ? '' : view.name}" style="width:70%;">
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">썸네일 이미지</th>
+						<td colspan="3">
+							<ul class="itemlist">
+                                <li><input type="radio" name="note1" id="yes" checked="checked" value="Y"/><em></em> <label for="yes">이미지</label></li>
+                                <li><input type="radio" name="note1" id="no" value="N" /><em></em> <label for="no">URL</label></li>
+                            </ul>
+                            
+                            <!--/* todo 파일관련 (김현준) */-->
+                            <div class="fileInputs" style="margin-top: 5px;">
+                            	<input type="file" name="uploadFile" title="파일선택" />
+
+                                <!--/* 이미지 첨부파일이 있을경우 */-->
+								<th:block th:if="${view !=null and view.img_file != null}">
+									<div>
+										<input type="hidden" name="file_delete" th:value="${view.img_file}" />
+										
+										<span th:text=${view.img_file}></span>
+										<input type="checkbox" name="imagedelete" value="Y" id="imagedelete" /><em></em>
+										<label for="imagedelete"><strong>삭제</strong></label>
+									</div>
+								</th:block>
+                            </div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">대표작</th>
+						<td colspan="3">
+							<input type="text" name="title" th:value="${view == null ? '' : view.title}" style="width:70%;"/>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">간략한 소개</th>
+						<td colspan="3">
+							<!-- 수정 시 -->
+							<th:block th:if="${view != null}">
+								<textarea name="sub_content" style="width:70%; height:100px; resize:none;">[[${view.sub_content}]]</textarea>
+							</th:block>
+							
+							<!-- 등록 시  -->
+							<th:block th:if="${view == null}">
+								<textarea name="sub_content" style="width:70%; height:100px; resize:none;"></textarea>
+							</th:block>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">홈페이지</th>
+						<td colspan="3">
+							<input type="text" name="url" id="url" th:value="${view == null ? '' : view.url}" style="width:70%;">
+							<a href="#" class="btn_stype1">미리보기</a>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">연락처</th>
+						<td colspan="3">
+							<input type="text" name="tel" th:value="${view == null ? '' : view.tel}">
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">주소</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<input type="text" name="zip_code" th:value="${view == null ? '' : view.zip_code}" />
+								<a href="#" class="btn_stype1">우편번호찾기</a>
+								<div style="display:none">
+									<label><input type="radio" value="63" name="zip_yn" checked/>지번주소</label>
+									<label><input type="radio" value="64" name="zip_yn"/>도로명주소</label>
+								</div>
+								
+								<input type="text" name="addr1" th:value="${view == null ? '' : view.addr1}" style="width:70%;" />
+								<input type="text" name="addr2" th:value="${view == null ? '' : view.addr2}" style="width:70%;"/>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">내용</th>
+						<td colspan="3">
+							<script type="text/javascript" th:language="javascript">
+								var CrossEditor = new NamoSE('txt_contents');
+								CrossEditor.params.Width = "100%";
+								CrossEditor.params.Height = "400px";
+								CrossEditor.params.UserLang = "auto";
+								CrossEditor.params.UploadFileSizeLimit = "image:10485760";
+								CrossEditor.params.Font = {"NanumGothic":"나눔고딕","Dotum":"돋움", "Gulim":"굴림", "Batang":"바탕", "Gungsuh":"궁서", "맑은 고딕":"맑은 고딕"  ,"David":"David", "MS Pgothic":"MS Pgothic","Simplified Arabic":"Simplified Arabic","SimSun":"SimSun","Arial":"Arial","Courier New":"Courier New", "Tahoma":"Tahoma", "Times New Roman":"Times New Roman", "verdana":"Verdana"};
+								CrossEditor.EditorStart();
+								function OnInitCompleted(e){
+									e.editorTarget.SetBodyValue(document.getElementById("txt_contents").value);
+								}
+							</script>
+							<textarea id="txt_contents" name="content" style="width:100%;height:400px;display:none;">
+								<th:block th:if="${view != null}">[[${view.content}]]</th:block>
+							</textarea>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">승인여부</th>
+						<td colspan="3">
+							<div class="inputBox">
+								<label><input type="radio" name="approval" th:value="W"/><em></em> 대기</label>
+								<label><input type="radio" name="approval" th:value="Y"/><em></em> 승인</label>
+								<label><input type="radio" name="approval" th:value="N"/><em></em> 미승인</label>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+		
+		<div class="btn_right" id="grp_view_btns">
+			<th:block th:if="${view != null}">
+				<a class="btn_ltype3">수정</a>
+				<a class="btn_ltype3">삭제</a>
+			</th:block>
+			<th:block th:if="${view == null}">
+				<a class="btn_ltype3">등록</a>
+			</th:block>
+			<a class="btn_ltype3">목록</a>
+		</div>
+		
+    </div>
+</div>
+</body>
+</html>
