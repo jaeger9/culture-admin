@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/admin}">
+<head>
+    <title>KCISA 문화포털 통합관리시스템</title>
+<!-- 
+	todo
+	최신순/조회순 기능 원래 없음
+	컨트롤러에서 넘겨주는 page_no없음
+	배포/삭제 기능 체크
+-->
+<script type="text/javascript">
+$(function () {
+
+	//layout
+	fileUpload = function(index){
+		if (!confirm('배포 하시겠습니까?')) return false;
+		
+		frm = $('#frm' + index);
+		frm.attr('action' , "/perform/relay/leaflet/distribute.do");
+		frm.submit();
+
+		return true;
+	}
+
+	fileDel = function(index) {
+		if(!confirm('삭제 하시겠습니까?')) return;
+		
+		frm = $('#frm' + index);
+		frm.attr('action' , "/perform/relay/leaflet/delete.do");
+		frm.submit();
+	}
+	
+	//삭제
+	deleteSites = function () { 
+		
+		if(getCheckBoxCheckCnt() == 0) {
+			alert('삭제할 코드를 선택하세요');
+			return false;
+		}
+		
+		formSubmit('/perform/show/delete.do');
+	}
+	//submit
+	formSubmit = function (url) { 
+		frm.attr('action' , url);
+		frm.submit();		
+	};
+});
+</script>
+</head>
+<body>
+<div id="contents" layout:fragment="contents" th:with="currentMenu=${currentMenu}">
+    <!--/* content_header 시작 */-->
+    <th:block th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+    <!--/* content_header 끝 */-->
+    <div class="cont_box">
+		
+		<!-- 컨트롤러에서 넘겨주는 페이지 번호 없음
+		<input type="hidden" name="page_no" th:value="${paramMap.page_no}"/>
+		<input type="hidden" name="updateStatus" value=""/> 
+		-->
+
+		<!-- 건수  -->
+		<div class="list_header">
+			<p class="totalCnt">
+				총 <span th:text="${#numbers.formatInteger(count, 0, 'COMMA')}"></span>건
+			</p>
+			<div class="right">
+				<select name="sort_type" style="width: 200px;" title="카테고리선택">
+					<option value="latest">최신순</option>
+					<option value="hit">조회순</option>
+				</select>
+			</div>
+		</div>
+
+		<!-- 리스트 -->
+		<table class="tbl_list" summary="리플렛 파일 목록">
+			<caption>리플렛 파일 목록</caption>
+
+			<colgroup>
+				<col style="width:8%" />
+				<col style="width:20%" />
+				<col />
+				<col style="width:12%" />
+			</colgroup>
+
+			<thead>
+				<tr>
+					<th scope="col">번호</th>
+					<th scope="col">기간</th>
+					<th scope="col">리플렛</th>
+					<th scope="col">등록여부</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<th:block th:each="list, status : ${list}">
+					<tr>
+						<td th:text="${status.count}"></td>
+						
+						<th:block th:switch="${list.gubun}">
+							<td th:case="1" th:text="|${list.year}년 01월~02월|"></td>
+							<td th:case="2" th:text="|${list.year}년 03월~04월|"></td>
+							<td th:case="3" th:text="|${list.year}년 05월~06월|"></td>
+							<td th:case="4" th:text="|${list.year}년 07월~08월|"></td>
+							<td th:case="5" th:text="|${list.year}년 09월~10월|"></td>
+							<td th:case="6" th:text="|${list.year}년 11월~12월|"></td>
+						</th:block>
+						
+						<td>
+							<form name="form" th:id="frm + ${status.count}" action="relayLeafletPersist.do" method="post" enctype="multipart/form-data">
+								<input type="file" name="uploadFile"  />
+								<input type="hidden" name="gubun" value="${list.year} + ${list.gubun}" />
+								
+								<span class="btn whiteS"><a href="#" class="btn_stype1" onclick="fileUpload('[[${status.count}]]')">배포</a></span>
+								<span class="btn whiteS"><a href="#" class="btn_stype1" onclick="fileDel('[[${status.count}]]')">삭제</a></span>
+							</form>
+						</td>
+						
+						<td th:if="${fileList != null}">등록</td>
+						<td th:unless="${fileList != null}">미등록</td>
+						
+					</tr>
+				</th:block>
+			</tbody>
+		</table>
+		<!-- //list -->
+		
+    </div>
+</div>
+</body>
+</html>

@@ -44,7 +44,8 @@ public class RelayLeafletController {
 			logger.error(e.getLocalizedMessage());
 		}
 
-		return "/perform/relay/leaflet/list";
+//		return "/perform/relay/leaflet/list";
+		return "thymeleaf/perform/relay/leaflet/list";
 	}
 	
 	@RequestMapping("distribute.do")
