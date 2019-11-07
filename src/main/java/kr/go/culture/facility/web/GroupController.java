@@ -48,7 +48,8 @@ public class GroupController {
 		model.addAttribute("facilityGroupTypeList", ckDatabaseService.readForList("common.codeListSort", paramMap));
 
 
-		return "/facility/group/list";
+//		return "/facility/group/list";
+		return "thymeleaf/facility/group/list";
 	}
 
 	@RequestMapping("view.do")
@@ -67,7 +68,8 @@ public class GroupController {
 			model.addAttribute("view",
 					ckDatabaseService.readForObject("group.view", paramMap));
 
-		return "/facility/group/view";
+//		return "/facility/group/view";
+		return "thymeleaf/facility/group/view";
 	}
 	
 	@RequestMapping("statusUpdate.do")
