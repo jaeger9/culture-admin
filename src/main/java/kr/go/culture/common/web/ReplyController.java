@@ -37,7 +37,8 @@ public class ReplyController {
 		model.addAttribute("list",
 				ckDatabaseService.readForList("reply.list", paramMap));
 
-		return "/common/reply/list";
+//		return "/common/reply/list";
+		return "thymeleaf/common/reply/list";
 	}
 	
 }
