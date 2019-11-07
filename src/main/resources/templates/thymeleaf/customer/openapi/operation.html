@@ -154,63 +154,59 @@ $(function () {
 					<tbody>
 							<tr>
 							<th scope="col">번호</th>
-								<td> [[${status.count }]] ([[${item.id }]])</td>
+							<td colspan="1" style="border-top: 1px solid #e7e7e7" th:text="|${status.count }(${item.id })|"></td>
 							</tr>
 							<tr>
 							<th scope="col">오퍼레이션</th>
 								<td >
-								<input type="text" name="name" th:value="${item.name }" />
+								<input type="text" name="name" th:value="${item.name }" style="width:91% ; margin-right: 51px"  />
 								</td>
 							</tr>
 							<tr>
 								<th scope="col">서비스</th>
 								<td >
-								<input type="text" name="description" th:value="${item.description }" />
+								<input type="text" name="description" th:value="${item.description }"  style="width:91%;  margin-right: 51px" />
 								</td>
 							</tr>
 							<tr>
 								<th scope="col">전송방식</th>
 								<td >
-								<input type="text" name="format" th:value="${item.format }" />
+								<input type="text" name="format" th:value="${item.format }" style="width:91%;  margin-right: 51px"/>
 								</td>
 							</tr>
 							<tr>
 								<th scope="col">URL</th>
 								<td >
-								<input type="text" name="url" th:value="${item.url }" />
+								<input type="text"  name="url" th:value="${item.url }" style="width:91%; margin-right: 51px" />
 								</td>
 							</tr>
 							<tr>
 								<th scope="col">가이드</th>	
 								<td >
-							<input type="text" name="filename" value="${item.filename }" style="width:610px;" />
+							<input type="text" name="filename"  th:value="${item.filename }" style="width:91%;" />
 							<span ><a href="#" class="upload_pop_btn btn_stype3">파일</a></span>
 							<span class="fileView">
 								<th:block th:if="${ item.filename != null }">
-									<a th:href="@{/upload/customer/openapi/${item.filename }}" target="_blank" th:text="${item.filename }">
+									<a th:href="@{/upload/customer/openapi/${item.filename}}" target="_blank" th:value="${item.filename }">
 									</a>
-								</th:block>
+								</th:block><br/>
 								<th:block th:unless="${ item.filename != null }">
 									(파일을 선택해 주세요.)
 								</th:block>
 								</span>
 								</td>
 							</tr>
-							<tr>
-							<td >
-							<a href="#" class="item_delete btn_stype3">삭제</a>
-							</td>
-							</tr>
-							
 					</tbody>
 				</table>
+								<div  style="padding:10px 0 0; display: block; text-align: right;">
+							 <a href="#" class="item_delete btn_stype3">삭제</a>
+							 </div>
 			</div>
 				</th:block>
 				<!-- //list -->
-			
 				
 				<div class="btnBox textRight"
-					style="display: block; text-align: right; padding: 10px 0 0;">
+					style="display: block; text-align: right; padding: 10px 0 0; text-align: right;">
 					<span class="btn white"><a href="#" class="add_btn btn_stype1">추가</a></span>
 					<span class="btn white"><a href="#" class="insert_btn btn_stype1">등록</a></span>
 					<span class="btn gray"><a href="/customer/openapi/list.do?${paramMap.qr_dec }" class="list_btn btn_stype3">목록</a></span>
