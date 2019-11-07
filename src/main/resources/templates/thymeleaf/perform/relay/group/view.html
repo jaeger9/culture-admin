@@ -5,10 +5,12 @@
 	layout:decorate="~{layout/admin}">
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
-<!-- <script type="text/javascript" src="/editor/js/HuskyEZCreator.js" charset="utf-8"></script> -->
+<!-- 
+	순번 selected
+ -->
 <script type="text/javascript" th:inline="javascript">
 /* <![CDATA[ */
-	
+
 var action = "";
 
 var callback = {
@@ -229,7 +231,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
                             </ul>
                             
                             <!--/* todo 파일관련 (김현준) */-->
-                            <div style="margin-top: 5px;">
+                            <div style="margin-top: 5px;" class="fileInputs">
                             	<input type="file" name="uploadFile" title="파일선택" />
 
                                 <!--/* 이미지 첨부파일이 있을경우 */-->

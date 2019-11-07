@@ -8,9 +8,7 @@
 <script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script><!--/* todo 추후 에디터 변경 (김현준) */-->
 <!-- 
 	todo
-		답변등록
-		댓글 삭제
-		관리 메뉴 레이어
+		답변 로직 체크
 -->
 <script type="text/javascript">
 	$(function() {
@@ -118,7 +116,7 @@
 				</th:block>
 
 				<table class="tbl_view">
-					<caption>공연장 등록/수정</caption>
+					<caption>관람후기 수정</caption>
 					<colgroup>
 						<col style="width: 17%" />
 						<col style="width: 33%" />
@@ -136,7 +134,7 @@
 						<tr>
 							<th scope="row">공연/전시 제목</th>
 							<td colspan="3">
-								<span id="preformInfo" th:text="${view.preform_name}"></span>
+								<span id="preformInfo" th:utext="${view.preform_name}"></span>
 
 								<span id="select_show"> <a href="#url" class="btn_stype3">공연/전시 선택</a> </span>
 								<input type="hidden" th:value="${view.preform_name}" name="preform_name" id="preform_name"> 

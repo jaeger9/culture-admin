@@ -50,31 +50,27 @@ $(function () {
 	});
 	
 	// 승인 , 미승인 , 삭제, 보기 이벤트 
-	$('#grp_btn_box > a').each(function() {
+	$('#grp_btn_box > a, .tbl_list a').each(function() {
 		
 		$(this).click(function() {
 
 			if($(this).text() == '삭제') {
-        		
         		if (!confirm('삭제 하시겠습니까?')) return false;
         		deleteSites();
         	}
         	else if($(this).html() == '승인') {
-        		
         		if (!confirm('승인 처리 하시겠습니까?')) return false;
-        		
         		$('input[name=updateStatus]').val('Y');
 				updateStatus();
         	}
         	else if($(this).html() == '미승인') {
-        		
         		if (!confirm('미승인 처리 하시겠습니까?')) return false;
-
         		$('input[name=updateStatus]').val('N');
         		updateStatus();
-			} 
+			}
         	else if($(this).html() == '보기') {
-				var win = window.open($(this).parent().parent().attr('href'), '_blank');
+// 				var win = window.open($(this).parent().parent().attr('href'), '_blank');
+				var win = window.open($(this).attr('href'), '_blank');
 				win.focus();
 			}
     	});
