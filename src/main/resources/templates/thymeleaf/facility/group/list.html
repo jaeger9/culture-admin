@@ -4,10 +4,9 @@
     <title>KCISA 문화포털 통합관리시스템</title>
 <!-- 
 	todo
-		검색 이상
-		검색 후 페이징 이상
+		시작일만 선택 후 검색시 검색 X
 -->
-<script type="text/javascript">
+<script type="text/javascript" th:inline="javascript">
 /* <![CDATA[ */
 $(function () {
 
@@ -30,8 +29,8 @@ $(function () {
 	//paging
 	var p = new Pagination({
 		view		:	'#pagination',
-		page_count	:	'[[${count}]]',
-		page_no		:	'[[${paramMap.page_no}]]',
+		page_count	:	[[${count}]],
+		page_no		:	[[${paramMap.page_no}]],
 		/* link		:	'/main/code/list.do?page_no=__id__', */
 		callback	:	function(pageIndex, e) {
 			page_no.val(pageIndex + 1);
@@ -43,12 +42,9 @@ $(function () {
 	//checkbox
 	new Checkbox('input[name=seqAll]', 'input[name=seq]');
 	
-	//selectbox
-
-	/*[# th:if="${view != null}"]*/
-	if(/*[[ ${paramMap[approval]} ]]*/ null)	$("select[name=approval]").val('[[ ${paramMap[approval]} ]]').attr("selected", "selected");
-	if(/*[[ ${paramMap[searchGubun]} ]]*/ null) $("select[name=searchGubun]").val('[[ ${paramMap[searchGubun]} ]]').attr("selected", "selected");
-	/*[/]*/
+	// selected
+	if( [[${paramMap[approval]}]] )	$("select[name=approval]").val([[${paramMap[approval]}]]).attr("selected", "selected");
+	if( [[${paramMap[searchGubun]}]] ) $("select[name=searchGubun]").val([[${paramMap[searchGubun]}]]).attr("selected", "selected");
 	
 	
 	//검색
@@ -170,7 +166,7 @@ $(function () {
 							<th scope="row">승인여부</th>
 							<td colspan="3">
 								<select name="approval">
-				                    <option value="">전체</option>
+				                    <option value='' th:selected="${paramMap[approval] == null}" th:text="전체"></option>
 				                    <option value="Y">승인</option>
 				                    <option value="N">미승인</option>
 				                    <option value="W">대기</option>
@@ -189,8 +185,7 @@ $(function () {
 							<th scope="row">단체구분</th>
 							<td colspan="3">
 								<select title="단체구분" name="group_type_code" id="group_type_code">
-									<option value='' th:selected="${paramMap[group_type_code] == null}">단체구분</option>
-									
+									<option value='' th:selected="${paramMap[group_type_code] == null}" th:text="단체구분"></option>
 									<th:block th:each="list : ${facilityGroupTypeList}">
 										<option th:value="${list.code}" th:selected="${paramMap[group_type_code] == list.code}" th:text="${list.name}"></option>
 									</th:block>
