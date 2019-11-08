@@ -170,7 +170,7 @@ $(function () {
 							<td colspan="3">
 								<select name="subject" id="subject">
 								<th:block  th:each=" j : ${categoryList }" >
-									<option th:value="${j.value}" th:selected="${item.subject} == ${j.value} ? true : false" th:text="${j.name}"></option>
+									<option th:value="${j.value}" th:selected="${view.subject == j.value ? true : false}" th:text="${j.name}"></option>
 								</th:block>
 								</select>
 							</td>
@@ -240,13 +240,13 @@ $(function () {
 						<tr>
 							<th scope="row">승인여부</th>
 							<td colspan="3">
-								<input type="radio" id="num1" name="approval" value="W" th:checked="${view.approval} == 'W' or ${empty view.approval} ? true : false" /> 
+								<input type="radio" id="num1" name="approval" value="W" th:checked="${view.approval == 'W' ? true : false }" />
 		                        <em></em>  
 								<label for="num1">대기</label>
-								<input type="radio" id="num2" name="approval" value="Y" th:checked="${view.approval} == 'Y' ? true : false"  /> 
+								<input type="radio" id="num2" name="approval" value="Y" th:checked="${view.approval == 'Y' ? true : false }"  />
 								<em></em>
 								<label for="num2">승인</label>
-								<input type="radio" id="num3" name="approval" value="N" th:checked="${view.approval} == 'N' ? true : false"  /> 
+								<input type="radio" id="num3" name="approval" value="N" th:checked="${view.approval == 'N' ? true : false }"  />
 								<em></em>
 								<label for="num3">미승인</label>
 							</td>
@@ -256,13 +256,10 @@ $(function () {
 		
 				<div class="btn_center">
 					<span >
-					<a href="#" class="insert_btn btn_ltype1">[[${ view.id.empty ? '등록' : '수정' }]]</a>
+						<a href="#" class="insert_btn btn_ltype1" th:text="${ view == null ? '등록':'수정'}"></a>
 					</span>
-					<th:block th:if="${!view.id.empty  }">
-						<span ><a href="#" class="delete_btn btn_ltype1">삭제</a></span>
-					</th:block>
-					<span >
-					<a href="/customer/faq/list.do?${paramMap[qr_dec]}" class="list_btn btn_ltype3">목록</a></span>
+					<span th:if="${view != null}" ><a href="#" class="delete_btn btn_ltype1">삭제</a></span>
+					<span><a th:attr="href=${'/customer/sns/list.do?'+paramMap[qr_dec]}" class="list_btn btn_ltype3">목록</a></span>
 				</div>
 			</div>
 		</form>
