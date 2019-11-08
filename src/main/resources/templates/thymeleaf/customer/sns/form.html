@@ -135,7 +135,7 @@ $(function () {
 		<form name="frm" method="POST" action="/customer/sns/form.do"
 			enctype="multipart/form-data">
 			<div class="cont_box">
-					<input type="hidden" name="sort" id="sort" th:value="" />
+					<input type="hidden" name="sort" id="sort" th:value="''" />
 					<input type="hidden" name="qs" th:value="${paramMap[qr] }" />
 					<input type="hidden" name="idx" th:value="${view.idx }" />
 				<table class="tbl_view">
@@ -147,7 +147,7 @@ $(function () {
 						<col style="width:35%" />
 					</colgroup>
 					<tbody>
-					<th:block th:if="${ !view.id.empty }">
+					<th:block th:if="${ view.idx !=null }">
 						<tr>
 							<th scope="row">고유번호</th>
 							<td colspan="">
@@ -177,9 +177,9 @@ $(function () {
 							<th scope="row">구분</th>
 							<td colspan="3">
 								<select name="subject" id="subject">
-								<c:forEach items="${categoryList }" var="j">
-									<option value="${j.value }" <c:if test="${item.subject eq j.value }">selected</c:if>>${j.name }</option>
-								</c:forEach>
+								<th:block  th:each=" j : ${categoryList }" >
+									<option th:value="${j.value }" ${ item.subject ==  j.value ? 'selected="selected"' : ''} th:text="${j.name }"></option>
+								</th:block>
 								</select>
 							</td>
 						<tr>
