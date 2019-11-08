@@ -271,7 +271,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 									<th:block th:if="${view != null}"><!-- 수정  -->
 										<option th:value="${num}" th:selected="${view.order_seq} == ${num}" th:text="${num}"></option>
 									</th:block>
-
 									<th:block th:if="${view == null}"><!-- 등록  -->
 										<option th:value="${num}" th:selected="${num == 1}" th:text="${num}"></option>
 									</th:block>
