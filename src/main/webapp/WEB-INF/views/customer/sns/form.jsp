@@ -167,9 +167,9 @@ $(function () {
 					<th scope="row">구분</th>
 					<td colspan="3">
 						<select name="subject" id="subject">
-<c:forEach items="${categoryList }" var="j">
-							<option value="${j.value }" <c:if test="${item.subject eq j.value }">selected</c:if>>${j.name }</option>
-</c:forEach>
+							<c:forEach items="${categoryList }" var="j">
+								<option value="${j.value }" <c:if test="${item.subject eq j.value }">selected</c:if>>${j.name }</option>
+							</c:forEach>
 						</select>
 					</td>
 				</tr>

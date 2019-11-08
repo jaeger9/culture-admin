@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+$(function () {
+
+	var frm			=	$('form[name=frm]');
+	var category	=	frm.find('select[name=category]');
+	var keyword		=	frm.find('input[name=keyword]');
+	var search_btn	=	frm.find('a[name=search_btn]');
+
+	var search = function () {
+		frm.submit();
+	};
+
+	search_btn.click(function () {
+		search();
+		return false;
+	});
+
+	$('.tmp').each(function () {
+		var data = $(this).data();
+		var v1 = data.v1;
+		var v2 = data.v2;
+		var v3 = 0;
+		
+		if (v1 == 0 && v2 == 0) {
+			v3 = 0;
+		} else if (v1 == 0 && v2 > 0) {
+			v3 = 0;
+		} else if (v1 > 0 && v2 == 0) {
+			v3 = '∞';
+		} else {
+			v3 = ((v2 / v1) * 100).toFixed(2);
+		}
+
+		// console.log(v1 + ':' + v2);
+		
+		$(this).text( v3 + ' %' );
+	});
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+
+
+		<form name="frm" method="get" action="/meta/quality/list.do">
+			<div class="search_box">
+				<input type="hidden" name="view" th:value="list" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>게시판 글 검색</caption>
+					<tbody>
+						<tr>
+							<th scope="row">구분</th>
+							<td>
+							<select name="category">
+							<option value="">전체</option>
+							<option value="관광" ${paramMap.category eq '관광' ? "selected='selected'" :''} >관광</option>
+							<option value="도서" ${paramMap.category eq '도서' ? "selected='selected'" :''}>도서</option>
+							<option value="문화산업" ${paramMap.category eq '문화산업' ? "selected='selected'" :''}>문화산업</option>
+							<option value="문화예술" ${paramMap.category eq '문화예술' ? "selected='selected'" :''}>문화예술</option>
+							<option value="정책" ${paramMap.category eq '정책' ? "selected='selected'" :''}>정책</option>
+							<option value="체육" ${paramMap.category eq '체육' ? "selected='selected'" :''}>체육</option>
+						</select>
+							<input type="text" name="keyword" placeholder="검색어 입력" th:value="${paramMap[keyword] }" /></td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="search_btn">
+					<a class="btn_search" name="search_btn">검색</a>
+				</div>
+			</div>
+			<!-- //search -->
+			<div class="cont_box">
+				<!-- list -->
+				<table class="tbl_list">
+					<caption>게시판 글 목록</caption>
+					<colgroup>
+						<col  />
+						<col style="width:27%;"/>
+						<col style="width:10%;"/>
+						<col style="width:10%;"/>
+						<col style="width:10%;"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col">기관명</th>
+							<th scope="col">수집명</th>
+							<th scope="col">예상항목</th>
+							<th scope="col">수집항목</th>
+							<th scope="col">수집율</th>
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:if="${dataList.empty}">
+							<tr>
+								<td colspan="8">검색된 결과가 없습니다.</td>
+							</tr>
+						</th:block>
+						<th:block th:if="${ !dataList.empty}">
+							<th:block th:with="mrk_cnt='0',collect_cnt='0' ,rowCount='0',rowCount2='0', job_group='',rowColor='ffffff' ">
+							<th:block th:each="list,sts: ${dataList}" >
+								<th:block th:if='${empty job_group || job_group ne list.JOB_GROUP_ID}'>
+									<th:block th:wich="${rowColor}">
+										<th:block th:case='${rowColor eq "F0F0F0" }' >
+											<th:block th:with="rowColor='ffffff' " />
+										</th:block>
+										<th:block th:case='*' >
+											<th:block th:with="rowColor='F0F0F0' " />
+										</th:block>
+									</th:block>
+								</th:block>
+								<th:block th:if='${job_group ne list.JOB_GROUP_ID && sts.index ne 0}'>
+									<th:block th:wich="${rowColor}">
+										<th:block th:case='${rowColor eq "F0F0F0" }' >
+											<th:block th:with="rowColor2='ffffff' " />
+										</th:block>
+										<th:block th:case='*' >
+											<th:block th:with="rowColor2='F0F0F0' " />
+										</th:block>
+									</th:block>
+								</th:block>
+								<th:block th:wich="${job_group}">
+									<th:block th:case='${empty job_group || job_group ne list.JOB_GROUP_ID}'>
+										<tr style="background-color:#<c:out value='${rowColor }' />">
+										<td rowspan="<c:out value='${list.ROW_CNT }' />">
+											<a href='/meta/quality/statisticView.do?group_id=<c:out value='${list.JOB_GROUP_ID }' />&qs=${paramMap.qs }' >
+												<c:out value='${list.JOB_GROUP_NAME }' />
+											</a>
+										</td>
+										<c:set var="job_group" value='${list.JOB_GROUP_ID }' />
+										<c:set var="rowCount2" value='${rowCount2 + 1 }' />
+									</c:when>
+									<c:otherwise>
+										<tr style="background-color:#<c:out value='${rowColor }' />">
+									</c:otherwise>
+								</th:block>
+									<td>
+										<a href="itemQualityView.do?group_id=<c:out value='${list.JOB_GROUP_ID }' />&job_id=<c:out value='${list.JOB_ID }' />" >
+											<c:out value="${list.JOB_NAME }" />
+										</a>
+									</td>
+									<td>
+										<a href="itemQualityEdit.do?group_id=<c:out value='${list.JOB_GROUP_ID }' />&job_id=<c:out value='${list.JOB_ID }' />" >
+											<fmt:formatNumber pattern="#,###" value="${list.MARK_CNT }" />
+										</a>
+									</td>
+									<td>
+										<fmt:formatNumber pattern="#,###" value="${list.COLLECT_CNT }" />
+									</td>
+									<td class="tmp" data-v1="${list.MARK_CNT }" data-v2="${list.COLLECT_CNT }">
+									</td>
+				
+									<c:set var="mark_cnt" value='${mark_cnt + list.MARK_CNT }' />
+									<c:set var="collect_cnt" value='${collect_cnt + list.COLLECT_CNT }' />
+									<c:set var="rowCount" value='${rowCount + 1 }' />
+								</tr>
+							</th:block>
+								<tr style="background-color:#F0F0F0">
+									<td colspan="2">
+										<c:out value='${rowCount2 }' />개 기관 / <c:out value='${rowCount }' />개 수집</td>
+									<td>
+										<fmt:formatNumber pattern="#,###"  value='${mark_cnt }' />
+									</td>
+									<td>
+										<fmt:formatNumber pattern="#,###"  value='${collect_cnt }' />
+									</td>
+									<td class="tmp" data-v1="${mark_cnt }" data-v2="${collect_cnt }"> </td>
+								</tr>
+							</th:block>
+						</th:block>
+					</tbody>
+				</table>
+				<!-- //list -->
+			</div>
+		</form>
+	</div>
+</body>
+</html>
