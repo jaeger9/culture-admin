@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+
+$(function () {
+	
+	// 에디터 HTML 적용
+	// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+	// nhn.husky.EZCreator.createInIFrame( oEditorsOption );
+	
+	String.prototype.IsNum = function(){
+		return (/^[0-9]*$/).test(this);
+	};
+	
+	// 숫자 타입에서 쓸 수 있도록 format() 함수 추가
+	Number.prototype.format = function(){
+	    if(this==0) return 0;
+	 
+	    var reg = /(^[+-]?\d+)(\d{3})/;
+	    var n = (this + '');
+	 
+	    while (reg.test(n)) n = n.replace(reg, '$1' + ',' + '$2');
+	 
+	    return n;
+	};
+	 
+	// 문자열 타입에서 쓸 수 있도록 format() 함수 추가
+	String.prototype.format = function(){
+	    var num = parseFloat(this);
+	    if( isNaN(num) ) return "0";
+	 
+	    return num.format();
+	};
+
+	var frm				=	$('form[name=frm]');
+	var group_id		=	frm.find('input[name=group_id]');
+	var survey_count	=	frm.find('input[name=survey_count]');
+
+	frm.submit(function () {
+		// frm.serialize()
+		// oEditors.getById['contents'].exec("UPDATE_CONTENTS_FIELD", []);
+
+		survey_count.val( survey_count.val().replace(/[^0-9]/g, '') );
+		
+		if (survey_count.val() == '') {
+			survey_count.focus();
+			alert('전수조사 카운트를 입력해 주세요.');
+			return false;
+		}
+
+		return true;
+	});
+
+	// 수정
+	$('.insert_btn').click(function () {
+		frm.submit();
+		return false;
+	});
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="POST" action="/meta/quality/form.do"
+			enctype="multipart/form-data">
+			<div class="search_box">
+				<input type="hidden" name="qs" th:value="${paramMap[qr]}" />
+				<input type="hidden" name="group_id" th:value="${paramMap[group_id] }" />
+				<!-- search -->
+				<table class="tbl_search">
+					<caption>게시판 글 검색</caption>
+					<tbody>
+						<tr>
+							<th scope="row">그룹명</th>
+							<td >[[${viewName.JOB_GROUP_NAME}]]</td>							
+						</tr>
+						<tr>
+							<th scope="row">전수조사 카운트</th>
+							<td>
+								<input type="text" name="survey_count" th:value="${EO.SURVEY_COUNT }" style="width:200px;" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="cont_box">
+				<table class="tbl_view">
+					<caption>상세 보기</caption>
+					<colgroup>
+						<col style="width:15%" />
+						<col style="width:60%" />
+						<col  />
+						<col style="width:15%" />
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col">일자</th>
+							<th scope="col">수집명</th>
+							<th scope="col">수집건수</th>
+							<th scope="col">수집건수 합계</th>
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:if="${ empty dataList  }">
+							<tr>
+								<td colspan="4">
+								검색된 결과가 없습니다.
+								</td>
+							</tr>
+						</th:block>
+						<th:block th:if="${ ! empty dataList  }">
+							<th:block th:with="regdate ='' , rowColor ='' , rowColor2='' , dayTotal = '0', divNum ='' ">
+							<th:block  th:each="list , sts: ${dataList}" >
+								<th:block  th:if='${empty regdate || regdate ne  list.REG_DATE}'>
+										<th:block th:swith="${rowColor}">
+											<th:block th:case="'F0F0F0'" >
+												<th:block th:with="rowColor = 'ffffff'" />
+											</th:block>
+											<th:block th:case="*">
+												<th:block th:with="rowColor = 'F0F0F0'" />
+											</th:block>
+										</th:block>
+								</th:block>
+								<th:block th:if='${regdate ne  list.REG_DATE && sts.index ne 0}'>
+									<th:block th:swith="${rowColor}">
+										<th:block th:case="'F0F0F0'" >
+											<th:block th:with="rowColor2 = 'ffffff'" />
+										</th:block>
+										<th:block th:case="*">
+											<th:block th:with="rowColor2 = 'F0F0F0'" />
+										</th:block>
+									</th:block>
+								</th:block>
+								<tr style="background-color: ${rowColor}">
+									<th:block th:witch="${regdate}">
+										<th:block th:case="${empty regdate || regdate ne list.REG_DATE}" >
+											<th:block th:witch="">
+												<th:block th:case="${dayTotal ne '' || divNum ne ''}">
+													<script type="text/javascript" >
+														$('#totalRow<c:out value="${divNum }" />').text('<fmt:formatNumber pattern="#,###" value="${dayTotal }" />');
+													</script>
+													<th:block th:with="dayTotal = ${list.CNT }" />
+													<th:block th:with="divNum = ${sts.index }" />
+												</th:block>
+												<th:block th:case="*">
+													<th:block th:with="dayTotal = ${list.CNT }" />
+													<th:block th:with="divNum = ${sts.index }" />
+												</th:block>
+											</th:block>
+											<th:block th:with="regdate = ${list.REG_DATE }" />
+										<td>
+											<th:block th:if='${rowspan ne "1" }' th:tex="|rowspan='${rowspan }'|"></th:block>
+												<a th:href="@{/meta/quality/statisticView.do(group_id=${paramMap.group_id })} />" >
+												<th:block th:text='${list.JOB_GROUP_NAME }' />
+											<br />
+											<th:block th:text='|(${list.REG_DATE })|' />
+												</a>
+										</td>
+											<th:block th:case="${empty regdate || regdate ne list.REG_DATE}">
+													<td>
+														<th:block th:text='${list.JOB_NAME}' />
+													</td>
+													<td>
+														<th:block th:text="${#numbers.formatInteger(list.CNT,3,'POINT')}" />
+													</td>
+													<td>
+														<th:block th:if='${rowspan ne "1" }'>
+														rowspan="[[${rowspan }]]"
+														</th:block>
+														<p id="totalRow${sts.index }">
+														<th:block th:text='${sts.index }' />
+													</td>
+											</th:block>	
+											<th:block th:case="*">
+												<td>
+													<th:block th:text='${list.JOB_NAME }' />
+												</td>
+												<td>
+													<th:block th:text="${#numbers.formatInteger(list.CNT,3,'POINT')}" />
+												</td>
+													<th:block th:with="dayTotal=${dayTotal + list.CNT }"  />
+											</th:block>
+										</th:block>
+									</th:block>
+								</tr>
+							</th:block>
+							<script type="text/javascript" >
+								$('#totalRow<c:out value="${divNum }" />').text('<fmt:formatNumber pattern="#,###" value="${dayTotal }" />');
+							</script>
+							</th:block>
+						</th:block>
+					</tbody>
+				</table>
+		
+				<div class="btn_center">
+					<span><a href="#" class="insert_btn btn_ltype3">수정</a></span>
+					<span><a href="/meta/quality/list.do?${paramMap.qr_dec }" class="list_btn btn_ltype3">목록</a></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
