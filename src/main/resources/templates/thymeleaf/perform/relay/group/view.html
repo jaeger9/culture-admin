@@ -5,9 +5,6 @@
 	layout:decorate="~{layout/admin}">
 <head>
 <title>KCISA 문화포털 통합관리시스템</title>
-<!-- 
-	순번 selected
- -->
 <script type="text/javascript" th:inline="javascript">
 /* <![CDATA[ */
 
@@ -271,12 +268,12 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 						<td colspan="3">
 							<select name='order_seq' id='order_seq' class="inputSelectStyle">
 								<th:block th:each="num, status : ${#numbers.sequence(1, 50)}">
-									<th:block th:if="${view == null}">
-										<option th:value="${num}" th:selected="${num == 1}" th:text="${num}"></option>
+									<th:block th:if="${view != null}"><!-- 수정  -->
+										<option th:value="${num}" th:selected="${view.order_seq} == ${num}" th:text="${num}"></option>
 									</th:block>
 
-									<th:block th:if="${view != null}">
-										<option th:value="${num}" th:selected="${view.order_seq == num}" th:text="${num}"></option>
+									<th:block th:if="${view == null}"><!-- 등록  -->
+										<option th:value="${num}" th:selected="${num == 1}" th:text="${num}"></option>
 									</th:block>
 								</th:block>
 							</select>
