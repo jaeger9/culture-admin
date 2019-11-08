@@ -65,7 +65,8 @@ public class PlaceController {
 		model.addAttribute("list",
 				ckDatabaseService.readForList("place.list", paramMap));
 
-		return "/facility/place/list";
+//		return "/facility/place/list";
+		return "thymeleaf/facility/place/list";
 	}
 
 	@RequestMapping("view.do")

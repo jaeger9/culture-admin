@@ -3,6 +3,7 @@
 	<excludes>
 		<pattern>/index.do</pattern>
 		<pattern>/perform/*/*</pattern>
+		<pattern>/facility/*/*</pattern>
 		<pattern>/meta/*/*</pattern>
 		<pattern>/member/*/*</pattern>
 		<pattern>/customer/*/*</pattern>
