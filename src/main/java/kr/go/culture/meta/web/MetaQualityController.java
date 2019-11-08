@@ -93,7 +93,8 @@ public class MetaQualityController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("dataList", service.readForList("mataManager.statisticList", paramMap));
 
-		return "/meta/quality/statisticList";
+		//return "/meta/quality/statisticList";
+		return "thymeleaf/meta/quality/statisticList";
 	}
 
 	// /metaManager/metaStatisticView.do

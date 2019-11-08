@@ -66,12 +66,12 @@ $(function () {
 							<td>
 							<select name="category">
 							<option value="">전체</option>
-							<option value="관광" ${paramMap.category eq '관광' ? "selected='selected'" :''} >관광</option>
-							<option value="도서" ${paramMap.category eq '도서' ? "selected='selected'" :''}>도서</option>
-							<option value="문화산업" ${paramMap.category eq '문화산업' ? "selected='selected'" :''}>문화산업</option>
-							<option value="문화예술" ${paramMap.category eq '문화예술' ? "selected='selected'" :''}>문화예술</option>
-							<option value="정책" ${paramMap.category eq '정책' ? "selected='selected'" :''}>정책</option>
-							<option value="체육" ${paramMap.category eq '체육' ? "selected='selected'" :''}>체육</option>
+							<option value="관광" th:selected="paramMap[category] == '관광' ? true : false"  >관광</option>
+							<option value="도서" th:selected="paramMap[category] == '도서' ? true : false">도서</option>
+							<option value="문화산업" th:selected="paramMap[category] == '문화산업' ? true : false">문화산업</option>
+							<option value="문화예술" th:selected="paramMap[category] == '문화예술' ? true : false">문화예술</option>
+							<option value="정책" th:selected="paramMap[category] == '정책' ? true : false">정책</option>
+							<option value="체육" th:selected="paramMap[category] == '체육' ? true : false">체육</option>
 						</select>
 							<input type="text" name="keyword" placeholder="검색어 입력" th:value="${paramMap[keyword] }" /></td>
 						</tr>
