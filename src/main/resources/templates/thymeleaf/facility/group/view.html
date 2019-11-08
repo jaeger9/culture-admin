@@ -2,13 +2,13 @@
 <html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/admin}">
 <head>
     <title>KCISA 문화포털 통합관리시스템</title>
-<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
 <!--
 	todo 
 		url 미리보기
 		이미지 삭제
 -->
-<script type="text/javascript">
+<script type="text/javascript" src="/crosseditor/js/namo_scripteditor.js"></script>
+<script type="text/javascript" th:inline="javascript">
 /* <![CDATA[ */
 
 var callback = {
@@ -47,9 +47,16 @@ $(function () {
 	
 	//layout
 	
-	//radio check
-	if('[[${view.zip_yn}]]')	$('input:radio[name="zip_yn"][value="[[${view.zip_yn}]]"]').prop('checked', 'checked');
-	if('[[${view.approval}]]')	$('input:radio[name="approval"][value="[[${view.approval}]]"]').prop('checked', 'checked');
+	
+	/*[# th:if="${view != null}"]*/
+		//radio check
+		if(/*[[ ${view.zip_yn} ]]*/ null) {
+			$('input:radio[name="zip_yn"][value=[[ @{${view[zip_yn]}} ]] ]').prop('checked', 'checked');
+		}
+		if(/*[[ ${view.approval} ]]*/ null) {
+			$('input:radio[name="approval"][value=[[ @{${view[approval]}} ]] ]').prop('checked', 'checked');
+		} 
+	/*[/]*/
 	
 	// 썸네일 이미지 업로드 방식 선택
 	changeNote = function(ele) {
@@ -191,6 +198,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 	$('input[name=addr1]').val(addr);		//기본주소
 	$('input[name=addr2]').val(addr2);		//상세주소
 }
+
 /* ]]> */
 </script>
 </head>
@@ -202,7 +210,7 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
     <div class="cont_box">
     
 		<form name="frm" method="post" action="/facility/place/insert.do" enctype="multipart/form-data">
-			<input th:if="${view != null}" type="hidden" name="seq" th:value="${view.seq}  "/>
+			<input th:if="${view != null}" type="hidden" name="seq" th:value="${view.seq}"/>
 			<input type="hidden" value="서울" name="cul_place"/>
 			<input type="hidden" value="영등포구" name="cul_place2"/>
 			
@@ -220,9 +228,18 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 						<th scope="row">단체구분</th>
 						<td colspan="3">
 							<select title="단체구분" name="group_type_code" id="group_type_code">
-								<option value="" th:selected="${view.group_type_code == ''}" >단체구분</option>
-								<th:block th:each="li : ${facilityGroupTypeList}">
-									<option th:value="${li.code}" th:selected="${view.group_type_code == li.code}" th:text="${li.name}"></option>							
+								<!-- 등록 -->
+								<th:block th:if="${view == null}">
+									<option th:selected="true" value="">단체구분</option>
+									<th:block th:each="li : ${facilityGroupTypeList}">
+										<option th:value="${li.code}" th:text="${li.name}"></option>							
+									</th:block>	
+								</th:block>
+								<!-- 수정 -->
+								<th:block th:if="${view != null}" >
+									<th:block th:each="li : ${facilityGroupTypeList}">
+										<option th:value="${li.code}" th:selected="${view.group_type_code == li.code}" th:text="${li.name}"></option>							
+									</th:block>
 								</th:block>
 							</select>
 						</td>
@@ -271,7 +288,6 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 							<th:block th:if="${view != null}">
 								<textarea name="sub_content" style="width:70%; height:100px; resize:none;">[[${view.sub_content}]]</textarea>
 							</th:block>
-							
 							<!-- 등록 시  -->
 							<th:block th:if="${view == null}">
 								<textarea name="sub_content" style="width:70%; height:100px; resize:none;"></textarea>
@@ -331,9 +347,9 @@ function jusoCallBack(sido, gugun, addr, addr2, zipNo) {
 						<th scope="row">승인여부</th>
 						<td colspan="3">
 							<div class="inputBox">
-								<label><input type="radio" name="approval" th:value="W"/><em></em> 대기</label>
-								<label><input type="radio" name="approval" th:value="Y"/><em></em> 승인</label>
-								<label><input type="radio" name="approval" th:value="N"/><em></em> 미승인</label>
+								<label><input type="radio" name="approval" th:value="W" th:checked="${view == null}" /><em></em> 대기</label>
+								<label><input type="radio" name="approval" th:value="Y" /><em></em> 승인</label>
+								<label><input type="radio" name="approval" th:value="N" /><em></em> 미승인</label>
 							</div>
 						</td>
 					</tr>

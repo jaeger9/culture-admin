@@ -150,11 +150,9 @@ $(function () {
     <!--/* content_header 끝 */-->
     <div class="cont_box">
 	
-	
-	
 		<form name="frm" method="get" action="/facility/group/list.do">
-			<input type="hidden" name="page_no" th:value="${paramMap.page_no }" />
 			<input type="hidden" name="updateStatus" value="" />
+			<input type="hidden" name="page_no" th:value="${paramMap.page_no }" />
 			
 			<!-- search -->
 			<div class="search_box">
