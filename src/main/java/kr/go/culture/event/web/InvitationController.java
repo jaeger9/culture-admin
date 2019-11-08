@@ -56,7 +56,8 @@ public class InvitationController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("view", resultMap);
 
-		return "/event/invitation/form";
+		//return "/event/invitation/form";
+		return "thymeleaf/event/invitation/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/admin}">
+<head>
+<title>KCISA 문화포털 통합관리시스템</title>
+<script type="text/javascript">
+
+var callback = {
+	rdfMetadata : function (res) {
+		/*
+			JSON.stringify(res) = {
+				"uci"				:	"..."
+				,"perform_title"	:	"..."
+			}
+		*/
+		if (res == null) {
+			return false;
+		}
+
+		$('input[name=uci]').val(res.uci);
+		$('input[name=perform_title]').val(res.title);
+	}
+};
+
+$(function () {
+
+	var frm				=	$('form[name=frm]');
+	var seq				=	frm.find('input[name=seq]');
+	var content_type	=	frm.find('input[name=content_type]');
+	var title			=	frm.find('input[name=title]');
+	var uci				=	frm.find('input[name=uci]');
+	var perform_title	=	frm.find('input[name=perform_title]');
+	var invitation		=	frm.find('input[name=invitation]');
+	var start_dt		=	frm.find('input[name=start_dt]');
+	var end_dt			=	frm.find('input[name=end_dt]');
+	var win_dt			=	frm.find('input[name=win_dt]');
+	var win_url			=	frm.find('input[name=win_url]');
+	var rights			=	frm.find('input[name=rights]');
+	var references		=	frm.find('input[name=references]');
+	var approval		=	frm.find('input[name=approval]');
+
+	new Datepicker(start_dt, end_dt);
+	setDatepicker(win_dt);
+	
+	frm.submit(function () {
+		// frm.serialize()
+
+		if (seq.val() != '') {
+			if (!confirm('수정하시겠습니까?')) {
+				return false;
+			}
+		}
+		if (content_type.filter(':checked').size() == 0) {
+			content_type.eq(0).focus();
+			alert('구분을 선택해 주세요.');
+			return false;
+		}
+		if (title.val() == '') {
+			title.focus();
+			alert('이벤트명을 입력해 주세요.');
+			return false;
+		}
+		if (uci.val() == '' || perform_title.val() == '') {
+			uci.focus();
+			alert('공연을 선택해 주세요.');
+			return false;
+		}
+		if (start_dt.val() == '') {
+			start_dt.focus();
+			alert('이벤트 시작일을 선택해 주세요.');
+			return false;
+		}
+		if (end_dt.val() == '') {
+			end_dt.focus();
+			alert('이벤트 종료일을 선택해 주세요.');
+			return false;
+		}
+		if (approval.filter(':checked').size() == 0) {
+			approval.eq(0).focus();
+			alert('승인여부를 선택해 주세요.');
+			return false;
+		}
+		return true;
+	});
+
+	// 출처
+	$('.perform_btn').add(perform_title).click(function () {
+		Popup.rdfMetadata('공연/전시');
+		return false;
+	});
+
+	// 등록/수정
+	$('.insert_btn').click(function () {
+		frm.submit();
+		return false;
+	});
+
+	// 삭제
+	if ($('.delete_btn').size() > 0) {
+		$('.delete_btn').click(function () {
+			// 삭제
+			if (!confirm('삭제하시겠습니까?')) {
+				return false;
+			}
+			if (seq.val() == '') {
+				alert('seq가 존재하지 않습니다.');
+				return false;
+			}
+
+			var param = {
+				seqs : [ seq.val() ]
+			};
+
+			$.ajax({
+				url			:	'/event/invitation/delete.do'
+				,type		:	'post'
+				,data		:	$.param(param, true)
+				,dataType	:	'json'
+				,success	:	function (res) {
+					if (res.success) {
+						alert("삭제가 완료 되었습니다.");
+						location.href = $('.list_btn').attr('href');
+
+					} else {
+						alert("삭제 실패 되었습니다.");
+					}
+				}
+				,error : function(data, status, err) {
+					alert("삭제 실패 되었습니다.");
+				}
+			});
+
+			return false;
+		});		
+	}
+
+});
+</script>
+</head>
+<body>
+	<div id="contents" layout:fragment="contents"
+		th:with="currentMenu=${currentMenu}">
+		<!--/* content_header 시작 */-->
+		<th:block
+			th:replace="~{layout/fragments/contentHeader :: contentHeader}"></th:block>
+		<!--/* content_header 끝 */-->
+		<form name="frm" method="POST" action="/event/invitation/form.do"
+			enctype="multipart/form-data">
+			<input type="hidden" name="qs" th:value="${paramMap[qr] }" />
+			<input type="hidden" name="seq" th:value="${view.seq }" />
+			<div class="cont_box">
+				<table class="tbl_view">
+					<caption>상세 보기</caption>
+					<colgroup>
+						<col style="width:15%" />
+						<col style="width:35%" />
+						<col style="width:15%" />
+						<col style="width:35%" />
+					</colgroup>
+					<tbody>
+					<th:block th:if="${view.seq != null}">
+						<tr>
+							<th scope="row">고유번호</th>
+							<td th:text="${view.seq }"> </td>
+							<th scope="row">조회수</th>
+							<td>
+								<th:block th:text="${#numbers.formatInteger( view.view_cnt,  '3',  'COMMA')}"/>
+								[[${ view.view_cnt == null ? '0' : '' }]]
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">등록자</th>
+							<td th:text="${view.user_id }"> </td>
+							<th scope="row">등록일</th>
+							<td th:text="${view.reg_date ==null ? '-' : view.reg_date}"> </td>
+						</tr>
+					</th:block>
+						<tr>
+							<th scope="row">구분</th>
+								<td colspan="3">
+									<input type="radio" id="num1" name="content_type" th:value="1"  th:checked="'1' == ${view.content_type} or ${view.content_type} == null ? true : false"  /> 
+									<em></em>
+									<label for="num1">문화초대이벤트</label>
+									<input type="radio" id="num2"  name="content_type" th:value="2" th:checked="'2' == ${view.content_type} ? true : false"  /> 
+									<em></em>
+									<label for="num2">문화릴레이티켓</label>
+								</td>
+						</tr>
+						<tr>
+							<th scope="row">이벤트명</th>
+							<td colspan="3">
+								<input type="text" name="title" th:value="${view.title }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">공연</th>
+							<td colspan="3">
+								<input type="hidden" name="uci" th:value="${view.uci }" />
+								<input type="text" name="perform_title" th:value="${view.perform_title }" readonly="readonly" style="width:670px" />
+								<span>
+									<a href="#" class="perform_btn btn_ltype3">공연</a>
+								</span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">초대일시</th>
+							<td colspan="3">
+								<input type="text" name="invitation" th:value="${view.invitation }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">이벤트기간</th>
+							<td colspan="3">
+								<input type="text" name="start_dt" th:value="${view.start_dt }" readonly="readonly" />
+								~
+								<input type="text" name="end_dt" th:value="${view.end_dt }" readonly="readonly" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">당첨자발표</th>
+							<td colspan="3">
+								<input type="text" name="win_dt" th:value="${view.win_dt }" readonly="readonly" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">당첨자URL</th>
+							<td colspan="3">
+								<input type="text" name="win_url" th:value="${view.win_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">이벤트 안내</th>
+							<td colspan="3">
+								<input type="text" name="invt_detail" th:value="${view.invt_detail }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">응모방법</th>
+							<td colspan="3">
+								<input type="text" name="invt_cmt" th:value="${view.invt_cmt }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">공연단체명</th>
+							<td colspan="3">
+								<input type="text" name="rights" th:value="${view.rights }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">공연단체연락처</th>
+							<td colspan="3">
+								<input type="text" name="references" th:value="${view.references }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">승인여부</th>
+							<td colspan="3">
+								<input type="radio" id="num5" name="approval" value="W"  th:checked="'W' == ${view.approval} or ${view.approval} ==null ? true : false"  />
+								<em></em>
+								<label for="num5">대기</label>
+								<input type="radio" id="num6"  name="approval" value="Y"  th:checked="'Y' == ${view.approval} ? true : false"  /> 
+								<em></em>
+								<label for="num6">승인</label>
+								<input type="radio" id="num7"  name="approval" value="N"  th:checked="'N' == ${view.approval} ? true : false" /> 
+								<em></em>
+								<label for="num7">미승인</label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+		
+				<div class="btn_center">
+					<span ><a href="#" class="insert_btn btn_ltype3">[[${view.seq == null ? '등록' : '수정' }]]</a></span>
+					<th:block th:if="${not empty view.seq}">
+						<span ><a href="#" class="delete_btn btn_ltype3">삭제</a></span>
+					</th:block >
+					<span ><a href="/event/invitation/list.do?${paramMap.qr_dec }" class="btn_ltype3">목록</a></span>
+					<!-- url 확인필요 -->
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+</html>
