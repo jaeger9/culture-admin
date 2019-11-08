@@ -34,7 +34,8 @@ public class InvitationController {
 		model.addAttribute("count", (Integer) service.readForObject("invitation.count", paramMap));
 		model.addAttribute("list", service.readForList("invitation.list", paramMap));
 
-		return "/event/invitation/list";
+		//return "/event/invitation/list";
+		return "thymeleaf/event/invitation/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)
