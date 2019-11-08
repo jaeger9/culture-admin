@@ -106,40 +106,24 @@ $(function () {
 								<td colspan="8">검색된 결과가 없습니다.</td>
 							</tr>
 						</th:block>
-						<th:block th:if="${ !dataList.empty}">
-							<th:block th:each="list, sts : ${dataList}">
-								<th:block th:with="suvey_total =  '0' , now_total= list.NOW_COUNT ">
-									<tr>
-										<td>
-											<a th:href='@{/meta/quality/form.do(group=${list.JOB_GROUP_ID },qs=${paramMap[qs] })}'>
-												
-												<th:block th:text="${#lists.size(list.SURVEY_COUNT)}" />
-											</a>
-										</td>
-										<td class="tmp1">
-											<th:block th:text="${#numbers.formatInteger(list.SURVEY_COUNT ,  '3',  'COMMA')}"></th:block>
-										</td>
-										<td class="tmp2">
-											<th:block th:text="${#numbers.formatInteger(list.NOW_COUNT,  '3',  'COMMA')}"></th:block>
-										</td>
-										<td>
-										</td>
-									</tr>
-									  <th:block th:attr="suvey_total =  list.SURVEY_COUNT ">
-										 <th:block th:if="${#lists.size(dataList) == sts.index+1}">
-											<tr style="background-color:#F0F0F0">
-												<td> <th:block  th:text='${#lists.size(dataList)}' />개 기관 / 합계</td>
-												<td class="tmp1">
-													<th:block th:text="${#numbers.formatInteger(suvey_total,  '3',  'COMMA')}"></th:block>
-												</td>
-												<td class="tmp2">
-													<th:block th:text="${#numbers.formatInteger(list.NOW_COUNT ,  '3',  'COMMA')}"></th:block>
-												</td>
-												<td>
-												</td>
-											</tr>
-										</th:block>
-									</th:block>
+						<th:block th:if="${ !dataList.empty}" th:with="suvey_total=0,now_total=0,rowCount=0">
+							<th:block th:each="list, sts : ${dataList}" th:with="suvey_total=${suvey_total+list.SURVEY_COUNT },now_total=${list.NOW_COUNT},rowCount=${rowCount + 1}">
+								<tr>
+									<td>
+										<a th:href='@{/meta/quality/form.do(group=${list.JOB_GROUP_ID },qs=${paramMap[qs] })}' th:text="${list.JOB_GROUP_NAME}"></a>
+									</td>
+									<td class="tmp1" th:text="${list.SURVEY_COUNT > 0 ? #numbers.formatInteger(list.SURVEY_COUNT ,  '3',  'COMMA') : 0 }"></td>
+									<td class="tmp2" th:text="${list.NOW_COUNT > 0 ? #numbers.formatInteger(list.NOW_COUNT ,  '3',  'COMMA') : 0 }"></td>
+									<td></td>
+								</tr>
+
+								<th:block th:if="${sts.last}">
+								<tr>
+									<td style="padding: 5px 10px 5px 0;text-align: center;background: #f6f6f6;" th:text="${sts.count +' 개 기관/합계'}"></td>
+									<td style="padding: 5px 10px 5px 0;text-align: center;background: #f6f6f6;" th:text="${#numbers.formatInteger( #aggregates.sum(dataList.![SURVEY_COUNT]),'3','COMMA')}"></td>
+									<td style="padding: 5px 0 5px 0;text-align: center;background: #f6f6f6;" th:text="${ list.NOW_COUNT > 0  ? #numbers.formatInteger( #aggregates.sum(dataList.![NOW_COUNT]),'3','COMMA') :0}"></td>
+									<td style="padding: 5px 10px 5px 0;text-align: center;background: #f6f6f6;"></td>
+								</tr>
 								</th:block>
 							</th:block>
 						</th:block>

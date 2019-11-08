@@ -297,7 +297,7 @@
                         <td th:text="${item.approval}"></td>
                         <td>
                             <input type="hidden" name="menuTD"/>
-                            <a th:href="@{/common/reply/list.do?(rUrl='/perform/show/list.do',uci=${item.uci},seq=${item.seq},menu_cd=1)}" class="btn_stype3">보기</a>(<th:block th:text="${item.reply_cnt}"></th:block>)
+                            <a th:href="@{/common/reply/list.do?(rUrl='/perform/show/list.do',uci=${item.uci},seq=${item.seq},menu_cd=1)}" class="btn_stype3">보기</a><br/>(<th:block th:text="${item.reply_cnt}"></th:block>)
                         </td>
                     </tr>
                     <tr th:if="${list.size() == 0}">
