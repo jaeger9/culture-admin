@@ -39,7 +39,8 @@ public class SnsController {
 		categoryMap.put("common_code_pcode", 190);
 		model.addAttribute("categoryList", service.readForList("common.codeList", categoryMap));
 
-		return "/customer/sns/list";
+//		return "/customer/sns/list";
+		return "thymeleaf/customer/sns/list";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.GET)
@@ -64,8 +65,8 @@ public class SnsController {
 		categoryMap = new ParamMap();
 		categoryMap.put("common_code_pcode", 190);
 		model.addAttribute("categoryList", service.readForList("common.codeList", categoryMap));
-
-		return "/customer/sns/form";
+		return "thymeleaf/customer/sns/form";
+//		return "/customer/sns/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)

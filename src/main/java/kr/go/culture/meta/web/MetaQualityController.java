@@ -34,7 +34,8 @@ public class MetaQualityController {
 		model.addAttribute("paramMap", paramMap);
 		model.addAttribute("dataList", service.readForList("mataManager.metaQualityList", paramMap));
 
-		return "/meta/quality/list";
+//		return "/meta/quality/list";
+		return "thymeleaf/meta/quality/list";
 	}
 
 	// /metaManager/metaQualityView.do
@@ -62,8 +63,8 @@ public class MetaQualityController {
 		model.addAttribute("dataList", service.readForList("mataManager.statisticView", paramMap));
 		model.addAttribute("rowspan", service.readForObject("mataManager.statisticRowCnt", paramMap));
 		model.addAttribute("viewName", service.readForObject("mataManager.statisticViewName", paramMap));
-
-		return "/meta/quality/form";
+		return "thymeleaf/meta/quality/form";
+//		return "/meta/quality/form";
 	}
 
 	@RequestMapping(value = "/form.do", method = RequestMethod.POST)
