@@ -150,7 +150,7 @@ $(function () {
 					<th:block th:if="${ view.idx !=null }">
 						<tr>
 							<th scope="row">고유번호</th>
-							<td colspan="">
+							<td colspan="3">
 							[[${view.idx }]]
 							</td>
 						</tr>
@@ -164,28 +164,91 @@ $(function () {
 							<th:block th:text="${view.reg_date == null ? '-' : view.reg_date}" ></th:block>
 							</td>
 						</tr>
-						<tr>
-							<th scope="row">분야</th>
-							<td colspan="3">
-								<input type="hidden" name="org_code" th:value="${view.org_code }" />
-								<input type="text" name="category" th:value="${view.category }" readonly="readonly" style="width:580px" />
-								<span ><a href="#" class=" btn_ltype3">출처</a></span>
-							</td>
-						</tr>
 						</th:block>
 						<tr>
 							<th scope="row">구분</th>
 							<td colspan="3">
 								<select name="subject" id="subject">
 								<th:block  th:each=" j : ${categoryList }" >
-									<option th:value="${j.value }" ${ item.subject ==  j.value ? 'selected="selected"' : ''} th:text="${j.name }"></option>
+									<option th:value="${j.value}" th:selected="${item.subject} == ${j.value} ? true : false" th:text="${j.name}"></option>
 								</th:block>
 								</select>
 							</td>
 						<tr>
 							<th scope="row">기관명</th>
 							<td colspan="3">
-							<input type="text" name="title" th:value="${view.name }" style="width:670px" />
+							<input type="text" name="title" th:value="${view.creator}" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">기관	URL</th>
+							<td colspan="3">
+								<input type="text" name="organ_url" th:value="${view.organ_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">블로그 URL</th>
+							<td colspan="3">
+								<input type="text" name="blog_url" th:value="${view.blog_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">블로그 RSS URL</th>
+							<td colspan="3">
+								<input type="text" name="blog_url_rss" th:value="${view.blog_url_rss }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">트위터 URL</th>
+							<td colspan="3">
+								<input type="text" name="twitter_url" th:value="${view.twitter_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">인스타그램 URL</th>
+							<td colspan="3">
+								<input type="text" name="instagram_url" th:value="${view.instagram_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">페이스북 URL</th>
+							<td colspan="3">
+								<input type="text" name="face_url" th:value="${view.face_url }" style="width:670px" />
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">유투브 URL</th>
+							<td colspan="3">
+								<input type="text" name="youtube_url" th:value="${view.youtube_url }" style="width:670px" />
+							</td>
+						</tr>
+					
+						
+						<tr>
+							<th scope="row">썸네일 이미지</th>
+							<td colspan="3">
+								<input type="text" name="img_url" th:value="${view.img_url }" style="width:580px" />
+								<span ><a href="#" class="upload_pop_btn btn_ltype3">파일</a></span>
+								<div class="upload_pop_msg" style="font-size: 10px ; color: #ccc;">(40px * 40px 크기의 이미지를 선택해 주세요.)</div>
+								<div class="upload_pop_img">
+									<th:block  th:if="${view.img_url !=null }">
+										<img th:src="@{/upload/recom/sns/${view.img_url }}" width="40" height="40" alt="" />
+									</th:block>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">승인여부</th>
+							<td colspan="3">
+								<input type="radio" id="num1" name="approval" value="W" th:checked="${view.approval} == 'W' or ${empty view.approval} ? true : false" /> 
+		                        <em></em>  
+								<label for="num1">대기</label>
+								<input type="radio" id="num2" name="approval" value="Y" th:checked="${view.approval} == 'Y' ? true : false"  /> 
+								<em></em>
+								<label for="num2">승인</label>
+								<input type="radio" id="num3" name="approval" value="N" th:checked="${view.approval} == 'N' ? true : false"  /> 
+								<em></em>
+								<label for="num3">미승인</label>
 							</td>
 						</tr>
 					</tbody>
