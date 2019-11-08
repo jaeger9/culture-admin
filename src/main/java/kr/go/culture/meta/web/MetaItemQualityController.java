@@ -33,7 +33,8 @@ public class MetaItemQualityController {
 		ParamMap paramMap = new ParamMap(request);
 		model.addAttribute("dataList", service.readForList("mataManager.itemQualityList", paramMap));
 		model.addAttribute("paramMap", paramMap);
-		return "/meta/qualityItem/itemQualityList";
+		//return "/meta/qualityItem/itemQualityList";
+		return "thymeleaf/meta/qualityItem/itemQualityList";
 	}
 
 	@RequestMapping(value = "/itemQualityView.do", method = RequestMethod.GET)
