@@ -2,6 +2,7 @@
 <decorators defaultdir="/WEB-INF/views/decorators">
 	<excludes>
 		<pattern>/index.do</pattern>
+		<pattern>/main/*/*</pattern>
 		<pattern>/perform/*/*</pattern>
 		<pattern>/event/*/*</pattern>
 		<pattern>/facility/*/*</pattern>
